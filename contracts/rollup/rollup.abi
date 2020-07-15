@@ -12,96 +12,6 @@
       "type": "constructor"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "ERR_FROM_TOKEN_TYPE",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "ERR_TOKEN_ADDR_INVAILD",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "ERR_TOKEN_AMT_INVAILD",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "ERR_TOKEN_NOT_ENOUGH_BAL",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "ERR_TO_TOKEN_TYPE",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "NO_ERR",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
       "constant": false,
       "inputs": [],
       "name": "SlashAndRollback",
@@ -674,9 +584,18 @@
         },
         {
           "internalType": "bytes",
+<<<<<<< HEAD
           "name": "",
           "type": "bytes"
         },
+=======
+          "name": "txBytes",
+          "type": "bytes"
+        }
+      ],
+      "name": "ApplyTx",
+      "outputs": [
+>>>>>>> 6cd057acd47b5ac58473deec933da0ded4f5c502
         {
           "internalType": "bytes",
           "name": "",
@@ -711,6 +630,7 @@
           "type": "bytes32"
         },
         {
+<<<<<<< HEAD
           "components": [
             {
               "internalType": "uint256",
@@ -736,6 +656,16 @@
           "internalType": "struct Types.BurnConsent",
           "name": "_tx",
           "type": "tuple"
+=======
+          "internalType": "bytes",
+          "name": "sig",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+>>>>>>> 6cd057acd47b5ac58473deec933da0ded4f5c502
         },
         {
           "components": [
@@ -901,9 +831,9 @@
           "type": "bytes"
         },
         {
-          "internalType": "uint256",
+          "internalType": "enum Types.ErrorCode",
           "name": "",
-          "type": "uint256"
+          "type": "uint8"
         },
         {
           "internalType": "bool",
