@@ -104,24 +104,25 @@ func (acc *UserAccount) UpdatePath(path string) {
 }
 
 func (acc *UserAccount) String() string {
-	_, balance, nonce, token, _ := LoadedBazooka.DecodeAccount(acc.Data)
-	return fmt.Sprintf("ID: %d Bal: %d Nonce: %d Token: %v Path: %v TokenType:%v NodeType: %v", acc.AccountID, balance, nonce, token, acc.Path, acc.Type, acc.Hash)
+	_, balance, nonce, token, burn, lastBurn, _ := LoadedBazooka.DecodeAccount(acc.Data)
+	return fmt.Sprintf("ID: %d Bal: %d Nonce: %d Token: %v Path: %v TokenType:%v NodeType: %v Burn: %v LastBurn: %v", acc.AccountID, balance, nonce, token, acc.Path, acc.Type, acc.Hash, burn, lastBurn)
 }
 
-func (acc *UserAccount) ToABIAccount() (rollupTx rollup.TypesUserAccount, err error) {
-	fmt.Println("accountData", acc.Type)
-	var ID, balance, nonce, token *big.Int = big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0)
+func (acc *UserAccount) ToABIAccount() (rollupAcc rollup.TypesUserAccount, err error) {
+	var ID, balance, nonce, token, burn, lastBurn *big.Int = big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0)
 	if acc.Type == TYPE_TERMINAL {
-		ID, balance, nonce, token, err = LoadedBazooka.DecodeAccount(acc.Data)
+		ID, balance, nonce, token, burn, lastBurn, err = LoadedBazooka.DecodeAccount(acc.Data)
 		if err != nil {
 			fmt.Println("unable to convert", err)
 			return
 		}
 	}
-	rollupTx.ID = ID
-	rollupTx.Balance = balance
-	rollupTx.Nonce = nonce
-	rollupTx.TokenType = token
+	rollupAcc.ID = ID
+	rollupAcc.Balance = balance
+	rollupAcc.Nonce = nonce
+	rollupAcc.TokenType = token
+	rollupAcc.Burn = burn
+	rollupAcc.LastBurn = lastBurn
 	return
 }
 
