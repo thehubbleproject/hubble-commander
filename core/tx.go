@@ -126,6 +126,8 @@ func (tx *Tx) Compress() ([]byte, error) {
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
 		return LoadedBazooka.CompressTransferTx(*tx)
+	case TX_AIRDROP_TYPE:
+		return LoadedBazooka.CompressAirdropTx(*tx)
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return []byte(""), nil
