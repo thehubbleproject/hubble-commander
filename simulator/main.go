@@ -103,7 +103,7 @@ func (s *Simulator) sendTxsToAndFro() {
 			s.Logger.Error("unable to fetch latest account", "error", err)
 			return
 		}
-		_, _, nonce, token, err := s.LoadedBazooka.DecodeAccount(latestFromAcc.Data)
+		_, _, nonce, token, _, _, err := s.LoadedBazooka.DecodeAccount(latestFromAcc.Data)
 		if err != nil {
 			s.Logger.Error("unable to decode account", "error", err)
 			return

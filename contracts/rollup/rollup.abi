@@ -404,6 +404,11 @@
         },
         {
           "internalType": "bytes",
+          "name": "sig",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
           "name": "txBytes",
           "type": "bytes"
         },
@@ -791,6 +796,11 @@
           "internalType": "bytes32",
           "name": "_accountsRoot",
           "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "sig",
+          "type": "bytes"
         },
         {
           "internalType": "bytes",
