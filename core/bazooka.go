@@ -300,6 +300,19 @@ func (b *Bazooka) CompressAirdropTx(tx Tx) ([]byte, error) {
 		return nil, err
 	}
 	return b.RollupUtils.CompressAirdropTxWithMessage(&opts, tx.Data, sigBytes)
+func (b *Bazooka) DecompressTransferTxs(compressedTxs [][]byte) (from, to, amount []*big.Int, sig [][]byte, err error) {
+	for _, compressedTx := range compressedTxs {
+		opts := bind.CallOpts{From: config.OperatorAddress}
+		decompressedTx, err := b.RollupUtils.DecompressTx(&opts, compressedTx)
+		if err != nil {
+			return from, to, amount, sig, err
+		}
+		from = append(from, decompressedTx.From)
+		to = append(to, decompressedTx.To)
+		amount = append(amount, decompressedTx.Amount)
+		sig = append(sig, decompressedTx.Sig)
+	}
+	return from, to, amount, sig, nil
 }
 
 func (b *Bazooka) EncodeTransferTx(from, to, token, nonce, amount, txType int64) ([]byte, error) {
@@ -339,13 +352,6 @@ func (b *Bazooka) GetGenesisAccounts() (genesisAccount []UserAccount, err error)
 	return
 }
 
-func (b *Bazooka) GetZeroValue() (genesisAccount []UserAccount, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	// get genesis accounts
-	accounts, err := b.RollupUtils.GetGenesisDataBlocks(&opts)
-	if err != nil {
-		return
-	}
 	for _, account := range accounts {
 		ID, _, _, _, _, _, _ := b.DecodeAccount(account)
 		genesisAccount = append(genesisAccount, *NewUserAccount(ID.Uint64(), STATUS_ACTIVE, "", UintToString(ID.Uint64()), account))
@@ -436,7 +442,6 @@ func (b *Bazooka) SubmitBatch(updatedRoot ByteArray, txs []Tx) error {
 		"txs",
 		len(txs),
 	)
-
 	var compressedTxs [][]byte
 	for _, tx := range txs {
 		compressedTx, err := tx.Compress()
@@ -467,16 +472,34 @@ func (b *Bazooka) SubmitBatch(updatedRoot ByteArray, txs []Tx) error {
 		return err
 	}
 
-	tx, err := b.RollupContract.SubmitBatch(auth, compressedTxs, updatedRoot, uint8(txs[0].Type))
+	latestBatch, err := DBInstance.GetLatestBatch()
 	if err != nil {
 		return err
 	}
+
+	newBatch := Batch{
+		BatchID:   latestBatch.BatchID + 1,
+		StateRoot: updatedRoot.String(),
+		Committer: config.OperatorAddress.String(),
+		Status:    BATCH_BROADCASTED,
+	}
+	b.log.Info("Broadcasting a new batch", "newBatch", newBatch)
+	err = DBInstance.AddNewBatch(newBatch)
+	if err != nil {
+		return err
+	}
+	tx, err := b.RollupContract.SubmitBatch(auth, compressedTxs, updatedRoot,uint8(txs[0].Type))
+	if err != nil {
+		return err
+	}
+
 	b.log.Info("Sent a new batch!", "txHash", tx.Hash().String())
 	return nil
 }
 
 func GetTxsFromInput(input map[string]interface{}) (txs [][]byte) {
-	return input["_txs"].([][]byte)
+	data := input["_txs"].([][]byte)
+	return data
 }
 
 func (b *Bazooka) GenerateAuthObj(client *ethclient.Client, callMsg ethereum.CallMsg) (auth *bind.TransactOpts, err error) {
