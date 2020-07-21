@@ -3,7 +3,7 @@ package core
 import (
 	"encoding/hex"
 
-	"github.com/BOPR/contracts/rollup"
+	"github.com/BOPR/contracts/rollupcaller"
 )
 
 type AccountMerkleProof struct {
@@ -15,7 +15,7 @@ func NewAccountMerkleProof(account UserAccount, siblings []UserAccount) AccountM
 	return AccountMerkleProof{Account: account, Siblings: siblings}
 }
 
-func (m *AccountMerkleProof) ToABIVersion() (AccMP rollup.TypesAccountMerkleProof, err error) {
+func (m *AccountMerkleProof) ToABIVersion() (AccMP rollupcaller.TypesAccountMerkleProof, err error) {
 	// create siblings
 	var siblingNodes [][32]byte
 	for _, s := range m.Siblings {
@@ -27,8 +27,8 @@ func (m *AccountMerkleProof) ToABIVersion() (AccMP rollup.TypesAccountMerkleProo
 		return
 	}
 
-	AccMP = rollup.TypesAccountMerkleProof{
-		AccountIP: rollup.TypesAccountInclusionProof{
+	AccMP = rollupcaller.TypesAccountMerkleProof{
+		AccountIP: rollupcaller.TypesAccountInclusionProof{
 			PathToAccount: StringToBigInt(m.Account.Path),
 			Account:       account,
 		},
@@ -48,7 +48,7 @@ func NewPDAProof(path string, publicKey string, siblings []UserAccount) PDAMerkl
 	return PDAMerkleProof{PublicKey: publicKey, Siblings: siblings, Path: path}
 }
 
-func (m *PDAMerkleProof) ToABIVersion() rollup.TypesPDAMerkleProof {
+func (m *PDAMerkleProof) ToABIVersion() rollupcaller.TypesPDAMerkleProof {
 	// create siblings
 	var siblingNodes [][32]byte
 	for _, s := range m.Siblings {
@@ -58,10 +58,10 @@ func (m *PDAMerkleProof) ToABIVersion() rollup.TypesPDAMerkleProof {
 	if err != nil {
 		panic(err)
 	}
-	return rollup.TypesPDAMerkleProof{
-		Pda: rollup.TypesPDAInclusionProof{
+	return rollupcaller.TypesPDAMerkleProof{
+		Pda: rollupcaller.TypesPDAInclusionProof{
 			PathToPubkey: StringToBigInt(m.Path),
-			PubkeyLeaf:   rollup.TypesPDALeaf{Pubkey: pubkey},
+			PubkeyLeaf:   rollupcaller.TypesPDALeaf{Pubkey: pubkey},
 		},
 		Siblings: siblingNodes,
 	}

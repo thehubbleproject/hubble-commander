@@ -244,11 +244,11 @@ func (s *Syncer) ApplyTxsFromBatch(txs [][]byte) error {
 		if err != nil {
 			return err
 		}
-		_, _, nonce, token, err := s.loadedBazooka.DecodeAccount(fromAccount.Data)
+		_, _, nonce, token, burn, lastBurn, err := s.loadedBazooka.DecodeAccount(fromAccount.Data)
 		if err != nil {
 			return err
 		}
-		s.Logger.Debug("Decoded account", "nonce", nonce, "token", token)
+		s.Logger.Debug("Decoded account", "nonce", nonce, "token", token, "burn", burn.String(), lastBurn.String())
 		txData, err := s.loadedBazooka.EncodeTransferTx(from[i].Int64(), to[i].Int64(), token.Int64(), nonce.Int64(), amount[i].Int64(), core.TX_TRANSFER_TYPE)
 		if err != nil {
 			return err

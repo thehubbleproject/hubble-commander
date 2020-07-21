@@ -8,7 +8,7 @@ import (
 	"math/big"
 
 	"github.com/BOPR/common"
-	"github.com/BOPR/contracts/rollup"
+	"github.com/BOPR/contracts/rollupcaller"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/jinzhu/gorm"
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
@@ -111,7 +111,7 @@ func (acc *UserAccount) String() string {
 	return fmt.Sprintf("ID: %d Bal: %d Nonce: %d Token: %v Path: %v TokenType:%v NodeType: %v Burn: %v LastBurn: %v", acc.AccountID, balance, nonce, token, acc.Path, acc.Type, acc.Hash, burn, lastBurn)
 }
 
-func (acc *UserAccount) ToABIAccount() (rollupAcc rollup.TypesUserAccount, err error) {
+func (acc *UserAccount) ToABIAccount() (rollupAcc rollupcaller.TypesUserAccount, err error) {
 	var ID, balance, nonce, token, burn, lastBurn *big.Int = big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0)
 	if acc.Type == TYPE_TERMINAL {
 		ID, balance, nonce, token, burn, lastBurn, err = LoadedBazooka.DecodeAccount(acc.Data)
@@ -161,12 +161,12 @@ func (acc *UserAccount) IsCoordinator() bool {
 	return true
 }
 
-func (acc *UserAccount) AccountInclusionProof(path int64) (accInclusionProof rollup.TypesAccountInclusionProof, err error) {
+func (acc *UserAccount) AccountInclusionProof(path int64) (accInclusionProof rollupcaller.TypesAccountInclusionProof, err error) {
 	accABI, err := acc.ToABIAccount()
 	if err != nil {
 		return
 	}
-	accInclusionProof = rollup.TypesAccountInclusionProof{
+	accInclusionProof = rollupcaller.TypesAccountInclusionProof{
 		PathToAccount: big.NewInt(path),
 		Account:       accABI,
 	}

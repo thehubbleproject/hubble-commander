@@ -85,7 +85,7 @@ func (s *Simulator) SimulationStart(ctx context.Context, interval time.Duration)
 
 // tries sending transactins to and fro accounts to the rollup node
 func (s *Simulator) sendTxsToAndFro() {
-	transferAmount := 1
+	// transferAmount := 1
 	FromID := uint64(2)
 	ToID := uint64(3)
 
@@ -97,32 +97,32 @@ func (s *Simulator) sendTxsToAndFro() {
 	}
 
 	for i := 0; i < 3; i++ {
-		latestFromAcc, err := s.DB.GetAccountByID(FromID)
-		if err != nil {
-			s.Logger.Error("unable to fetch latest account", "error", err)
-			return
-		}
-		_, _, nonce, token, _, _, err := s.LoadedBazooka.DecodeAccount(latestFromAcc.Data)
-		if err != nil {
-			s.Logger.Error("unable to decode account", "error", err)
-			return
-		}
-		txBytes, err := s.LoadedBazooka.EncodeTransferTx(int64(FromID), int64(ToID), int64(token.Uint64()), int64(nonce.Uint64())+1, int64(transferAmount), 1)
-		if err != nil {
-			s.Logger.Error("unable to encode tx", "error", err)
-			return
-		}
-		txCore := core.NewPendingTx(FromID, ToID, core.TX_TRANSFER_TYPE, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		// latestFromAcc, err := s.DB.GetAccountByID(FromID)
+		// if err != nil {
+		// 	s.Logger.Error("unable to fetch latest account", "error", err)
+		// 	return
+		// }
+		// _, _, nonce, token, _, _, err := s.LoadedBazooka.DecodeAccount(latestFromAcc.Data)
+		// if err != nil {
+		// 	s.Logger.Error("unable to decode account", "error", err)
+		// 	return
+		// }
+		// txBytes, err := s.LoadedBazooka.EncodeCreateAccountTx(int64(ToID), int64(token.Uint64()))
+		// if err != nil {
+		// 	s.Logger.Error("unable to encode tx", "error", err)
+		// 	return
+		// }
+		// txCore := core.NewPendingTx(FromID, ToID, core.TX_TRANSFER_TYPE, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
 
-		err = s.DB.InsertTx(&txCore)
-		if err != nil {
-			s.Logger.Error("unable to insert tx", "error", err)
-			return
-		}
-		s.Logger.Info("Sent a tx!", "TxHash", txCore.TxHash, "From", txCore.From, "To", txCore.To)
+		// err = s.DB.InsertTx(&txCore)
+		// if err != nil {
+		// 	s.Logger.Error("unable to insert tx", "error", err)
+		// 	return
+		// }
+		// s.Logger.Info("Sent a tx!", "TxHash", txCore.TxHash, "From", txCore.From, "To", txCore.To)
 
-		if txCore.From == uint64(2) {
-			s.toSwap = true
-		}
+		// if txCore.From == uint64(2) {
+		// 	s.toSwap = true
+		// }
 	}
 }

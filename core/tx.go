@@ -1,13 +1,11 @@
 package core
 
 import (
-	"fmt"
-
 	"encoding/hex"
+	"fmt"
 
 	"github.com/BOPR/config"
 	ethCmn "github.com/ethereum/go-ethereum/common"
-
 	"github.com/ethereum/go-ethereum/rlp"
 	"golang.org/x/crypto/sha3"
 )
@@ -18,10 +16,10 @@ type Tx struct {
 	To        uint64 `json:"to"`
 	From      uint64 `json:"from"`
 	Data      []byte `json:"data"`
-	Signature string `json:"sig" gorm:"not null"`
+	Signature string `json:"sig" gorm:"null"`
 	TxHash    string `json:"hash" gorm:"not null"`
 	Status    uint64 `json:"status"`
-	Type      uint64 `json:"type"`
+	Type      uint64 `json:"type" gorm:"not null"`
 }
 
 // NewTx creates a new transaction
@@ -121,18 +119,6 @@ func (tx *Tx) Apply(updatedFrom, updatedTo []byte) error {
 
 func (t *Tx) String() string {
 	return fmt.Sprintf("To: %v From: %v Status:%v Hash: %v Data: %v", t.To, t.From, t.Status, t.TxHash, hex.EncodeToString(t.Data))
-}
-
-func (tx *Tx) Compress() ([]byte, error) {
-	switch txType := tx.Type; txType {
-	case TX_TRANSFER_TYPE:
-		return LoadedBazooka.CompressTransferTx(*tx)
-	case TX_AIRDROP_TYPE:
-		return LoadedBazooka.CompressAirdropTx(*tx)
-	default:
-		fmt.Println("TxType didnt match any options", tx.Type)
-		return []byte(""), nil
-	}
 }
 
 // Insert tx into the DB
