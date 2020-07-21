@@ -86,7 +86,7 @@ type TypesUserAccount struct {
 }
 
 // RolluputilsABI is the input ABI used to generate the binding from.
-const RolluputilsABI = "[{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"bytes\",\"name\":\"pubkey\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.PDALeaf\",\"name\":\"_PDA_Leaf\",\"type\":\"tuple\"}],\"name\":\"PDALeafToHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"original_account\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"new_balance\",\"type\":\"uint256\"}],\"name\":\"UpdateBalanceInAccount\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"updated_account\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"account\",\"type\":\"tuple\"}],\"name\":\"BalanceFromAccount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"accountBytes\",\"type\":\"bytes\"}],\"name\":\"AccountFromBytes\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"account\",\"type\":\"tuple\"}],\"name\":\"BytesFromAccount\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"name\":\"BytesFromAccountDeconstructed\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"name\":\"getAccountHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"account\",\"type\":\"tuple\"}],\"name\":\"HashFromAccount\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressTx\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressTx\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressTxWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"TxFromBytesDeconstructed\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"TxFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromTx\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BytesFromTxDeconstructed\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"HashFromTx\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"getTxSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"pub\",\"type\":\"bytes\"}],\"name\":\"calculateAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"GetGenesisLeaves\",\"outputs\":[{\"internalType\":\"bytes32[2]\",\"name\":\"leaves\",\"type\":\"bytes32[2]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"GetGenesisDataBlocks\",\"outputs\":[{\"internalType\":\"bytes[2]\",\"name\":\"dataBlocks\",\"type\":\"bytes[2]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
+const RolluputilsABI = "[{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"bytes\",\"name\":\"pubkey\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.PDALeaf\",\"name\":\"_PDA_Leaf\",\"type\":\"tuple\"}],\"name\":\"PDALeafToHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"accountBytes\",\"type\":\"bytes\"}],\"name\":\"AccountFromBytes\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"account\",\"type\":\"tuple\"}],\"name\":\"BytesFromAccount\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"name\":\"BytesFromAccountDeconstructed\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"name\":\"getAccountHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"account\",\"type\":\"tuple\"}],\"name\":\"HashFromAccount\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"pub\",\"type\":\"bytes\"}],\"name\":\"calculateAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"GetGenesisLeaves\",\"outputs\":[{\"internalType\":\"bytes32[2]\",\"name\":\"leaves\",\"type\":\"bytes32[2]\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"GetGenesisDataBlocks\",\"outputs\":[{\"internalType\":\"bytes[2]\",\"name\":\"dataBlocks\",\"type\":\"bytes[2]\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.CreateAccount\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromCreateAccount\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"name\":\"BytesFromCreateAccountNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"CreateAccountFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.CreateAccount\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"name\":\"CreateAccountSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.CreateAccount\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressCreateAccount\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"signature\",\"type\":\"uint256\"}],\"name\":\"CompressCreateAccountNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressCreateAccountWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressCreateAccount\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.CreateAccount\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.DropTx\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromAirdrop\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BytesFromAirdropNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"AirdropFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.DropTx\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"AirdropFromBytesNoStruct\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"AirdropSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.DropTx\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressAirdrop\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressAirdropNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressAirdropTxWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"dropBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressAirdrop\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.DropTx\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromTx\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BytesFromTxDeconstructed\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"TxFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"TxFromBytesDeconstructed\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"getTxSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressTx\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressTxWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressTx\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"HashFromTx\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"cancel\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.BurnConsent\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromBurnConsent\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"cancel\",\"type\":\"bool\"}],\"name\":\"BytesFromBurnConsentNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"BurnConsentTxFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"cancel\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.BurnConsent\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"cancel\",\"type\":\"bool\"}],\"name\":\"BurnConsentSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"cancel\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.BurnConsent\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressBurnConsent\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"cancel\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressBurnConsentNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressBurnConsent\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"cancel\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.BurnConsent\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"cancel\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.BurnConsent\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"HashFromBurnConsent\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.BurnExecution\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromBurnExecution\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"name\":\"BytesFromBurnExecutionNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"BurnExecutionFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.BurnExecution\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"name\":\"BurnExecutionSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.BurnExecution\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressBurnExecution\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"CompressBurnExecutionNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressBurnExecution\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.BurnExecution\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.BurnExecution\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"HashFromBurnExecution\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"GetYearMonth\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"yearMonth\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Rolluputils is an auto generated Go binding around an Ethereum contract.
 type Rolluputils struct {
@@ -282,36 +282,36 @@ func (_Rolluputils *RolluputilsCallerSession) AccountFromBytes(accountBytes []by
 	return _Rolluputils.Contract.AccountFromBytes(&_Rolluputils.CallOpts, accountBytes)
 }
 
-// AirdropTxFromBytes is a free data retrieval call binding the contract method 0x5229afe7.
+// AirdropFromBytes is a free data retrieval call binding the contract method 0xbfecfbf3.
 //
-// Solidity: function AirdropTxFromBytes(bytes txBytes) pure returns(TypesDropTx)
-func (_Rolluputils *RolluputilsCaller) AirdropTxFromBytes(opts *bind.CallOpts, txBytes []byte) (TypesDropTx, error) {
+// Solidity: function AirdropFromBytes(bytes txBytes) pure returns(TypesDropTx)
+func (_Rolluputils *RolluputilsCaller) AirdropFromBytes(opts *bind.CallOpts, txBytes []byte) (TypesDropTx, error) {
 	var (
 		ret0 = new(TypesDropTx)
 	)
 	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "AirdropTxFromBytes", txBytes)
+	err := _Rolluputils.contract.Call(opts, out, "AirdropFromBytes", txBytes)
 	return *ret0, err
 }
 
-// AirdropTxFromBytes is a free data retrieval call binding the contract method 0x5229afe7.
+// AirdropFromBytes is a free data retrieval call binding the contract method 0xbfecfbf3.
 //
-// Solidity: function AirdropTxFromBytes(bytes txBytes) pure returns(TypesDropTx)
-func (_Rolluputils *RolluputilsSession) AirdropTxFromBytes(txBytes []byte) (TypesDropTx, error) {
-	return _Rolluputils.Contract.AirdropTxFromBytes(&_Rolluputils.CallOpts, txBytes)
+// Solidity: function AirdropFromBytes(bytes txBytes) pure returns(TypesDropTx)
+func (_Rolluputils *RolluputilsSession) AirdropFromBytes(txBytes []byte) (TypesDropTx, error) {
+	return _Rolluputils.Contract.AirdropFromBytes(&_Rolluputils.CallOpts, txBytes)
 }
 
-// AirdropTxFromBytes is a free data retrieval call binding the contract method 0x5229afe7.
+// AirdropFromBytes is a free data retrieval call binding the contract method 0xbfecfbf3.
 //
-// Solidity: function AirdropTxFromBytes(bytes txBytes) pure returns(TypesDropTx)
-func (_Rolluputils *RolluputilsCallerSession) AirdropTxFromBytes(txBytes []byte) (TypesDropTx, error) {
-	return _Rolluputils.Contract.AirdropTxFromBytes(&_Rolluputils.CallOpts, txBytes)
+// Solidity: function AirdropFromBytes(bytes txBytes) pure returns(TypesDropTx)
+func (_Rolluputils *RolluputilsCallerSession) AirdropFromBytes(txBytes []byte) (TypesDropTx, error) {
+	return _Rolluputils.Contract.AirdropFromBytes(&_Rolluputils.CallOpts, txBytes)
 }
 
-// AirdropTxFromBytesNoStruct is a free data retrieval call binding the contract method 0x38d69801.
+// AirdropFromBytesNoStruct is a free data retrieval call binding the contract method 0xb34dc92b.
 //
-// Solidity: function AirdropTxFromBytesNoStruct(bytes txBytes) pure returns(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount)
-func (_Rolluputils *RolluputilsCaller) AirdropTxFromBytesNoStruct(opts *bind.CallOpts, txBytes []byte) (struct {
+// Solidity: function AirdropFromBytesNoStruct(bytes txBytes) pure returns(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount)
+func (_Rolluputils *RolluputilsCaller) AirdropFromBytesNoStruct(opts *bind.CallOpts, txBytes []byte) (struct {
 	From      *big.Int
 	To        *big.Int
 	TokenType *big.Int
@@ -328,14 +328,14 @@ func (_Rolluputils *RolluputilsCaller) AirdropTxFromBytesNoStruct(opts *bind.Cal
 		Amount    *big.Int
 	})
 	out := ret
-	err := _Rolluputils.contract.Call(opts, out, "AirdropTxFromBytesNoStruct", txBytes)
+	err := _Rolluputils.contract.Call(opts, out, "AirdropFromBytesNoStruct", txBytes)
 	return *ret, err
 }
 
-// AirdropTxFromBytesNoStruct is a free data retrieval call binding the contract method 0x38d69801.
+// AirdropFromBytesNoStruct is a free data retrieval call binding the contract method 0xb34dc92b.
 //
-// Solidity: function AirdropTxFromBytesNoStruct(bytes txBytes) pure returns(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount)
-func (_Rolluputils *RolluputilsSession) AirdropTxFromBytesNoStruct(txBytes []byte) (struct {
+// Solidity: function AirdropFromBytesNoStruct(bytes txBytes) pure returns(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount)
+func (_Rolluputils *RolluputilsSession) AirdropFromBytesNoStruct(txBytes []byte) (struct {
 	From      *big.Int
 	To        *big.Int
 	TokenType *big.Int
@@ -343,13 +343,13 @@ func (_Rolluputils *RolluputilsSession) AirdropTxFromBytesNoStruct(txBytes []byt
 	TxType    *big.Int
 	Amount    *big.Int
 }, error) {
-	return _Rolluputils.Contract.AirdropTxFromBytesNoStruct(&_Rolluputils.CallOpts, txBytes)
+	return _Rolluputils.Contract.AirdropFromBytesNoStruct(&_Rolluputils.CallOpts, txBytes)
 }
 
-// AirdropTxFromBytesNoStruct is a free data retrieval call binding the contract method 0x38d69801.
+// AirdropFromBytesNoStruct is a free data retrieval call binding the contract method 0xb34dc92b.
 //
-// Solidity: function AirdropTxFromBytesNoStruct(bytes txBytes) pure returns(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount)
-func (_Rolluputils *RolluputilsCallerSession) AirdropTxFromBytesNoStruct(txBytes []byte) (struct {
+// Solidity: function AirdropFromBytesNoStruct(bytes txBytes) pure returns(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount)
+func (_Rolluputils *RolluputilsCallerSession) AirdropFromBytesNoStruct(txBytes []byte) (struct {
 	From      *big.Int
 	To        *big.Int
 	TokenType *big.Int
@@ -357,7 +357,137 @@ func (_Rolluputils *RolluputilsCallerSession) AirdropTxFromBytesNoStruct(txBytes
 	TxType    *big.Int
 	Amount    *big.Int
 }, error) {
-	return _Rolluputils.Contract.AirdropTxFromBytesNoStruct(&_Rolluputils.CallOpts, txBytes)
+	return _Rolluputils.Contract.AirdropFromBytesNoStruct(&_Rolluputils.CallOpts, txBytes)
+}
+
+// AirdropSignBytes is a free data retrieval call binding the contract method 0x73f43f31.
+//
+// Solidity: function AirdropSignBytes(uint256 fromIndex, uint256 toIndex, uint256 tokenType, uint256 txType, uint256 nonce, uint256 amount) pure returns(bytes32)
+func (_Rolluputils *RolluputilsCaller) AirdropSignBytes(opts *bind.CallOpts, fromIndex *big.Int, toIndex *big.Int, tokenType *big.Int, txType *big.Int, nonce *big.Int, amount *big.Int) ([32]byte, error) {
+	var (
+		ret0 = new([32]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "AirdropSignBytes", fromIndex, toIndex, tokenType, txType, nonce, amount)
+	return *ret0, err
+}
+
+// AirdropSignBytes is a free data retrieval call binding the contract method 0x73f43f31.
+//
+// Solidity: function AirdropSignBytes(uint256 fromIndex, uint256 toIndex, uint256 tokenType, uint256 txType, uint256 nonce, uint256 amount) pure returns(bytes32)
+func (_Rolluputils *RolluputilsSession) AirdropSignBytes(fromIndex *big.Int, toIndex *big.Int, tokenType *big.Int, txType *big.Int, nonce *big.Int, amount *big.Int) ([32]byte, error) {
+	return _Rolluputils.Contract.AirdropSignBytes(&_Rolluputils.CallOpts, fromIndex, toIndex, tokenType, txType, nonce, amount)
+}
+
+// AirdropSignBytes is a free data retrieval call binding the contract method 0x73f43f31.
+//
+// Solidity: function AirdropSignBytes(uint256 fromIndex, uint256 toIndex, uint256 tokenType, uint256 txType, uint256 nonce, uint256 amount) pure returns(bytes32)
+func (_Rolluputils *RolluputilsCallerSession) AirdropSignBytes(fromIndex *big.Int, toIndex *big.Int, tokenType *big.Int, txType *big.Int, nonce *big.Int, amount *big.Int) ([32]byte, error) {
+	return _Rolluputils.Contract.AirdropSignBytes(&_Rolluputils.CallOpts, fromIndex, toIndex, tokenType, txType, nonce, amount)
+}
+
+// BurnConsentSignBytes is a free data retrieval call binding the contract method 0xe66d6505.
+//
+// Solidity: function BurnConsentSignBytes(uint256 fromIndex, uint256 amount, uint256 nonce, bool cancel) pure returns(bytes32)
+func (_Rolluputils *RolluputilsCaller) BurnConsentSignBytes(opts *bind.CallOpts, fromIndex *big.Int, amount *big.Int, nonce *big.Int, cancel bool) ([32]byte, error) {
+	var (
+		ret0 = new([32]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "BurnConsentSignBytes", fromIndex, amount, nonce, cancel)
+	return *ret0, err
+}
+
+// BurnConsentSignBytes is a free data retrieval call binding the contract method 0xe66d6505.
+//
+// Solidity: function BurnConsentSignBytes(uint256 fromIndex, uint256 amount, uint256 nonce, bool cancel) pure returns(bytes32)
+func (_Rolluputils *RolluputilsSession) BurnConsentSignBytes(fromIndex *big.Int, amount *big.Int, nonce *big.Int, cancel bool) ([32]byte, error) {
+	return _Rolluputils.Contract.BurnConsentSignBytes(&_Rolluputils.CallOpts, fromIndex, amount, nonce, cancel)
+}
+
+// BurnConsentSignBytes is a free data retrieval call binding the contract method 0xe66d6505.
+//
+// Solidity: function BurnConsentSignBytes(uint256 fromIndex, uint256 amount, uint256 nonce, bool cancel) pure returns(bytes32)
+func (_Rolluputils *RolluputilsCallerSession) BurnConsentSignBytes(fromIndex *big.Int, amount *big.Int, nonce *big.Int, cancel bool) ([32]byte, error) {
+	return _Rolluputils.Contract.BurnConsentSignBytes(&_Rolluputils.CallOpts, fromIndex, amount, nonce, cancel)
+}
+
+// BurnConsentTxFromBytes is a free data retrieval call binding the contract method 0x4ff16171.
+//
+// Solidity: function BurnConsentTxFromBytes(bytes txBytes) pure returns(TypesBurnConsent)
+func (_Rolluputils *RolluputilsCaller) BurnConsentTxFromBytes(opts *bind.CallOpts, txBytes []byte) (TypesBurnConsent, error) {
+	var (
+		ret0 = new(TypesBurnConsent)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "BurnConsentTxFromBytes", txBytes)
+	return *ret0, err
+}
+
+// BurnConsentTxFromBytes is a free data retrieval call binding the contract method 0x4ff16171.
+//
+// Solidity: function BurnConsentTxFromBytes(bytes txBytes) pure returns(TypesBurnConsent)
+func (_Rolluputils *RolluputilsSession) BurnConsentTxFromBytes(txBytes []byte) (TypesBurnConsent, error) {
+	return _Rolluputils.Contract.BurnConsentTxFromBytes(&_Rolluputils.CallOpts, txBytes)
+}
+
+// BurnConsentTxFromBytes is a free data retrieval call binding the contract method 0x4ff16171.
+//
+// Solidity: function BurnConsentTxFromBytes(bytes txBytes) pure returns(TypesBurnConsent)
+func (_Rolluputils *RolluputilsCallerSession) BurnConsentTxFromBytes(txBytes []byte) (TypesBurnConsent, error) {
+	return _Rolluputils.Contract.BurnConsentTxFromBytes(&_Rolluputils.CallOpts, txBytes)
+}
+
+// BurnExecutionFromBytes is a free data retrieval call binding the contract method 0x7b1849fa.
+//
+// Solidity: function BurnExecutionFromBytes(bytes txBytes) pure returns(TypesBurnExecution)
+func (_Rolluputils *RolluputilsCaller) BurnExecutionFromBytes(opts *bind.CallOpts, txBytes []byte) (TypesBurnExecution, error) {
+	var (
+		ret0 = new(TypesBurnExecution)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "BurnExecutionFromBytes", txBytes)
+	return *ret0, err
+}
+
+// BurnExecutionFromBytes is a free data retrieval call binding the contract method 0x7b1849fa.
+//
+// Solidity: function BurnExecutionFromBytes(bytes txBytes) pure returns(TypesBurnExecution)
+func (_Rolluputils *RolluputilsSession) BurnExecutionFromBytes(txBytes []byte) (TypesBurnExecution, error) {
+	return _Rolluputils.Contract.BurnExecutionFromBytes(&_Rolluputils.CallOpts, txBytes)
+}
+
+// BurnExecutionFromBytes is a free data retrieval call binding the contract method 0x7b1849fa.
+//
+// Solidity: function BurnExecutionFromBytes(bytes txBytes) pure returns(TypesBurnExecution)
+func (_Rolluputils *RolluputilsCallerSession) BurnExecutionFromBytes(txBytes []byte) (TypesBurnExecution, error) {
+	return _Rolluputils.Contract.BurnExecutionFromBytes(&_Rolluputils.CallOpts, txBytes)
+}
+
+// BurnExecutionSignBytes is a free data retrieval call binding the contract method 0x1d587f39.
+//
+// Solidity: function BurnExecutionSignBytes(uint256 fromIndex) pure returns(bytes32)
+func (_Rolluputils *RolluputilsCaller) BurnExecutionSignBytes(opts *bind.CallOpts, fromIndex *big.Int) ([32]byte, error) {
+	var (
+		ret0 = new([32]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "BurnExecutionSignBytes", fromIndex)
+	return *ret0, err
+}
+
+// BurnExecutionSignBytes is a free data retrieval call binding the contract method 0x1d587f39.
+//
+// Solidity: function BurnExecutionSignBytes(uint256 fromIndex) pure returns(bytes32)
+func (_Rolluputils *RolluputilsSession) BurnExecutionSignBytes(fromIndex *big.Int) ([32]byte, error) {
+	return _Rolluputils.Contract.BurnExecutionSignBytes(&_Rolluputils.CallOpts, fromIndex)
+}
+
+// BurnExecutionSignBytes is a free data retrieval call binding the contract method 0x1d587f39.
+//
+// Solidity: function BurnExecutionSignBytes(uint256 fromIndex) pure returns(bytes32)
+func (_Rolluputils *RolluputilsCallerSession) BurnExecutionSignBytes(fromIndex *big.Int) ([32]byte, error) {
+	return _Rolluputils.Contract.BurnExecutionSignBytes(&_Rolluputils.CallOpts, fromIndex)
 }
 
 // BytesFromAccount is a free data retrieval call binding the contract method 0x04af2a83.
@@ -438,6 +568,32 @@ func (_Rolluputils *RolluputilsCallerSession) BytesFromAirdrop(_tx TypesDropTx) 
 	return _Rolluputils.Contract.BytesFromAirdrop(&_Rolluputils.CallOpts, _tx)
 }
 
+// BytesFromAirdropNoStruct is a free data retrieval call binding the contract method 0x7368b4a0.
+//
+// Solidity: function BytesFromAirdropNoStruct(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) BytesFromAirdropNoStruct(opts *bind.CallOpts, from *big.Int, to *big.Int, tokenType *big.Int, nonce *big.Int, txType *big.Int, amount *big.Int) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "BytesFromAirdropNoStruct", from, to, tokenType, nonce, txType, amount)
+	return *ret0, err
+}
+
+// BytesFromAirdropNoStruct is a free data retrieval call binding the contract method 0x7368b4a0.
+//
+// Solidity: function BytesFromAirdropNoStruct(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) BytesFromAirdropNoStruct(from *big.Int, to *big.Int, tokenType *big.Int, nonce *big.Int, txType *big.Int, amount *big.Int) ([]byte, error) {
+	return _Rolluputils.Contract.BytesFromAirdropNoStruct(&_Rolluputils.CallOpts, from, to, tokenType, nonce, txType, amount)
+}
+
+// BytesFromAirdropNoStruct is a free data retrieval call binding the contract method 0x7368b4a0.
+//
+// Solidity: function BytesFromAirdropNoStruct(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) BytesFromAirdropNoStruct(from *big.Int, to *big.Int, tokenType *big.Int, nonce *big.Int, txType *big.Int, amount *big.Int) ([]byte, error) {
+	return _Rolluputils.Contract.BytesFromAirdropNoStruct(&_Rolluputils.CallOpts, from, to, tokenType, nonce, txType, amount)
+}
+
 // BytesFromBurnConsent is a free data retrieval call binding the contract method 0x2bc43c4f.
 //
 // Solidity: function BytesFromBurnConsent(TypesBurnConsent _tx) pure returns(bytes)
@@ -462,6 +618,32 @@ func (_Rolluputils *RolluputilsSession) BytesFromBurnConsent(_tx TypesBurnConsen
 // Solidity: function BytesFromBurnConsent(TypesBurnConsent _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) BytesFromBurnConsent(_tx TypesBurnConsent) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromBurnConsent(&_Rolluputils.CallOpts, _tx)
+}
+
+// BytesFromBurnConsentNoStruct is a free data retrieval call binding the contract method 0xf8ce4bfd.
+//
+// Solidity: function BytesFromBurnConsentNoStruct(uint256 fromIndex, uint256 amount, uint256 nonce, bool cancel) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) BytesFromBurnConsentNoStruct(opts *bind.CallOpts, fromIndex *big.Int, amount *big.Int, nonce *big.Int, cancel bool) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "BytesFromBurnConsentNoStruct", fromIndex, amount, nonce, cancel)
+	return *ret0, err
+}
+
+// BytesFromBurnConsentNoStruct is a free data retrieval call binding the contract method 0xf8ce4bfd.
+//
+// Solidity: function BytesFromBurnConsentNoStruct(uint256 fromIndex, uint256 amount, uint256 nonce, bool cancel) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) BytesFromBurnConsentNoStruct(fromIndex *big.Int, amount *big.Int, nonce *big.Int, cancel bool) ([]byte, error) {
+	return _Rolluputils.Contract.BytesFromBurnConsentNoStruct(&_Rolluputils.CallOpts, fromIndex, amount, nonce, cancel)
+}
+
+// BytesFromBurnConsentNoStruct is a free data retrieval call binding the contract method 0xf8ce4bfd.
+//
+// Solidity: function BytesFromBurnConsentNoStruct(uint256 fromIndex, uint256 amount, uint256 nonce, bool cancel) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) BytesFromBurnConsentNoStruct(fromIndex *big.Int, amount *big.Int, nonce *big.Int, cancel bool) ([]byte, error) {
+	return _Rolluputils.Contract.BytesFromBurnConsentNoStruct(&_Rolluputils.CallOpts, fromIndex, amount, nonce, cancel)
 }
 
 // BytesFromBurnExecution is a free data retrieval call binding the contract method 0x74a7ae9b.
@@ -490,6 +672,32 @@ func (_Rolluputils *RolluputilsCallerSession) BytesFromBurnExecution(_tx TypesBu
 	return _Rolluputils.Contract.BytesFromBurnExecution(&_Rolluputils.CallOpts, _tx)
 }
 
+// BytesFromBurnExecutionNoStruct is a free data retrieval call binding the contract method 0x04a585f4.
+//
+// Solidity: function BytesFromBurnExecutionNoStruct(uint256 fromIndex) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) BytesFromBurnExecutionNoStruct(opts *bind.CallOpts, fromIndex *big.Int) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "BytesFromBurnExecutionNoStruct", fromIndex)
+	return *ret0, err
+}
+
+// BytesFromBurnExecutionNoStruct is a free data retrieval call binding the contract method 0x04a585f4.
+//
+// Solidity: function BytesFromBurnExecutionNoStruct(uint256 fromIndex) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) BytesFromBurnExecutionNoStruct(fromIndex *big.Int) ([]byte, error) {
+	return _Rolluputils.Contract.BytesFromBurnExecutionNoStruct(&_Rolluputils.CallOpts, fromIndex)
+}
+
+// BytesFromBurnExecutionNoStruct is a free data retrieval call binding the contract method 0x04a585f4.
+//
+// Solidity: function BytesFromBurnExecutionNoStruct(uint256 fromIndex) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) BytesFromBurnExecutionNoStruct(fromIndex *big.Int) ([]byte, error) {
+	return _Rolluputils.Contract.BytesFromBurnExecutionNoStruct(&_Rolluputils.CallOpts, fromIndex)
+}
+
 // BytesFromCreateAccount is a free data retrieval call binding the contract method 0x32c9b1ab.
 //
 // Solidity: function BytesFromCreateAccount(TypesCreateAccount _tx) pure returns(bytes)
@@ -514,6 +722,32 @@ func (_Rolluputils *RolluputilsSession) BytesFromCreateAccount(_tx TypesCreateAc
 // Solidity: function BytesFromCreateAccount(TypesCreateAccount _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) BytesFromCreateAccount(_tx TypesCreateAccount) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromCreateAccount(&_Rolluputils.CallOpts, _tx)
+}
+
+// BytesFromCreateAccountNoStruct is a free data retrieval call binding the contract method 0x34aed69c.
+//
+// Solidity: function BytesFromCreateAccountNoStruct(uint256 toIndex, uint256 tokenType) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) BytesFromCreateAccountNoStruct(opts *bind.CallOpts, toIndex *big.Int, tokenType *big.Int) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "BytesFromCreateAccountNoStruct", toIndex, tokenType)
+	return *ret0, err
+}
+
+// BytesFromCreateAccountNoStruct is a free data retrieval call binding the contract method 0x34aed69c.
+//
+// Solidity: function BytesFromCreateAccountNoStruct(uint256 toIndex, uint256 tokenType) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) BytesFromCreateAccountNoStruct(toIndex *big.Int, tokenType *big.Int) ([]byte, error) {
+	return _Rolluputils.Contract.BytesFromCreateAccountNoStruct(&_Rolluputils.CallOpts, toIndex, tokenType)
+}
+
+// BytesFromCreateAccountNoStruct is a free data retrieval call binding the contract method 0x34aed69c.
+//
+// Solidity: function BytesFromCreateAccountNoStruct(uint256 toIndex, uint256 tokenType) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) BytesFromCreateAccountNoStruct(toIndex *big.Int, tokenType *big.Int) ([]byte, error) {
+	return _Rolluputils.Contract.BytesFromCreateAccountNoStruct(&_Rolluputils.CallOpts, toIndex, tokenType)
 }
 
 // BytesFromTx is a free data retrieval call binding the contract method 0xd0dbc902.
@@ -542,110 +776,6 @@ func (_Rolluputils *RolluputilsCallerSession) BytesFromTx(_tx TypesTransaction) 
 	return _Rolluputils.Contract.BytesFromTx(&_Rolluputils.CallOpts, _tx)
 }
 
-// BytesFromTxAirdropDeconstructed is a free data retrieval call binding the contract method 0x36a36323.
-//
-// Solidity: function BytesFromTxAirdropDeconstructed(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount) pure returns(bytes)
-func (_Rolluputils *RolluputilsCaller) BytesFromTxAirdropDeconstructed(opts *bind.CallOpts, from *big.Int, to *big.Int, tokenType *big.Int, nonce *big.Int, txType *big.Int, amount *big.Int) ([]byte, error) {
-	var (
-		ret0 = new([]byte)
-	)
-	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "BytesFromTxAirdropDeconstructed", from, to, tokenType, nonce, txType, amount)
-	return *ret0, err
-}
-
-// BytesFromTxAirdropDeconstructed is a free data retrieval call binding the contract method 0x36a36323.
-//
-// Solidity: function BytesFromTxAirdropDeconstructed(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount) pure returns(bytes)
-func (_Rolluputils *RolluputilsSession) BytesFromTxAirdropDeconstructed(from *big.Int, to *big.Int, tokenType *big.Int, nonce *big.Int, txType *big.Int, amount *big.Int) ([]byte, error) {
-	return _Rolluputils.Contract.BytesFromTxAirdropDeconstructed(&_Rolluputils.CallOpts, from, to, tokenType, nonce, txType, amount)
-}
-
-// BytesFromTxAirdropDeconstructed is a free data retrieval call binding the contract method 0x36a36323.
-//
-// Solidity: function BytesFromTxAirdropDeconstructed(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount) pure returns(bytes)
-func (_Rolluputils *RolluputilsCallerSession) BytesFromTxAirdropDeconstructed(from *big.Int, to *big.Int, tokenType *big.Int, nonce *big.Int, txType *big.Int, amount *big.Int) ([]byte, error) {
-	return _Rolluputils.Contract.BytesFromTxAirdropDeconstructed(&_Rolluputils.CallOpts, from, to, tokenType, nonce, txType, amount)
-}
-
-// BytesFromTxBurnConsentDeconstructed is a free data retrieval call binding the contract method 0xe8b6a4db.
-//
-// Solidity: function BytesFromTxBurnConsentDeconstructed(uint256 from, uint256 amount, bool cancel) pure returns(bytes)
-func (_Rolluputils *RolluputilsCaller) BytesFromTxBurnConsentDeconstructed(opts *bind.CallOpts, from *big.Int, amount *big.Int, cancel bool) ([]byte, error) {
-	var (
-		ret0 = new([]byte)
-	)
-	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "BytesFromTxBurnConsentDeconstructed", from, amount, cancel)
-	return *ret0, err
-}
-
-// BytesFromTxBurnConsentDeconstructed is a free data retrieval call binding the contract method 0xe8b6a4db.
-//
-// Solidity: function BytesFromTxBurnConsentDeconstructed(uint256 from, uint256 amount, bool cancel) pure returns(bytes)
-func (_Rolluputils *RolluputilsSession) BytesFromTxBurnConsentDeconstructed(from *big.Int, amount *big.Int, cancel bool) ([]byte, error) {
-	return _Rolluputils.Contract.BytesFromTxBurnConsentDeconstructed(&_Rolluputils.CallOpts, from, amount, cancel)
-}
-
-// BytesFromTxBurnConsentDeconstructed is a free data retrieval call binding the contract method 0xe8b6a4db.
-//
-// Solidity: function BytesFromTxBurnConsentDeconstructed(uint256 from, uint256 amount, bool cancel) pure returns(bytes)
-func (_Rolluputils *RolluputilsCallerSession) BytesFromTxBurnConsentDeconstructed(from *big.Int, amount *big.Int, cancel bool) ([]byte, error) {
-	return _Rolluputils.Contract.BytesFromTxBurnConsentDeconstructed(&_Rolluputils.CallOpts, from, amount, cancel)
-}
-
-// BytesFromTxBurnExecutionDeconstructed is a free data retrieval call binding the contract method 0xee928b85.
-//
-// Solidity: function BytesFromTxBurnExecutionDeconstructed(uint256 from) pure returns(bytes)
-func (_Rolluputils *RolluputilsCaller) BytesFromTxBurnExecutionDeconstructed(opts *bind.CallOpts, from *big.Int) ([]byte, error) {
-	var (
-		ret0 = new([]byte)
-	)
-	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "BytesFromTxBurnExecutionDeconstructed", from)
-	return *ret0, err
-}
-
-// BytesFromTxBurnExecutionDeconstructed is a free data retrieval call binding the contract method 0xee928b85.
-//
-// Solidity: function BytesFromTxBurnExecutionDeconstructed(uint256 from) pure returns(bytes)
-func (_Rolluputils *RolluputilsSession) BytesFromTxBurnExecutionDeconstructed(from *big.Int) ([]byte, error) {
-	return _Rolluputils.Contract.BytesFromTxBurnExecutionDeconstructed(&_Rolluputils.CallOpts, from)
-}
-
-// BytesFromTxBurnExecutionDeconstructed is a free data retrieval call binding the contract method 0xee928b85.
-//
-// Solidity: function BytesFromTxBurnExecutionDeconstructed(uint256 from) pure returns(bytes)
-func (_Rolluputils *RolluputilsCallerSession) BytesFromTxBurnExecutionDeconstructed(from *big.Int) ([]byte, error) {
-	return _Rolluputils.Contract.BytesFromTxBurnExecutionDeconstructed(&_Rolluputils.CallOpts, from)
-}
-
-// BytesFromTxCreateAccountDeconstructed is a free data retrieval call binding the contract method 0xd65e80bb.
-//
-// Solidity: function BytesFromTxCreateAccountDeconstructed(uint256 to, uint256 tokenType) pure returns(bytes)
-func (_Rolluputils *RolluputilsCaller) BytesFromTxCreateAccountDeconstructed(opts *bind.CallOpts, to *big.Int, tokenType *big.Int) ([]byte, error) {
-	var (
-		ret0 = new([]byte)
-	)
-	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "BytesFromTxCreateAccountDeconstructed", to, tokenType)
-	return *ret0, err
-}
-
-// BytesFromTxCreateAccountDeconstructed is a free data retrieval call binding the contract method 0xd65e80bb.
-//
-// Solidity: function BytesFromTxCreateAccountDeconstructed(uint256 to, uint256 tokenType) pure returns(bytes)
-func (_Rolluputils *RolluputilsSession) BytesFromTxCreateAccountDeconstructed(to *big.Int, tokenType *big.Int) ([]byte, error) {
-	return _Rolluputils.Contract.BytesFromTxCreateAccountDeconstructed(&_Rolluputils.CallOpts, to, tokenType)
-}
-
-// BytesFromTxCreateAccountDeconstructed is a free data retrieval call binding the contract method 0xd65e80bb.
-//
-// Solidity: function BytesFromTxCreateAccountDeconstructed(uint256 to, uint256 tokenType) pure returns(bytes)
-func (_Rolluputils *RolluputilsCallerSession) BytesFromTxCreateAccountDeconstructed(to *big.Int, tokenType *big.Int) ([]byte, error) {
-	return _Rolluputils.Contract.BytesFromTxCreateAccountDeconstructed(&_Rolluputils.CallOpts, to, tokenType)
-}
-
 // BytesFromTxDeconstructed is a free data retrieval call binding the contract method 0xb1b84d99.
 //
 // Solidity: function BytesFromTxDeconstructed(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount) pure returns(bytes)
@@ -670,6 +800,58 @@ func (_Rolluputils *RolluputilsSession) BytesFromTxDeconstructed(from *big.Int, 
 // Solidity: function BytesFromTxDeconstructed(uint256 from, uint256 to, uint256 tokenType, uint256 nonce, uint256 txType, uint256 amount) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) BytesFromTxDeconstructed(from *big.Int, to *big.Int, tokenType *big.Int, nonce *big.Int, txType *big.Int, amount *big.Int) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromTxDeconstructed(&_Rolluputils.CallOpts, from, to, tokenType, nonce, txType, amount)
+}
+
+// CompressAirdrop is a free data retrieval call binding the contract method 0x296d2f03.
+//
+// Solidity: function CompressAirdrop(TypesDropTx _tx) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressAirdrop(opts *bind.CallOpts, _tx TypesDropTx) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressAirdrop", _tx)
+	return *ret0, err
+}
+
+// CompressAirdrop is a free data retrieval call binding the contract method 0x296d2f03.
+//
+// Solidity: function CompressAirdrop(TypesDropTx _tx) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressAirdrop(_tx TypesDropTx) ([]byte, error) {
+	return _Rolluputils.Contract.CompressAirdrop(&_Rolluputils.CallOpts, _tx)
+}
+
+// CompressAirdrop is a free data retrieval call binding the contract method 0x296d2f03.
+//
+// Solidity: function CompressAirdrop(TypesDropTx _tx) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressAirdrop(_tx TypesDropTx) ([]byte, error) {
+	return _Rolluputils.Contract.CompressAirdrop(&_Rolluputils.CallOpts, _tx)
+}
+
+// CompressAirdropNoStruct is a free data retrieval call binding the contract method 0x1345dc05.
+//
+// Solidity: function CompressAirdropNoStruct(uint256 toIndex, uint256 amount, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressAirdropNoStruct(opts *bind.CallOpts, toIndex *big.Int, amount *big.Int, sig []byte) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressAirdropNoStruct", toIndex, amount, sig)
+	return *ret0, err
+}
+
+// CompressAirdropNoStruct is a free data retrieval call binding the contract method 0x1345dc05.
+//
+// Solidity: function CompressAirdropNoStruct(uint256 toIndex, uint256 amount, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressAirdropNoStruct(toIndex *big.Int, amount *big.Int, sig []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressAirdropNoStruct(&_Rolluputils.CallOpts, toIndex, amount, sig)
+}
+
+// CompressAirdropNoStruct is a free data retrieval call binding the contract method 0x1345dc05.
+//
+// Solidity: function CompressAirdropNoStruct(uint256 toIndex, uint256 amount, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressAirdropNoStruct(toIndex *big.Int, amount *big.Int, sig []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressAirdropNoStruct(&_Rolluputils.CallOpts, toIndex, amount, sig)
 }
 
 // CompressAirdropTxWithMessage is a free data retrieval call binding the contract method 0x79f8cb6f.
@@ -698,30 +880,108 @@ func (_Rolluputils *RolluputilsCallerSession) CompressAirdropTxWithMessage(messa
 	return _Rolluputils.Contract.CompressAirdropTxWithMessage(&_Rolluputils.CallOpts, message, sig)
 }
 
-// CompressConsent is a free data retrieval call binding the contract method 0xda398d31.
+// CompressBurnConsent is a free data retrieval call binding the contract method 0xe45e9ecf.
 //
-// Solidity: function CompressConsent(TypesBurnConsent _tx) pure returns(bytes)
-func (_Rolluputils *RolluputilsCaller) CompressConsent(opts *bind.CallOpts, _tx TypesBurnConsent) ([]byte, error) {
+// Solidity: function CompressBurnConsent(TypesBurnConsent _tx) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressBurnConsent(opts *bind.CallOpts, _tx TypesBurnConsent) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
 	)
 	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "CompressConsent", _tx)
+	err := _Rolluputils.contract.Call(opts, out, "CompressBurnConsent", _tx)
 	return *ret0, err
 }
 
-// CompressConsent is a free data retrieval call binding the contract method 0xda398d31.
+// CompressBurnConsent is a free data retrieval call binding the contract method 0xe45e9ecf.
 //
-// Solidity: function CompressConsent(TypesBurnConsent _tx) pure returns(bytes)
-func (_Rolluputils *RolluputilsSession) CompressConsent(_tx TypesBurnConsent) ([]byte, error) {
-	return _Rolluputils.Contract.CompressConsent(&_Rolluputils.CallOpts, _tx)
+// Solidity: function CompressBurnConsent(TypesBurnConsent _tx) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressBurnConsent(_tx TypesBurnConsent) ([]byte, error) {
+	return _Rolluputils.Contract.CompressBurnConsent(&_Rolluputils.CallOpts, _tx)
 }
 
-// CompressConsent is a free data retrieval call binding the contract method 0xda398d31.
+// CompressBurnConsent is a free data retrieval call binding the contract method 0xe45e9ecf.
 //
-// Solidity: function CompressConsent(TypesBurnConsent _tx) pure returns(bytes)
-func (_Rolluputils *RolluputilsCallerSession) CompressConsent(_tx TypesBurnConsent) ([]byte, error) {
-	return _Rolluputils.Contract.CompressConsent(&_Rolluputils.CallOpts, _tx)
+// Solidity: function CompressBurnConsent(TypesBurnConsent _tx) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressBurnConsent(_tx TypesBurnConsent) ([]byte, error) {
+	return _Rolluputils.Contract.CompressBurnConsent(&_Rolluputils.CallOpts, _tx)
+}
+
+// CompressBurnConsentNoStruct is a free data retrieval call binding the contract method 0xe2232adb.
+//
+// Solidity: function CompressBurnConsentNoStruct(uint256 fromIndex, uint256 amount, bool cancel, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressBurnConsentNoStruct(opts *bind.CallOpts, fromIndex *big.Int, amount *big.Int, cancel bool, sig []byte) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressBurnConsentNoStruct", fromIndex, amount, cancel, sig)
+	return *ret0, err
+}
+
+// CompressBurnConsentNoStruct is a free data retrieval call binding the contract method 0xe2232adb.
+//
+// Solidity: function CompressBurnConsentNoStruct(uint256 fromIndex, uint256 amount, bool cancel, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressBurnConsentNoStruct(fromIndex *big.Int, amount *big.Int, cancel bool, sig []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressBurnConsentNoStruct(&_Rolluputils.CallOpts, fromIndex, amount, cancel, sig)
+}
+
+// CompressBurnConsentNoStruct is a free data retrieval call binding the contract method 0xe2232adb.
+//
+// Solidity: function CompressBurnConsentNoStruct(uint256 fromIndex, uint256 amount, bool cancel, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressBurnConsentNoStruct(fromIndex *big.Int, amount *big.Int, cancel bool, sig []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressBurnConsentNoStruct(&_Rolluputils.CallOpts, fromIndex, amount, cancel, sig)
+}
+
+// CompressBurnExecution is a free data retrieval call binding the contract method 0xbdc1281e.
+//
+// Solidity: function CompressBurnExecution(TypesBurnExecution _tx) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressBurnExecution(opts *bind.CallOpts, _tx TypesBurnExecution) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressBurnExecution", _tx)
+	return *ret0, err
+}
+
+// CompressBurnExecution is a free data retrieval call binding the contract method 0xbdc1281e.
+//
+// Solidity: function CompressBurnExecution(TypesBurnExecution _tx) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressBurnExecution(_tx TypesBurnExecution) ([]byte, error) {
+	return _Rolluputils.Contract.CompressBurnExecution(&_Rolluputils.CallOpts, _tx)
+}
+
+// CompressBurnExecution is a free data retrieval call binding the contract method 0xbdc1281e.
+//
+// Solidity: function CompressBurnExecution(TypesBurnExecution _tx) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressBurnExecution(_tx TypesBurnExecution) ([]byte, error) {
+	return _Rolluputils.Contract.CompressBurnExecution(&_Rolluputils.CallOpts, _tx)
+}
+
+// CompressBurnExecutionNoStruct is a free data retrieval call binding the contract method 0x6deba4fe.
+//
+// Solidity: function CompressBurnExecutionNoStruct(uint256 fromIndex, bytes signature) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressBurnExecutionNoStruct(opts *bind.CallOpts, fromIndex *big.Int, signature []byte) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressBurnExecutionNoStruct", fromIndex, signature)
+	return *ret0, err
+}
+
+// CompressBurnExecutionNoStruct is a free data retrieval call binding the contract method 0x6deba4fe.
+//
+// Solidity: function CompressBurnExecutionNoStruct(uint256 fromIndex, bytes signature) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressBurnExecutionNoStruct(fromIndex *big.Int, signature []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressBurnExecutionNoStruct(&_Rolluputils.CallOpts, fromIndex, signature)
+}
+
+// CompressBurnExecutionNoStruct is a free data retrieval call binding the contract method 0x6deba4fe.
+//
+// Solidity: function CompressBurnExecutionNoStruct(uint256 fromIndex, bytes signature) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressBurnExecutionNoStruct(fromIndex *big.Int, signature []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressBurnExecutionNoStruct(&_Rolluputils.CallOpts, fromIndex, signature)
 }
 
 // CompressCreateAccount is a free data retrieval call binding the contract method 0xe12b9991.
@@ -750,82 +1010,56 @@ func (_Rolluputils *RolluputilsCallerSession) CompressCreateAccount(_tx TypesCre
 	return _Rolluputils.Contract.CompressCreateAccount(&_Rolluputils.CallOpts, _tx)
 }
 
-// CompressDrop is a free data retrieval call binding the contract method 0x6da01ca1.
+// CompressCreateAccountNoStruct is a free data retrieval call binding the contract method 0xc7d4234d.
 //
-// Solidity: function CompressDrop(TypesDropTx _tx) pure returns(bytes)
-func (_Rolluputils *RolluputilsCaller) CompressDrop(opts *bind.CallOpts, _tx TypesDropTx) ([]byte, error) {
+// Solidity: function CompressCreateAccountNoStruct(uint256 toIndex, uint256 tokenType, uint256 signature) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressCreateAccountNoStruct(opts *bind.CallOpts, toIndex *big.Int, tokenType *big.Int, signature *big.Int) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
 	)
 	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "CompressDrop", _tx)
+	err := _Rolluputils.contract.Call(opts, out, "CompressCreateAccountNoStruct", toIndex, tokenType, signature)
 	return *ret0, err
 }
 
-// CompressDrop is a free data retrieval call binding the contract method 0x6da01ca1.
+// CompressCreateAccountNoStruct is a free data retrieval call binding the contract method 0xc7d4234d.
 //
-// Solidity: function CompressDrop(TypesDropTx _tx) pure returns(bytes)
-func (_Rolluputils *RolluputilsSession) CompressDrop(_tx TypesDropTx) ([]byte, error) {
-	return _Rolluputils.Contract.CompressDrop(&_Rolluputils.CallOpts, _tx)
+// Solidity: function CompressCreateAccountNoStruct(uint256 toIndex, uint256 tokenType, uint256 signature) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressCreateAccountNoStruct(toIndex *big.Int, tokenType *big.Int, signature *big.Int) ([]byte, error) {
+	return _Rolluputils.Contract.CompressCreateAccountNoStruct(&_Rolluputils.CallOpts, toIndex, tokenType, signature)
 }
 
-// CompressDrop is a free data retrieval call binding the contract method 0x6da01ca1.
+// CompressCreateAccountNoStruct is a free data retrieval call binding the contract method 0xc7d4234d.
 //
-// Solidity: function CompressDrop(TypesDropTx _tx) pure returns(bytes)
-func (_Rolluputils *RolluputilsCallerSession) CompressDrop(_tx TypesDropTx) ([]byte, error) {
-	return _Rolluputils.Contract.CompressDrop(&_Rolluputils.CallOpts, _tx)
+// Solidity: function CompressCreateAccountNoStruct(uint256 toIndex, uint256 tokenType, uint256 signature) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressCreateAccountNoStruct(toIndex *big.Int, tokenType *big.Int, signature *big.Int) ([]byte, error) {
+	return _Rolluputils.Contract.CompressCreateAccountNoStruct(&_Rolluputils.CallOpts, toIndex, tokenType, signature)
 }
 
-// CompressDropNoStruct is a free data retrieval call binding the contract method 0x6ebfcd20.
+// CompressCreateAccountWithMessage is a free data retrieval call binding the contract method 0x758d5b28.
 //
-// Solidity: function CompressDropNoStruct(uint256 toIndex, uint256 amount, bytes sig) pure returns(bytes)
-func (_Rolluputils *RolluputilsCaller) CompressDropNoStruct(opts *bind.CallOpts, toIndex *big.Int, amount *big.Int, sig []byte) ([]byte, error) {
+// Solidity: function CompressCreateAccountWithMessage(bytes message, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressCreateAccountWithMessage(opts *bind.CallOpts, message []byte, sig []byte) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
 	)
 	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "CompressDropNoStruct", toIndex, amount, sig)
+	err := _Rolluputils.contract.Call(opts, out, "CompressCreateAccountWithMessage", message, sig)
 	return *ret0, err
 }
 
-// CompressDropNoStruct is a free data retrieval call binding the contract method 0x6ebfcd20.
+// CompressCreateAccountWithMessage is a free data retrieval call binding the contract method 0x758d5b28.
 //
-// Solidity: function CompressDropNoStruct(uint256 toIndex, uint256 amount, bytes sig) pure returns(bytes)
-func (_Rolluputils *RolluputilsSession) CompressDropNoStruct(toIndex *big.Int, amount *big.Int, sig []byte) ([]byte, error) {
-	return _Rolluputils.Contract.CompressDropNoStruct(&_Rolluputils.CallOpts, toIndex, amount, sig)
+// Solidity: function CompressCreateAccountWithMessage(bytes message, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressCreateAccountWithMessage(message []byte, sig []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressCreateAccountWithMessage(&_Rolluputils.CallOpts, message, sig)
 }
 
-// CompressDropNoStruct is a free data retrieval call binding the contract method 0x6ebfcd20.
+// CompressCreateAccountWithMessage is a free data retrieval call binding the contract method 0x758d5b28.
 //
-// Solidity: function CompressDropNoStruct(uint256 toIndex, uint256 amount, bytes sig) pure returns(bytes)
-func (_Rolluputils *RolluputilsCallerSession) CompressDropNoStruct(toIndex *big.Int, amount *big.Int, sig []byte) ([]byte, error) {
-	return _Rolluputils.Contract.CompressDropNoStruct(&_Rolluputils.CallOpts, toIndex, amount, sig)
-}
-
-// CompressExecution is a free data retrieval call binding the contract method 0x324a4335.
-//
-// Solidity: function CompressExecution(TypesBurnExecution _tx) pure returns(bytes)
-func (_Rolluputils *RolluputilsCaller) CompressExecution(opts *bind.CallOpts, _tx TypesBurnExecution) ([]byte, error) {
-	var (
-		ret0 = new([]byte)
-	)
-	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "CompressExecution", _tx)
-	return *ret0, err
-}
-
-// CompressExecution is a free data retrieval call binding the contract method 0x324a4335.
-//
-// Solidity: function CompressExecution(TypesBurnExecution _tx) pure returns(bytes)
-func (_Rolluputils *RolluputilsSession) CompressExecution(_tx TypesBurnExecution) ([]byte, error) {
-	return _Rolluputils.Contract.CompressExecution(&_Rolluputils.CallOpts, _tx)
-}
-
-// CompressExecution is a free data retrieval call binding the contract method 0x324a4335.
-//
-// Solidity: function CompressExecution(TypesBurnExecution _tx) pure returns(bytes)
-func (_Rolluputils *RolluputilsCallerSession) CompressExecution(_tx TypesBurnExecution) ([]byte, error) {
-	return _Rolluputils.Contract.CompressExecution(&_Rolluputils.CallOpts, _tx)
+// Solidity: function CompressCreateAccountWithMessage(bytes message, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressCreateAccountWithMessage(message []byte, sig []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressCreateAccountWithMessage(&_Rolluputils.CallOpts, message, sig)
 }
 
 // CompressTx is a free data retrieval call binding the contract method 0x02c36512.
@@ -880,20 +1114,176 @@ func (_Rolluputils *RolluputilsCallerSession) CompressTxWithMessage(message []by
 	return _Rolluputils.Contract.CompressTxWithMessage(&_Rolluputils.CallOpts, message, sig)
 }
 
+// CreateAccountFromBytes is a free data retrieval call binding the contract method 0xb3c2ec13.
+//
+// Solidity: function CreateAccountFromBytes(bytes txBytes) pure returns(TypesCreateAccount)
+func (_Rolluputils *RolluputilsCaller) CreateAccountFromBytes(opts *bind.CallOpts, txBytes []byte) (TypesCreateAccount, error) {
+	var (
+		ret0 = new(TypesCreateAccount)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CreateAccountFromBytes", txBytes)
+	return *ret0, err
+}
+
+// CreateAccountFromBytes is a free data retrieval call binding the contract method 0xb3c2ec13.
+//
+// Solidity: function CreateAccountFromBytes(bytes txBytes) pure returns(TypesCreateAccount)
+func (_Rolluputils *RolluputilsSession) CreateAccountFromBytes(txBytes []byte) (TypesCreateAccount, error) {
+	return _Rolluputils.Contract.CreateAccountFromBytes(&_Rolluputils.CallOpts, txBytes)
+}
+
+// CreateAccountFromBytes is a free data retrieval call binding the contract method 0xb3c2ec13.
+//
+// Solidity: function CreateAccountFromBytes(bytes txBytes) pure returns(TypesCreateAccount)
+func (_Rolluputils *RolluputilsCallerSession) CreateAccountFromBytes(txBytes []byte) (TypesCreateAccount, error) {
+	return _Rolluputils.Contract.CreateAccountFromBytes(&_Rolluputils.CallOpts, txBytes)
+}
+
+// CreateAccountSignBytes is a free data retrieval call binding the contract method 0x20fab6d8.
+//
+// Solidity: function CreateAccountSignBytes(uint256 toIndex, uint256 tokenType) pure returns(bytes32)
+func (_Rolluputils *RolluputilsCaller) CreateAccountSignBytes(opts *bind.CallOpts, toIndex *big.Int, tokenType *big.Int) ([32]byte, error) {
+	var (
+		ret0 = new([32]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CreateAccountSignBytes", toIndex, tokenType)
+	return *ret0, err
+}
+
+// CreateAccountSignBytes is a free data retrieval call binding the contract method 0x20fab6d8.
+//
+// Solidity: function CreateAccountSignBytes(uint256 toIndex, uint256 tokenType) pure returns(bytes32)
+func (_Rolluputils *RolluputilsSession) CreateAccountSignBytes(toIndex *big.Int, tokenType *big.Int) ([32]byte, error) {
+	return _Rolluputils.Contract.CreateAccountSignBytes(&_Rolluputils.CallOpts, toIndex, tokenType)
+}
+
+// CreateAccountSignBytes is a free data retrieval call binding the contract method 0x20fab6d8.
+//
+// Solidity: function CreateAccountSignBytes(uint256 toIndex, uint256 tokenType) pure returns(bytes32)
+func (_Rolluputils *RolluputilsCallerSession) CreateAccountSignBytes(toIndex *big.Int, tokenType *big.Int) ([32]byte, error) {
+	return _Rolluputils.Contract.CreateAccountSignBytes(&_Rolluputils.CallOpts, toIndex, tokenType)
+}
+
+// DecompressAirdrop is a free data retrieval call binding the contract method 0x006de34f.
+//
+// Solidity: function DecompressAirdrop(bytes dropBytes) pure returns(TypesDropTx)
+func (_Rolluputils *RolluputilsCaller) DecompressAirdrop(opts *bind.CallOpts, dropBytes []byte) (TypesDropTx, error) {
+	var (
+		ret0 = new(TypesDropTx)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "DecompressAirdrop", dropBytes)
+	return *ret0, err
+}
+
+// DecompressAirdrop is a free data retrieval call binding the contract method 0x006de34f.
+//
+// Solidity: function DecompressAirdrop(bytes dropBytes) pure returns(TypesDropTx)
+func (_Rolluputils *RolluputilsSession) DecompressAirdrop(dropBytes []byte) (TypesDropTx, error) {
+	return _Rolluputils.Contract.DecompressAirdrop(&_Rolluputils.CallOpts, dropBytes)
+}
+
+// DecompressAirdrop is a free data retrieval call binding the contract method 0x006de34f.
+//
+// Solidity: function DecompressAirdrop(bytes dropBytes) pure returns(TypesDropTx)
+func (_Rolluputils *RolluputilsCallerSession) DecompressAirdrop(dropBytes []byte) (TypesDropTx, error) {
+	return _Rolluputils.Contract.DecompressAirdrop(&_Rolluputils.CallOpts, dropBytes)
+}
+
+// DecompressBurnConsent is a free data retrieval call binding the contract method 0x0cda9938.
+//
+// Solidity: function DecompressBurnConsent(bytes txBytes) pure returns(TypesBurnConsent)
+func (_Rolluputils *RolluputilsCaller) DecompressBurnConsent(opts *bind.CallOpts, txBytes []byte) (TypesBurnConsent, error) {
+	var (
+		ret0 = new(TypesBurnConsent)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "DecompressBurnConsent", txBytes)
+	return *ret0, err
+}
+
+// DecompressBurnConsent is a free data retrieval call binding the contract method 0x0cda9938.
+//
+// Solidity: function DecompressBurnConsent(bytes txBytes) pure returns(TypesBurnConsent)
+func (_Rolluputils *RolluputilsSession) DecompressBurnConsent(txBytes []byte) (TypesBurnConsent, error) {
+	return _Rolluputils.Contract.DecompressBurnConsent(&_Rolluputils.CallOpts, txBytes)
+}
+
+// DecompressBurnConsent is a free data retrieval call binding the contract method 0x0cda9938.
+//
+// Solidity: function DecompressBurnConsent(bytes txBytes) pure returns(TypesBurnConsent)
+func (_Rolluputils *RolluputilsCallerSession) DecompressBurnConsent(txBytes []byte) (TypesBurnConsent, error) {
+	return _Rolluputils.Contract.DecompressBurnConsent(&_Rolluputils.CallOpts, txBytes)
+}
+
+// DecompressBurnExecution is a free data retrieval call binding the contract method 0x659175bb.
+//
+// Solidity: function DecompressBurnExecution(bytes txBytes) pure returns(TypesBurnExecution)
+func (_Rolluputils *RolluputilsCaller) DecompressBurnExecution(opts *bind.CallOpts, txBytes []byte) (TypesBurnExecution, error) {
+	var (
+		ret0 = new(TypesBurnExecution)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "DecompressBurnExecution", txBytes)
+	return *ret0, err
+}
+
+// DecompressBurnExecution is a free data retrieval call binding the contract method 0x659175bb.
+//
+// Solidity: function DecompressBurnExecution(bytes txBytes) pure returns(TypesBurnExecution)
+func (_Rolluputils *RolluputilsSession) DecompressBurnExecution(txBytes []byte) (TypesBurnExecution, error) {
+	return _Rolluputils.Contract.DecompressBurnExecution(&_Rolluputils.CallOpts, txBytes)
+}
+
+// DecompressBurnExecution is a free data retrieval call binding the contract method 0x659175bb.
+//
+// Solidity: function DecompressBurnExecution(bytes txBytes) pure returns(TypesBurnExecution)
+func (_Rolluputils *RolluputilsCallerSession) DecompressBurnExecution(txBytes []byte) (TypesBurnExecution, error) {
+	return _Rolluputils.Contract.DecompressBurnExecution(&_Rolluputils.CallOpts, txBytes)
+}
+
+// DecompressCreateAccount is a free data retrieval call binding the contract method 0x22002f28.
+//
+// Solidity: function DecompressCreateAccount(bytes txBytes) pure returns(TypesCreateAccount)
+func (_Rolluputils *RolluputilsCaller) DecompressCreateAccount(opts *bind.CallOpts, txBytes []byte) (TypesCreateAccount, error) {
+	var (
+		ret0 = new(TypesCreateAccount)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "DecompressCreateAccount", txBytes)
+	return *ret0, err
+}
+
+// DecompressCreateAccount is a free data retrieval call binding the contract method 0x22002f28.
+//
+// Solidity: function DecompressCreateAccount(bytes txBytes) pure returns(TypesCreateAccount)
+func (_Rolluputils *RolluputilsSession) DecompressCreateAccount(txBytes []byte) (TypesCreateAccount, error) {
+	return _Rolluputils.Contract.DecompressCreateAccount(&_Rolluputils.CallOpts, txBytes)
+}
+
+// DecompressCreateAccount is a free data retrieval call binding the contract method 0x22002f28.
+//
+// Solidity: function DecompressCreateAccount(bytes txBytes) pure returns(TypesCreateAccount)
+func (_Rolluputils *RolluputilsCallerSession) DecompressCreateAccount(txBytes []byte) (TypesCreateAccount, error) {
+	return _Rolluputils.Contract.DecompressCreateAccount(&_Rolluputils.CallOpts, txBytes)
+}
+
 // DecompressTx is a free data retrieval call binding the contract method 0xeedeb9d9.
 //
-// Solidity: function DecompressTx(bytes txBytes) pure returns(uint256 from, uint256 to, uint256 amount, bytes sig)
+// Solidity: function DecompressTx(bytes txBytes) pure returns(uint256 from, uint256 to, uint256 nonce, bytes sig)
 func (_Rolluputils *RolluputilsCaller) DecompressTx(opts *bind.CallOpts, txBytes []byte) (struct {
-	From   *big.Int
-	To     *big.Int
-	Amount *big.Int
-	Sig    []byte
+	From  *big.Int
+	To    *big.Int
+	Nonce *big.Int
+	Sig   []byte
 }, error) {
 	ret := new(struct {
-		From   *big.Int
-		To     *big.Int
-		Amount *big.Int
-		Sig    []byte
+		From  *big.Int
+		To    *big.Int
+		Nonce *big.Int
+		Sig   []byte
 	})
 	out := ret
 	err := _Rolluputils.contract.Call(opts, out, "DecompressTx", txBytes)
@@ -902,24 +1292,24 @@ func (_Rolluputils *RolluputilsCaller) DecompressTx(opts *bind.CallOpts, txBytes
 
 // DecompressTx is a free data retrieval call binding the contract method 0xeedeb9d9.
 //
-// Solidity: function DecompressTx(bytes txBytes) pure returns(uint256 from, uint256 to, uint256 amount, bytes sig)
+// Solidity: function DecompressTx(bytes txBytes) pure returns(uint256 from, uint256 to, uint256 nonce, bytes sig)
 func (_Rolluputils *RolluputilsSession) DecompressTx(txBytes []byte) (struct {
-	From   *big.Int
-	To     *big.Int
-	Amount *big.Int
-	Sig    []byte
+	From  *big.Int
+	To    *big.Int
+	Nonce *big.Int
+	Sig   []byte
 }, error) {
 	return _Rolluputils.Contract.DecompressTx(&_Rolluputils.CallOpts, txBytes)
 }
 
 // DecompressTx is a free data retrieval call binding the contract method 0xeedeb9d9.
 //
-// Solidity: function DecompressTx(bytes txBytes) pure returns(uint256 from, uint256 to, uint256 amount, bytes sig)
+// Solidity: function DecompressTx(bytes txBytes) pure returns(uint256 from, uint256 to, uint256 nonce, bytes sig)
 func (_Rolluputils *RolluputilsCallerSession) DecompressTx(txBytes []byte) (struct {
-	From   *big.Int
-	To     *big.Int
-	Amount *big.Int
-	Sig    []byte
+	From  *big.Int
+	To    *big.Int
+	Nonce *big.Int
+	Sig   []byte
 }, error) {
 	return _Rolluputils.Contract.DecompressTx(&_Rolluputils.CallOpts, txBytes)
 }
@@ -1028,56 +1418,56 @@ func (_Rolluputils *RolluputilsCallerSession) HashFromAccount(account TypesUserA
 	return _Rolluputils.Contract.HashFromAccount(&_Rolluputils.CallOpts, account)
 }
 
-// HashFromConsent is a free data retrieval call binding the contract method 0x1ab081b5.
+// HashFromBurnConsent is a free data retrieval call binding the contract method 0x3738c927.
 //
-// Solidity: function HashFromConsent(TypesBurnConsent _tx) pure returns(bytes32)
-func (_Rolluputils *RolluputilsCaller) HashFromConsent(opts *bind.CallOpts, _tx TypesBurnConsent) ([32]byte, error) {
+// Solidity: function HashFromBurnConsent(TypesBurnConsent _tx) pure returns(bytes32)
+func (_Rolluputils *RolluputilsCaller) HashFromBurnConsent(opts *bind.CallOpts, _tx TypesBurnConsent) ([32]byte, error) {
 	var (
 		ret0 = new([32]byte)
 	)
 	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "HashFromConsent", _tx)
+	err := _Rolluputils.contract.Call(opts, out, "HashFromBurnConsent", _tx)
 	return *ret0, err
 }
 
-// HashFromConsent is a free data retrieval call binding the contract method 0x1ab081b5.
+// HashFromBurnConsent is a free data retrieval call binding the contract method 0x3738c927.
 //
-// Solidity: function HashFromConsent(TypesBurnConsent _tx) pure returns(bytes32)
-func (_Rolluputils *RolluputilsSession) HashFromConsent(_tx TypesBurnConsent) ([32]byte, error) {
-	return _Rolluputils.Contract.HashFromConsent(&_Rolluputils.CallOpts, _tx)
+// Solidity: function HashFromBurnConsent(TypesBurnConsent _tx) pure returns(bytes32)
+func (_Rolluputils *RolluputilsSession) HashFromBurnConsent(_tx TypesBurnConsent) ([32]byte, error) {
+	return _Rolluputils.Contract.HashFromBurnConsent(&_Rolluputils.CallOpts, _tx)
 }
 
-// HashFromConsent is a free data retrieval call binding the contract method 0x1ab081b5.
+// HashFromBurnConsent is a free data retrieval call binding the contract method 0x3738c927.
 //
-// Solidity: function HashFromConsent(TypesBurnConsent _tx) pure returns(bytes32)
-func (_Rolluputils *RolluputilsCallerSession) HashFromConsent(_tx TypesBurnConsent) ([32]byte, error) {
-	return _Rolluputils.Contract.HashFromConsent(&_Rolluputils.CallOpts, _tx)
+// Solidity: function HashFromBurnConsent(TypesBurnConsent _tx) pure returns(bytes32)
+func (_Rolluputils *RolluputilsCallerSession) HashFromBurnConsent(_tx TypesBurnConsent) ([32]byte, error) {
+	return _Rolluputils.Contract.HashFromBurnConsent(&_Rolluputils.CallOpts, _tx)
 }
 
-// HashFromExecution is a free data retrieval call binding the contract method 0x8c3d042c.
+// HashFromBurnExecution is a free data retrieval call binding the contract method 0xa9e3c685.
 //
-// Solidity: function HashFromExecution(TypesBurnExecution _tx) pure returns(bytes32)
-func (_Rolluputils *RolluputilsCaller) HashFromExecution(opts *bind.CallOpts, _tx TypesBurnExecution) ([32]byte, error) {
+// Solidity: function HashFromBurnExecution(TypesBurnExecution _tx) pure returns(bytes32)
+func (_Rolluputils *RolluputilsCaller) HashFromBurnExecution(opts *bind.CallOpts, _tx TypesBurnExecution) ([32]byte, error) {
 	var (
 		ret0 = new([32]byte)
 	)
 	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "HashFromExecution", _tx)
+	err := _Rolluputils.contract.Call(opts, out, "HashFromBurnExecution", _tx)
 	return *ret0, err
 }
 
-// HashFromExecution is a free data retrieval call binding the contract method 0x8c3d042c.
+// HashFromBurnExecution is a free data retrieval call binding the contract method 0xa9e3c685.
 //
-// Solidity: function HashFromExecution(TypesBurnExecution _tx) pure returns(bytes32)
-func (_Rolluputils *RolluputilsSession) HashFromExecution(_tx TypesBurnExecution) ([32]byte, error) {
-	return _Rolluputils.Contract.HashFromExecution(&_Rolluputils.CallOpts, _tx)
+// Solidity: function HashFromBurnExecution(TypesBurnExecution _tx) pure returns(bytes32)
+func (_Rolluputils *RolluputilsSession) HashFromBurnExecution(_tx TypesBurnExecution) ([32]byte, error) {
+	return _Rolluputils.Contract.HashFromBurnExecution(&_Rolluputils.CallOpts, _tx)
 }
 
-// HashFromExecution is a free data retrieval call binding the contract method 0x8c3d042c.
+// HashFromBurnExecution is a free data retrieval call binding the contract method 0xa9e3c685.
 //
-// Solidity: function HashFromExecution(TypesBurnExecution _tx) pure returns(bytes32)
-func (_Rolluputils *RolluputilsCallerSession) HashFromExecution(_tx TypesBurnExecution) ([32]byte, error) {
-	return _Rolluputils.Contract.HashFromExecution(&_Rolluputils.CallOpts, _tx)
+// Solidity: function HashFromBurnExecution(TypesBurnExecution _tx) pure returns(bytes32)
+func (_Rolluputils *RolluputilsCallerSession) HashFromBurnExecution(_tx TypesBurnExecution) ([32]byte, error) {
+	return _Rolluputils.Contract.HashFromBurnExecution(&_Rolluputils.CallOpts, _tx)
 }
 
 // HashFromTx is a free data retrieval call binding the contract method 0xb90cbf51.
@@ -1156,58 +1546,6 @@ func (_Rolluputils *RolluputilsSession) TxFromBytes(txBytes []byte) (TypesTransa
 // Solidity: function TxFromBytes(bytes txBytes) pure returns(TypesTransaction)
 func (_Rolluputils *RolluputilsCallerSession) TxFromBytes(txBytes []byte) (TypesTransaction, error) {
 	return _Rolluputils.Contract.TxFromBytes(&_Rolluputils.CallOpts, txBytes)
-}
-
-// TxFromBytesBurnConsent is a free data retrieval call binding the contract method 0xa8c42f1e.
-//
-// Solidity: function TxFromBytesBurnConsent(bytes txBytes) pure returns(TypesBurnConsent)
-func (_Rolluputils *RolluputilsCaller) TxFromBytesBurnConsent(opts *bind.CallOpts, txBytes []byte) (TypesBurnConsent, error) {
-	var (
-		ret0 = new(TypesBurnConsent)
-	)
-	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "TxFromBytesBurnConsent", txBytes)
-	return *ret0, err
-}
-
-// TxFromBytesBurnConsent is a free data retrieval call binding the contract method 0xa8c42f1e.
-//
-// Solidity: function TxFromBytesBurnConsent(bytes txBytes) pure returns(TypesBurnConsent)
-func (_Rolluputils *RolluputilsSession) TxFromBytesBurnConsent(txBytes []byte) (TypesBurnConsent, error) {
-	return _Rolluputils.Contract.TxFromBytesBurnConsent(&_Rolluputils.CallOpts, txBytes)
-}
-
-// TxFromBytesBurnConsent is a free data retrieval call binding the contract method 0xa8c42f1e.
-//
-// Solidity: function TxFromBytesBurnConsent(bytes txBytes) pure returns(TypesBurnConsent)
-func (_Rolluputils *RolluputilsCallerSession) TxFromBytesBurnConsent(txBytes []byte) (TypesBurnConsent, error) {
-	return _Rolluputils.Contract.TxFromBytesBurnConsent(&_Rolluputils.CallOpts, txBytes)
-}
-
-// TxFromBytesBurnExecution is a free data retrieval call binding the contract method 0x0c83d4bc.
-//
-// Solidity: function TxFromBytesBurnExecution(bytes txBytes) pure returns(TypesBurnExecution)
-func (_Rolluputils *RolluputilsCaller) TxFromBytesBurnExecution(opts *bind.CallOpts, txBytes []byte) (TypesBurnExecution, error) {
-	var (
-		ret0 = new(TypesBurnExecution)
-	)
-	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "TxFromBytesBurnExecution", txBytes)
-	return *ret0, err
-}
-
-// TxFromBytesBurnExecution is a free data retrieval call binding the contract method 0x0c83d4bc.
-//
-// Solidity: function TxFromBytesBurnExecution(bytes txBytes) pure returns(TypesBurnExecution)
-func (_Rolluputils *RolluputilsSession) TxFromBytesBurnExecution(txBytes []byte) (TypesBurnExecution, error) {
-	return _Rolluputils.Contract.TxFromBytesBurnExecution(&_Rolluputils.CallOpts, txBytes)
-}
-
-// TxFromBytesBurnExecution is a free data retrieval call binding the contract method 0x0c83d4bc.
-//
-// Solidity: function TxFromBytesBurnExecution(bytes txBytes) pure returns(TypesBurnExecution)
-func (_Rolluputils *RolluputilsCallerSession) TxFromBytesBurnExecution(txBytes []byte) (TypesBurnExecution, error) {
-	return _Rolluputils.Contract.TxFromBytesBurnExecution(&_Rolluputils.CallOpts, txBytes)
 }
 
 // TxFromBytesDeconstructed is a free data retrieval call binding the contract method 0x2013a0cf.
@@ -1312,32 +1650,6 @@ func (_Rolluputils *RolluputilsSession) GetAccountHash(id *big.Int, balance *big
 // Solidity: function getAccountHash(uint256 id, uint256 balance, uint256 nonce, uint256 tokenType, uint256 burn, uint256 lastBurn) pure returns(bytes32)
 func (_Rolluputils *RolluputilsCallerSession) GetAccountHash(id *big.Int, balance *big.Int, nonce *big.Int, tokenType *big.Int, burn *big.Int, lastBurn *big.Int) ([32]byte, error) {
 	return _Rolluputils.Contract.GetAccountHash(&_Rolluputils.CallOpts, id, balance, nonce, tokenType, burn, lastBurn)
-}
-
-// GetDropSignBytes is a free data retrieval call binding the contract method 0x4a5e70d5.
-//
-// Solidity: function getDropSignBytes(uint256 fromIndex, uint256 toIndex, uint256 tokenType, uint256 txType, uint256 nonce, uint256 amount) pure returns(bytes32)
-func (_Rolluputils *RolluputilsCaller) GetDropSignBytes(opts *bind.CallOpts, fromIndex *big.Int, toIndex *big.Int, tokenType *big.Int, txType *big.Int, nonce *big.Int, amount *big.Int) ([32]byte, error) {
-	var (
-		ret0 = new([32]byte)
-	)
-	out := ret0
-	err := _Rolluputils.contract.Call(opts, out, "getDropSignBytes", fromIndex, toIndex, tokenType, txType, nonce, amount)
-	return *ret0, err
-}
-
-// GetDropSignBytes is a free data retrieval call binding the contract method 0x4a5e70d5.
-//
-// Solidity: function getDropSignBytes(uint256 fromIndex, uint256 toIndex, uint256 tokenType, uint256 txType, uint256 nonce, uint256 amount) pure returns(bytes32)
-func (_Rolluputils *RolluputilsSession) GetDropSignBytes(fromIndex *big.Int, toIndex *big.Int, tokenType *big.Int, txType *big.Int, nonce *big.Int, amount *big.Int) ([32]byte, error) {
-	return _Rolluputils.Contract.GetDropSignBytes(&_Rolluputils.CallOpts, fromIndex, toIndex, tokenType, txType, nonce, amount)
-}
-
-// GetDropSignBytes is a free data retrieval call binding the contract method 0x4a5e70d5.
-//
-// Solidity: function getDropSignBytes(uint256 fromIndex, uint256 toIndex, uint256 tokenType, uint256 txType, uint256 nonce, uint256 amount) pure returns(bytes32)
-func (_Rolluputils *RolluputilsCallerSession) GetDropSignBytes(fromIndex *big.Int, toIndex *big.Int, tokenType *big.Int, txType *big.Int, nonce *big.Int, amount *big.Int) ([32]byte, error) {
-	return _Rolluputils.Contract.GetDropSignBytes(&_Rolluputils.CallOpts, fromIndex, toIndex, tokenType, txType, nonce, amount)
 }
 
 // GetTxSignBytes is a free data retrieval call binding the contract method 0x3ff55544.

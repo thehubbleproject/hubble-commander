@@ -300,6 +300,8 @@ func (b *Bazooka) CompressAirdropTx(tx Tx) ([]byte, error) {
 		return nil, err
 	}
 	return b.RollupUtils.CompressAirdropTxWithMessage(&opts, tx.Data, sigBytes)
+}
+
 func (b *Bazooka) DecompressTransferTxs(compressedTxs [][]byte) (from, to, amount []*big.Int, sig [][]byte, err error) {
 	for _, compressedTx := range compressedTxs {
 		opts := bind.CallOpts{From: config.OperatorAddress}
@@ -350,7 +352,6 @@ func (b *Bazooka) GetGenesisAccounts() (genesisAccount []UserAccount, err error)
 		genesisAccount = append(genesisAccount, *NewUserAccount(ID.Uint64(), STATUS_ACTIVE, "", UintToString(ID.Uint64()), account))
 	}
 	return
-}
 
 	for _, account := range accounts {
 		ID, _, _, _, _, _, _ := b.DecodeAccount(account)
@@ -488,7 +489,7 @@ func (b *Bazooka) SubmitBatch(updatedRoot ByteArray, txs []Tx) error {
 	if err != nil {
 		return err
 	}
-	tx, err := b.RollupContract.SubmitBatch(auth, compressedTxs, updatedRoot,uint8(txs[0].Type))
+	tx, err := b.RollupContract.SubmitBatch(auth, compressedTxs, updatedRoot, uint8(txs[0].Type))
 	if err != nil {
 		return err
 	}

@@ -276,33 +276,66 @@
       "inputs": [
         {
           "internalType": "bytes",
-          "name": "txBytes",
+          "name": "pub",
           "type": "bytes"
         }
       ],
-      "name": "TxFromBytesBurnConsent",
+      "name": "calculateAddress",
       "outputs": [
+        {
+          "internalType": "address",
+          "name": "addr",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "GetGenesisLeaves",
+      "outputs": [
+        {
+          "internalType": "bytes32[2]",
+          "name": "leaves",
+          "type": "bytes32[2]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "GetGenesisDataBlocks",
+      "outputs": [
+        {
+          "internalType": "bytes[2]",
+          "name": "dataBlocks",
+          "type": "bytes[2]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
         {
           "components": [
             {
               "internalType": "uint256",
-              "name": "fromIndex",
+              "name": "toIndex",
               "type": "uint256"
             },
             {
               "internalType": "uint256",
-              "name": "amount",
+              "name": "tokenType",
               "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bool",
-              "name": "cancel",
-              "type": "bool"
             },
             {
               "internalType": "bytes",
@@ -310,9 +343,43 @@
               "type": "bytes"
             }
           ],
-          "internalType": "struct Types.BurnConsent",
-          "name": "",
+          "internalType": "struct Types.CreateAccount",
+          "name": "_tx",
           "type": "tuple"
+        }
+      ],
+      "name": "BytesFromCreateAccount",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "toIndex",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenType",
+          "type": "uint256"
+        }
+      ],
+      "name": "BytesFromCreateAccountNoStruct",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
         }
       ],
       "payable": false,
@@ -328,57 +395,19 @@
           "type": "bytes"
         }
       ],
-      "name": "TxFromBytesBurnExecution",
+      "name": "CreateAccountFromBytes",
       "outputs": [
         {
           "components": [
             {
               "internalType": "uint256",
-              "name": "fromIndex",
-              "type": "uint256"
-            }
-          ],
-          "internalType": "struct Types.BurnExecution",
-          "name": "",
-          "type": "tuple"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "bytes",
-          "name": "txBytes",
-          "type": "bytes"
-        }
-      ],
-      "name": "DecompressConsent",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "fromIndex",
+              "name": "toIndex",
               "type": "uint256"
             },
             {
               "internalType": "uint256",
-              "name": "amount",
+              "name": "tokenType",
               "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bool",
-              "name": "cancel",
-              "type": "bool"
             },
             {
               "internalType": "bytes",
@@ -386,7 +415,7 @@
               "type": "bytes"
             }
           ],
-          "internalType": "struct Types.BurnConsent",
+          "internalType": "struct Types.CreateAccount",
           "name": "",
           "type": "tuple"
         }
@@ -399,24 +428,117 @@
       "constant": true,
       "inputs": [
         {
-          "internalType": "bytes",
-          "name": "txBytes",
-          "type": "bytes"
+          "internalType": "uint256",
+          "name": "toIndex",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenType",
+          "type": "uint256"
         }
       ],
-      "name": "DecompressExecution",
+      "name": "CreateAccountSignBytes",
       "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
         {
           "components": [
             {
               "internalType": "uint256",
-              "name": "fromIndex",
+              "name": "toIndex",
               "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
             }
           ],
-          "internalType": "struct Types.BurnExecution",
-          "name": "",
+          "internalType": "struct Types.CreateAccount",
+          "name": "_tx",
           "type": "tuple"
+        }
+      ],
+      "name": "CompressCreateAccount",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "toIndex",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "signature",
+          "type": "uint256"
+        }
+      ],
+      "name": "CompressCreateAccountNoStruct",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "message",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "sig",
+          "type": "bytes"
+        }
+      ],
+      "name": "CompressCreateAccountWithMessage",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
         }
       ],
       "payable": false,
@@ -473,77 +595,6 @@
             },
             {
               "internalType": "uint256",
-              "name": "amount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bool",
-              "name": "cancel",
-              "type": "bool"
-            },
-            {
-              "internalType": "bytes",
-              "name": "signature",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Types.BurnConsent",
-          "name": "_tx",
-          "type": "tuple"
-        }
-      ],
-      "name": "CompressConsent",
-      "outputs": [
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "fromIndex",
-              "type": "uint256"
-            }
-          ],
-          "internalType": "struct Types.BurnExecution",
-          "name": "_tx",
-          "type": "tuple"
-        }
-      ],
-      "name": "CompressExecution",
-      "outputs": [
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "uint256",
               "name": "toIndex",
               "type": "uint256"
             },
@@ -553,74 +604,13 @@
               "type": "uint256"
             },
             {
-              "internalType": "bytes",
-              "name": "signature",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Types.CreateAccount",
-          "name": "_tx",
-          "type": "tuple"
-        }
-      ],
-      "name": "CompressCreateAccount",
-      "outputs": [
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "components": [
-            {
               "internalType": "uint256",
-              "name": "toIndex",
+              "name": "nonce",
               "type": "uint256"
             },
             {
               "internalType": "uint256",
-              "name": "tokenType",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes",
-              "name": "signature",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Types.CreateAccount",
-          "name": "_tx",
-          "type": "tuple"
-        }
-      ],
-      "name": "BytesFromCreateAccount",
-      "outputs": [
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "fromIndex",
+              "name": "txType",
               "type": "uint256"
             },
             {
@@ -629,27 +619,17 @@
               "type": "uint256"
             },
             {
-              "internalType": "uint256",
-              "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bool",
-              "name": "cancel",
-              "type": "bool"
-            },
-            {
               "internalType": "bytes",
               "name": "signature",
               "type": "bytes"
             }
           ],
-          "internalType": "struct Types.BurnConsent",
+          "internalType": "struct Types.DropTx",
           "name": "_tx",
           "type": "tuple"
         }
       ],
-      "name": "BytesFromBurnConsent",
+      "name": "BytesFromAirdrop",
       "outputs": [
         {
           "internalType": "bytes",
@@ -665,33 +645,10 @@
       "constant": true,
       "inputs": [
         {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "fromIndex",
-              "type": "uint256"
-            }
-          ],
-          "internalType": "struct Types.BurnExecution",
-          "name": "_tx",
-          "type": "tuple"
-        }
-      ],
-      "name": "BytesFromBurnExecution",
-      "outputs": [
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
+          "internalType": "uint256",
+          "name": "from",
+          "type": "uint256"
+        },
         {
           "internalType": "uint256",
           "name": "to",
@@ -701,40 +658,24 @@
           "internalType": "uint256",
           "name": "tokenType",
           "type": "uint256"
-        }
-      ],
-      "name": "BytesFromTxCreateAccountDeconstructed",
-      "outputs": [
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
+        },
         {
           "internalType": "uint256",
-          "name": "from",
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "txType",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "cancel",
-          "type": "bool"
         }
       ],
-      "name": "BytesFromTxBurnConsentDeconstructed",
+      "name": "BytesFromAirdropNoStruct",
       "outputs": [
         {
           "internalType": "bytes",
@@ -750,26 +691,13 @@
       "constant": true,
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "from",
-          "type": "uint256"
-        }
-      ],
-      "name": "BytesFromTxBurnExecutionDeconstructed",
-      "outputs": [
-        {
           "internalType": "bytes",
-          "name": "",
+          "name": "txBytes",
           "type": "bytes"
         }
       ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
+      "name": "AirdropFromBytes",
+      "outputs": [
         {
           "components": [
             {
@@ -779,7 +707,12 @@
             },
             {
               "internalType": "uint256",
-              "name": "amount",
+              "name": "toIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenType",
               "type": "uint256"
             },
             {
@@ -788,9 +721,14 @@
               "type": "uint256"
             },
             {
-              "internalType": "bool",
-              "name": "cancel",
-              "type": "bool"
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
             },
             {
               "internalType": "bytes",
@@ -798,17 +736,9 @@
               "type": "bytes"
             }
           ],
-          "internalType": "struct Types.BurnConsent",
-          "name": "_tx",
-          "type": "tuple"
-        }
-      ],
-      "name": "HashFromConsent",
-      "outputs": [
-        {
-          "internalType": "bytes32",
+          "internalType": "struct Types.DropTx",
           "name": "",
-          "type": "bytes32"
+          "type": "tuple"
         }
       ],
       "payable": false,
@@ -819,24 +749,42 @@
       "constant": true,
       "inputs": [
         {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "fromIndex",
-              "type": "uint256"
-            }
-          ],
-          "internalType": "struct Types.BurnExecution",
-          "name": "_tx",
-          "type": "tuple"
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
         }
       ],
-      "name": "HashFromExecution",
+      "name": "AirdropFromBytesNoStruct",
       "outputs": [
         {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
+          "internalType": "uint256",
+          "name": "from",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "to",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
         }
       ],
       "payable": false,
@@ -877,7 +825,7 @@
           "type": "uint256"
         }
       ],
-      "name": "getTxSignBytes",
+      "name": "AirdropSignBytes",
       "outputs": [
         {
           "internalType": "bytes32",
@@ -930,17 +878,132 @@
               "type": "bytes"
             }
           ],
-          "internalType": "struct Types.Transaction",
+          "internalType": "struct Types.DropTx",
           "name": "_tx",
           "type": "tuple"
         }
       ],
-      "name": "HashFromTx",
+      "name": "CompressAirdrop",
       "outputs": [
         {
-          "internalType": "bytes32",
+          "internalType": "bytes",
           "name": "",
-          "type": "bytes32"
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "toIndex",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "sig",
+          "type": "bytes"
+        }
+      ],
+      "name": "CompressAirdropNoStruct",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "message",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "sig",
+          "type": "bytes"
+        }
+      ],
+      "name": "CompressAirdropTxWithMessage",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "dropBytes",
+          "type": "bytes"
+        }
+      ],
+      "name": "DecompressAirdrop",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "toIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Types.DropTx",
+          "name": "",
+          "type": "tuple"
         }
       ],
       "payable": false,
@@ -1060,52 +1123,6 @@
           "type": "bytes"
         }
       ],
-      "name": "TxFromBytesDeconstructed",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "from",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "to",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "tokenType",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "nonce",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "txType",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "bytes",
-          "name": "txBytes",
-          "type": "bytes"
-        }
-      ],
       "name": "TxFromBytes",
       "outputs": [
         {
@@ -1149,6 +1166,98 @@
           "internalType": "struct Types.Transaction",
           "name": "",
           "type": "tuple"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+        }
+      ],
+      "name": "TxFromBytesDeconstructed",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "from",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "to",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "fromIndex",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "toIndex",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "getTxSignBytes",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
         }
       ],
       "payable": false,
@@ -1218,42 +1327,6 @@
       "inputs": [
         {
           "internalType": "bytes",
-          "name": "txBytes",
-          "type": "bytes"
-        }
-      ],
-      "name": "DecompressTx",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "from",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "to",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "nonce",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes",
-          "name": "sig",
-          "type": "bytes"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "bytes",
           "name": "message",
           "type": "bytes"
         },
@@ -1279,64 +1352,6 @@
       "constant": true,
       "inputs": [
         {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "fromIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "toIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "tokenType",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "txType",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "amount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes",
-              "name": "signature",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Types.DropTx",
-          "name": "_tx",
-          "type": "tuple"
-        }
-      ],
-      "name": "CompressDrop",
-      "outputs": [
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
           "internalType": "bytes",
           "name": "txBytes",
           "type": "bytes"
@@ -1356,173 +1371,12 @@
         },
         {
           "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes",
-          "name": "sig",
-          "type": "bytes"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "bytes",
-          "name": "message",
-          "type": "bytes"
-        },
-        {
-          "internalType": "bytes",
-          "name": "sig",
-          "type": "bytes"
-        }
-      ],
-      "name": "CompressAirdropTxWithMessage",
-      "outputs": [
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "toIndex",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes",
-          "name": "sig",
-          "type": "bytes"
-        }
-      ],
-      "name": "CompressDropNoStruct",
-      "outputs": [
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "bytes",
-          "name": "dropBytes",
-          "type": "bytes"
-        }
-      ],
-      "name": "DecompressDrop",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "fromIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "toIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "tokenType",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "txType",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "amount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes",
-              "name": "signature",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Types.DropTx",
-          "name": "",
-          "type": "tuple"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "from",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "to",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "tokenType",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
           "name": "nonce",
           "type": "uint256"
         },
         {
-          "internalType": "uint256",
-          "name": "txType",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "BytesFromTxAirdropDeconstructed",
-      "outputs": [
-        {
           "internalType": "bytes",
-          "name": "",
+          "name": "sig",
           "type": "bytes"
         }
       ],
@@ -1571,12 +1425,60 @@
               "type": "bytes"
             }
           ],
-          "internalType": "struct Types.DropTx",
+          "internalType": "struct Types.Transaction",
           "name": "_tx",
           "type": "tuple"
         }
       ],
-      "name": "BytesFromAirdrop",
+      "name": "HashFromTx",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "cancel",
+              "type": "bool"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Types.BurnConsent",
+          "name": "_tx",
+          "type": "tuple"
+        }
+      ],
+      "name": "BytesFromBurnConsent",
       "outputs": [
         {
           "internalType": "bytes",
@@ -1598,17 +1500,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "toIndex",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "tokenType",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "txType",
+          "name": "amount",
           "type": "uint256"
         },
         {
@@ -1617,12 +1509,96 @@
           "type": "uint256"
         },
         {
+          "internalType": "bool",
+          "name": "cancel",
+          "type": "bool"
+        }
+      ],
+      "name": "BytesFromBurnConsentNoStruct",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+        }
+      ],
+      "name": "BurnConsentTxFromBytes",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "cancel",
+              "type": "bool"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Types.BurnConsent",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "fromIndex",
+          "type": "uint256"
+        },
+        {
           "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "cancel",
+          "type": "bool"
         }
       ],
-      "name": "getDropSignBytes",
+      "name": "BurnConsentSignBytes",
       "outputs": [
         {
           "internalType": "bytes32",
@@ -1638,42 +1614,80 @@
       "constant": true,
       "inputs": [
         {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "cancel",
+              "type": "bool"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Types.BurnConsent",
+          "name": "_tx",
+          "type": "tuple"
+        }
+      ],
+      "name": "CompressBurnConsent",
+      "outputs": [
+        {
           "internalType": "bytes",
-          "name": "txBytes",
+          "name": "",
           "type": "bytes"
         }
       ],
-      "name": "AirdropTxFromBytesNoStruct",
-      "outputs": [
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
         {
           "internalType": "uint256",
-          "name": "from",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "to",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "tokenType",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "nonce",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "txType",
+          "name": "fromIndex",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "cancel",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes",
+          "name": "sig",
+          "type": "bytes"
+        }
+      ],
+      "name": "CompressBurnConsentNoStruct",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
         }
       ],
       "payable": false,
@@ -1689,7 +1703,7 @@
           "type": "bytes"
         }
       ],
-      "name": "AirdropTxFromBytes",
+      "name": "DecompressBurnConsent",
       "outputs": [
         {
           "components": [
@@ -1700,12 +1714,7 @@
             },
             {
               "internalType": "uint256",
-              "name": "toIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "tokenType",
+              "name": "amount",
               "type": "uint256"
             },
             {
@@ -1714,14 +1723,9 @@
               "type": "uint256"
             },
             {
-              "internalType": "uint256",
-              "name": "txType",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "amount",
-              "type": "uint256"
+              "internalType": "bool",
+              "name": "cancel",
+              "type": "bool"
             },
             {
               "internalType": "bytes",
@@ -1729,7 +1733,7 @@
               "type": "bytes"
             }
           ],
-          "internalType": "struct Types.DropTx",
+          "internalType": "struct Types.BurnConsent",
           "name": "",
           "type": "tuple"
         }
@@ -1742,17 +1746,93 @@
       "constant": true,
       "inputs": [
         {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "cancel",
+              "type": "bool"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Types.BurnConsent",
+          "name": "_tx",
+          "type": "tuple"
+        }
+      ],
+      "name": "HashFromBurnConsent",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Types.BurnExecution",
+          "name": "_tx",
+          "type": "tuple"
+        }
+      ],
+      "name": "BytesFromBurnExecution",
+      "outputs": [
+        {
           "internalType": "bytes",
-          "name": "pub",
+          "name": "",
           "type": "bytes"
         }
       ],
-      "name": "calculateAddress",
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "fromIndex",
+          "type": "uint256"
+        }
+      ],
+      "name": "BytesFromBurnExecutionNoStruct",
       "outputs": [
         {
-          "internalType": "address",
-          "name": "addr",
-          "type": "address"
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
         }
       ],
       "payable": false,
@@ -1761,13 +1841,26 @@
     },
     {
       "constant": true,
-      "inputs": [],
-      "name": "GetGenesisLeaves",
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+        }
+      ],
+      "name": "BurnExecutionFromBytes",
       "outputs": [
         {
-          "internalType": "bytes32[2]",
-          "name": "leaves",
-          "type": "bytes32[2]"
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Types.BurnExecution",
+          "name": "",
+          "type": "tuple"
         }
       ],
       "payable": false,
@@ -1776,13 +1869,129 @@
     },
     {
       "constant": true,
-      "inputs": [],
-      "name": "GetGenesisDataBlocks",
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "fromIndex",
+          "type": "uint256"
+        }
+      ],
+      "name": "BurnExecutionSignBytes",
       "outputs": [
         {
-          "internalType": "bytes[2]",
-          "name": "dataBlocks",
-          "type": "bytes[2]"
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Types.BurnExecution",
+          "name": "_tx",
+          "type": "tuple"
+        }
+      ],
+      "name": "CompressBurnExecution",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "fromIndex",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "signature",
+          "type": "bytes"
+        }
+      ],
+      "name": "CompressBurnExecutionNoStruct",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+        }
+      ],
+      "name": "DecompressBurnExecution",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Types.BurnExecution",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Types.BurnExecution",
+          "name": "_tx",
+          "type": "tuple"
+        }
+      ],
+      "name": "HashFromBurnExecution",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
         }
       ],
       "payable": false,
