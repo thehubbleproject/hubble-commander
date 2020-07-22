@@ -161,7 +161,7 @@ func (db *DB) FetchTxType() (txType uint64, err error) {
 	// find out which txType has the highest count
 	var maxTxType uint64
 	var maxCount uint64
-	txTypes := []uint64{TX_TRANSFER_TYPE}
+	txTypes := []uint64{TX_TRANSFER_TYPE, TX_AIRDROP_TYPE, TX_CREATE_ACCOUNT, TX_BURN_CONSENT, TX_BURN_CONSENT}
 	for _, txType := range txTypes {
 		count, err := db.GetCountPerTxType(txType)
 		if err != nil {
