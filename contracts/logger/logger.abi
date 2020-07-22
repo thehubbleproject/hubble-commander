@@ -155,6 +155,25 @@
         {
           "indexed": false,
           "internalType": "uint256",
+          "name": "AccountID",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes",
+          "name": "pubkey",
+          "type": "bytes"
+        }
+      ],
+      "name": "NewPubkeyAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
           "name": "tokenType",
           "type": "uint256"
         },
@@ -354,6 +373,26 @@
         }
       ],
       "name": "logRegistrationRequest",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "accountID",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "pubkey",
+          "type": "bytes"
+        }
+      ],
+      "name": "logNewPubkeyAdded",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
