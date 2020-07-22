@@ -198,6 +198,22 @@ func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof AccountMerkl
 	if err != nil {
 		return
 	}
+	fromPDA, err := DBInstance.GetPDALeafByID(tx.From)
+	if err != nil {
+		return
+	}
+	fromPDASiblings, err := DBInstance.GetPDASiblings(fromPDA.Path)
+	if err != nil {
+		return
+	}
+	// toPDA, err := DBInstance.GetPDALeafByID(tx.To)
+	// if err != nil {
+	// 	return
+	// }
+	// toPDASiblings, err := DBInstance.GetPDASiblings(toPDA.Path)
+	// if err != nil {
+	// 	return
+	// }
 	fromMerkleProof = NewAccountMerkleProof(fromAcc, fromSiblings)
 	toAcc, err := DBInstance.GetAccountByID(tx.To)
 	if err != nil {
@@ -230,7 +246,7 @@ func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof AccountMerkl
 	}
 
 	toMerkleProof = NewAccountMerkleProof(toAcc, toSiblings)
-	PDAProof = NewPDAProof(fromAcc.Path, fromAcc.PublicKey, fromSiblings)
+	PDAProof = NewPDAProof(fromPDA.Path, fromPDA.PublicKey, fromPDASiblings)
 	mysqlTx.Rollback()
 	return fromMerkleProof, toMerkleProof, PDAProof, nil
 }
