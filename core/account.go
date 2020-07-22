@@ -8,7 +8,6 @@ import (
 
 	"github.com/BOPR/common"
 	"github.com/BOPR/contracts/rollupcaller"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/jinzhu/gorm"
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
 )
