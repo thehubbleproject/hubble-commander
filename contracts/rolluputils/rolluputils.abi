@@ -336,11 +336,6 @@
               "internalType": "uint256",
               "name": "tokenType",
               "type": "uint256"
-            },
-            {
-              "internalType": "bytes",
-              "name": "signature",
-              "type": "bytes"
             }
           ],
           "internalType": "struct Types.CreateAccount",
@@ -408,11 +403,6 @@
               "internalType": "uint256",
               "name": "tokenType",
               "type": "uint256"
-            },
-            {
-              "internalType": "bytes",
-              "name": "signature",
-              "type": "bytes"
             }
           ],
           "internalType": "struct Types.CreateAccount",
@@ -438,11 +428,6 @@
               "internalType": "uint256",
               "name": "tokenType",
               "type": "uint256"
-            },
-            {
-              "internalType": "bytes",
-              "name": "signature",
-              "type": "bytes"
             }
           ],
           "internalType": "struct Types.CreateAccount",

@@ -486,62 +486,49 @@ func (b *Bazooka) CompressBurnExecution(tx Tx) ([]byte, error) {
 	return b.RollupUtils.CompressBurnExecutionWithMessage(&opts, tx.Data)
 }
 
-func (b *Bazooka) DecompressTransferTxs(compressedTxs [][]byte) (from, to, amount []*big.Int, sig [][]byte, err error) {
-	for _, compressedTx := range compressedTxs {
-		opts := bind.CallOpts{From: config.OperatorAddress}
-		decompressedTx, err := b.RollupUtils.DecompressTx(&opts, compressedTx)
-		if err != nil {
-			return from, to, amount, sig, err
-		}
-		from = append(from, decompressedTx.From)
-		to = append(to, decompressedTx.To)
-		amount = append(amount, decompressedTx.Amount)
-		sig = append(sig, decompressedTx.Sig)
+func (b *Bazooka) DecompressTransferTx(compressedTx []byte) (from, to, amount *big.Int, sig []byte, err error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	decompressedTx, err := b.RollupUtils.DecompressTx(&opts, compressedTx)
+	if err != nil {
+		return from, to, amount, sig, err
 	}
-	return from, to, amount, sig, nil
+	return decompressedTx.From, decompressedTx.To, decompressedTx.Amount, sig, nil
 }
 
-func (b *Bazooka) DecompressCreateAccountTxs(compressedTxs [][]byte) (to, tokenType []*big.Int, err error) {
-	for _, compressedTx := range compressedTxs {
-		opts := bind.CallOpts{From: config.OperatorAddress}
-		decompressedTx, err := b.RollupUtils.DecompressCreateAccount(&opts, compressedTx)
-		if err != nil {
-			return to, tokenType, err
-		}
-		to = append(to, decompressedTx.ToIndex)
-		tokenType = append(tokenType, decompressedTx.TokenType)
+func (b *Bazooka) DecompressCreateAccountTx(compressedTx []byte) (to, tokenType *big.Int, err error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	decompressedTx, err := b.RollupUtils.DecompressCreateAccount(&opts, compressedTx)
+	if err != nil {
+		return to, tokenType, err
 	}
-	return to, tokenType, nil
+	return decompressedTx.ToIndex, decompressedTx.TokenType, nil
 }
 
-func (b *Bazooka) DecompressBurnConsentTxs(compressedTxs [][]byte) (from, amount, nonce []*big.Int, cancel []bool, sig [][]byte, err error) {
-	for _, compressedTx := range compressedTxs {
-		opts := bind.CallOpts{From: config.OperatorAddress}
-		decompressedTx, err := b.RollupUtils.DecompressBurnConsent(&opts, compressedTx)
-		if err != nil {
-			return from, amount, nonce, cancel, sig, err
-		}
-
-		from = append(from, decompressedTx.FromIndex)
-		amount = append(amount, decompressedTx.Amount)
-		nonce = append(nonce, decompressedTx.Nonce)
-		cancel = append(cancel, decompressedTx.Cancel)
-		sig = append(sig, decompressedTx.Signature)
+func (b *Bazooka) DecompressBurnConsentTx(compressedTx []byte) (from, amount, nonce *big.Int, cancel bool, sig []byte, err error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	decompressedTx, err := b.RollupUtils.DecompressBurnConsent(&opts, compressedTx)
+	if err != nil {
+		return from, amount, nonce, cancel, sig, err
 	}
-	return from, amount, nonce, cancel, sig, nil
+	return decompressedTx.FromIndex, decompressedTx.Amount, decompressedTx.Nonce, decompressedTx.Cancel, sig, nil
 }
 
-func (b *Bazooka) DecompressBurnExecTxs(compressedTxs [][]byte) (from []*big.Int, err error) {
-	for _, compressedTx := range compressedTxs {
-		opts := bind.CallOpts{From: config.OperatorAddress}
-		decompressedTxFromIndex, err := b.RollupUtils.DecompressBurnExecution(&opts, compressedTx)
-		if err != nil {
-			return from, err
-		}
-
-		from = append(from, decompressedTxFromIndex)
+func (b *Bazooka) DecompressBurnExecTx(compressedTx []byte) (from *big.Int, err error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	decompressedTxFromIndex, err := b.RollupUtils.DecompressBurnExecution(&opts, compressedTx)
+	if err != nil {
+		return from, err
 	}
-	return from, nil
+	return decompressedTxFromIndex, nil
+}
+
+func (b *Bazooka) DecompressAirdropTx(compressedTx []byte) (from, to, amount *big.Int, sig []byte, err error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	decompressedTx, err := b.RollupUtils.DecompressAirdrop(&opts, compressedTx)
+	if err != nil {
+		return
+	}
+	return big.NewInt(1), decompressedTx.ToIndex, decompressedTx.Amount, decompressedTx.Signature, nil
 }
 
 //
@@ -638,6 +625,7 @@ func (b *Bazooka) DecodeAccount(accountBytes []byte) (ID, balance, nonce, token,
 		return
 	}
 
+	b.log.Debug("Decoded account", "ID", account.ID, "balance", account.Balance, "token", account.TokenType, "nonce", account.Nonce, "burn", account.Burn, "lastBurn", account.LastBurn)
 	return account.ID, account.Balance, account.Nonce, account.TokenType, account.Burn, account.LastBurn, nil
 }
 
