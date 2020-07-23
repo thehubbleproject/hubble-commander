@@ -2,6 +2,7 @@ package listener
 
 import (
 	"context"
+	"encoding/hex"
 	"time"
 
 	"github.com/BOPR/common"
@@ -215,7 +216,7 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 				}
 				break
 			} else {
-				s.Logger.Debug("Unable to match with any event", "topics", topic)
+				s.Logger.Debug("Unable to match with any event", "topics", hex.EncodeToString(topic))
 			}
 		}
 	}
