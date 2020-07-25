@@ -492,11 +492,7 @@ func (b *Bazooka) SubmitBatch(updatedRoot ByteArray, txs []Tx) error {
 	if err != nil {
 		return err
 	}
-<<<<<<< HEAD
-	tx, err := b.RollupContract.SubmitBatch(auth, compressedTxs, updatedRoot,uint8(txs[0].Type))
-=======
 	tx, err := b.RollupContract.SubmitBatch(auth, compressedTxs, updatedRoot, uint8(txs[0].Type))
->>>>>>> dc2015b843fd4d5dc29d39759213738d8c28bfd6
 	if err != nil {
 		return err
 	}
