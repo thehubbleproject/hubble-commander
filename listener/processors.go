@@ -273,11 +273,11 @@ func (s *Syncer) ApplyTxsFromBatch(txs [][]byte, txType uint64) error {
 
 		switch txType {
 		case core.TX_TRANSFER_TYPE:
-			from, to, amount, sig, err := s.loadedBazooka.DecompressTransferTx(txs[i])
+			from, to, amount, decodedSig, err := s.loadedBazooka.DecompressTransferTx(txs[i])
 			if err != nil {
 				return err
 			}
-			s.Logger.Debug("Fetched tx data", "from", from, "to", to, "amount", amount, "sig", sig)
+			sig = decodedSig
 			fromAccount, err := s.DBInstance.GetAccountByID(from.Uint64())
 			if err != nil {
 				return err
@@ -295,7 +295,6 @@ func (s *Syncer) ApplyTxsFromBatch(txs [][]byte, txType uint64) error {
 			if err != nil {
 				return err
 			}
-			s.Logger.Debug("Fetched tx data", "to", to, "token", token)
 			txData, err = s.loadedBazooka.EncodeCreateAccountTx(to.Int64(), token.Int64())
 			if err != nil {
 				return err

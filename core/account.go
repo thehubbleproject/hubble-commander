@@ -202,8 +202,8 @@ func (db *DB) InitBalancesTree(depth uint64, genesisAccounts []UserAccount) erro
 		prevNodePath = genesisAccounts[i].Path
 	}
 
-	db.Logger.Info("Inserting all accounts to DB", "count", len(insertRecords))
-	err = gormbulk.BulkInsert(db.Instance, insertRecords, len(insertRecords))
+	db.Logger.Info("Creating accounts tree, might take a minute or two, sit back.....", "count", len(insertRecords))
+	err = gormbulk.BulkInsert(db.Instance, insertRecords, CHUNK_SIZE)
 	if err != nil {
 		db.Logger.Error("Unable to insert accounts to DB", "err", err)
 		return errors.New("Unable to insert accounts")
@@ -240,8 +240,7 @@ func (db *DB) InitBalancesTree(depth uint64, genesisAccounts []UserAccount) erro
 			newAccNode := *NewAccountNode(parentPath, parentHash.String())
 			nextLevelAccounts = append(nextLevelAccounts, newAccNode)
 		}
-
-		err = gormbulk.BulkInsert(db.Instance, nextLevelAccounts, len(nextLevelAccounts))
+		err = gormbulk.BulkInsert(db.Instance, nextLevelAccounts, CHUNK_SIZE)
 		if err != nil {
 			db.Logger.Error("Unable to insert accounts to DB", "err", err)
 			return errors.New("Unable to insert accounts")

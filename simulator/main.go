@@ -13,6 +13,13 @@ const (
 	SimulatorService = "simulator"
 )
 
+type (
+	SimulatorLog struct {
+		TxType uint64
+		TxHash string
+	}
+)
+
 type Simulator struct {
 	// Base service
 	core.BaseService
@@ -86,10 +93,15 @@ func (s *Simulator) SimulationStart(ctx context.Context, interval time.Duration)
 
 // tries sending transactins to and fro accounts to the rollup node
 func (s *Simulator) sendTxsToAndFro() {
+	// Cycle
+	// Create 32 accounts
+	// Burn consent for 32 accounts
+	// One transfer per account 32 transactions
+	// One burn exec for 32 accounts
+	// Discard cycle, renew cycle
 	amount := 1
 	FromID := uint64(2)
 	ToID := uint64(3)
-
 	if s.toSwap {
 		tempID := FromID
 		FromID = ToID

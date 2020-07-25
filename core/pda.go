@@ -219,7 +219,7 @@ func (db *DB) InitPDATree(depth uint64, genesisPDA []PDA) error {
 	if int(totalLeaves) != len(genesisPDA) {
 		return errors.New("Depth and number of leaves do not match")
 	}
-	db.Logger.Debug("Attempting to init balance tree", "totalAccounts", totalLeaves)
+	db.Logger.Debug("Attempting to init PDA tree", "totalAccounts", totalLeaves)
 
 	var err error
 
@@ -243,8 +243,7 @@ func (db *DB) InitPDATree(depth uint64, genesisPDA []PDA) error {
 		prevNodePath = genesisPDA[i].Path
 	}
 
-	db.Logger.Info("Inserting all leaves to DB", "count", len(insertRecords))
-	err = gormbulk.BulkInsert(db.Instance, insertRecords, len(insertRecords))
+	err = gormbulk.BulkInsert(db.Instance, insertRecords, CHUNK_SIZE)
 	if err != nil {
 		db.Logger.Error("Unable to insert leaves to DB", "err", err)
 		return errors.New("Unable to insert leaves")
@@ -281,8 +280,8 @@ func (db *DB) InitPDATree(depth uint64, genesisPDA []PDA) error {
 			newAccNode := *NewPDANode(parentPath, parentHash.String())
 			nextLevelAccounts = append(nextLevelAccounts, newAccNode)
 		}
-
-		err = gormbulk.BulkInsert(db.Instance, nextLevelAccounts, len(nextLevelAccounts))
+		db.Logger.Info("Creating PDA tree, might take a minute or two, sit back.....", "count", len(insertRecords))
+		err = gormbulk.BulkInsert(db.Instance, nextLevelAccounts, CHUNK_SIZE)
 		if err != nil {
 			db.Logger.Error("Unable to insert PDA leaves to DB", "err", err)
 			return errors.New("Unable to insert PDA leaves")

@@ -29,4 +29,6 @@ const (
 	TX_AIRDROP_TYPE   = 3
 	TX_BURN_CONSENT   = 4
 	TX_BURN_EXEC      = 5
+
+	CHUNK_SIZE = 3000
 )
