@@ -143,15 +143,17 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) error {
 			return err
 		}
 
-		a.Logger.Debug("Fetched latest account proofs", "tx", tx.String(), "fromMP", fromAccProof, "toMP", toAccProof, "PDAProof", PDAproof)
+		a.Logger.Debug("Fetched latest account proofs", "tx", tx.String())
 
 		updatedRoot, updatedFrom, updatedTo, err := a.LoadedBazooka.ProcessTx(currentRoot, currentAccountTreeRoot, tx, fromAccProof, toAccProof, PDAproof)
 		if err != nil {
-			err := tx.UpdateStatus(core.TX_STATUS_REVERTED)
-			if err != nil {
-				a.Logger.Error("Unable to update transaction status", "tx", tx.String())
-				return err
+			a.Logger.Error("Error processing tx", "tx", tx.String(), "error", err)
+			errWhileUpdatingStatus := tx.UpdateStatus(core.TX_STATUS_REVERTED)
+			if errWhileUpdatingStatus != nil {
+				a.Logger.Error("Unable to update transaction status", "tx", tx.String(), "Error", errWhileUpdatingStatus)
+				return errWhileUpdatingStatus
 			}
+			return err
 		}
 
 		// if the transactions is valid, apply it

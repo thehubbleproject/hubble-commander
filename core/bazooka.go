@@ -26,6 +26,30 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
+// Broadcast details is stored to the DB with each broadcast
+// It is useful because now we can broadcast txs simulatneously without caring about confirmation times
+type BroadcastDetails struct {
+	TxHash    string `json:"tx"`
+	Nonce     uint64 `json:"nonce"`
+	BatchType uint64 `json:"batchType"`
+}
+
+func (db *DB) LogBatch(txHash string, nonce uint64, batchType uint64) error {
+	var details BroadcastDetails
+	details.TxHash = txHash
+	details.Nonce = nonce
+	details.BatchType = batchType
+	return db.Instance.Create(&details).Error
+}
+
+func (db *DB) GetLastTransaction() (BroadcastDetails, error) {
+	var details BroadcastDetails
+	if err := db.Instance.Order("nonce desc").First(&details).Error; err != nil {
+		return details, err
+	}
+	return details, nil
+}
+
 // IContractCaller is the common interface using which we will interact with the contracts
 // and the ethereum chain
 type IBazooka interface {
@@ -504,13 +528,13 @@ func (b *Bazooka) DecompressCreateAccountTx(compressedTx []byte) (to, tokenType 
 	return decompressedTx.ToIndex, decompressedTx.TokenType, nil
 }
 
-func (b *Bazooka) DecompressBurnConsentTx(compressedTx []byte) (from, amount, nonce *big.Int, cancel bool, sig []byte, err error) {
+func (b *Bazooka) DecompressBurnConsentTx(compressedTx []byte) (from, amount, nonce *big.Int, sig []byte, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	decompressedTx, err := b.RollupUtils.DecompressBurnConsent(&opts, compressedTx)
 	if err != nil {
-		return from, amount, nonce, cancel, sig, err
+		return from, amount, nonce, sig, err
 	}
-	return decompressedTx.FromIndex, decompressedTx.Amount, decompressedTx.Nonce, decompressedTx.Cancel, sig, nil
+	return decompressedTx.FromIndex, decompressedTx.Amount, decompressedTx.Nonce, sig, nil
 }
 
 func (b *Bazooka) DecompressBurnExecTx(compressedTx []byte) (from *big.Int, err error) {
@@ -565,7 +589,7 @@ func (b *Bazooka) DecodeAirdropTx(txBytes []byte) (from, to, token, nonce, txTyp
 
 func (b *Bazooka) EncodeCreateAccountTx(to, token int64) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.BytesFromCreateAccountNoStruct(&opts, big.NewInt(to), big.NewInt(token))
+	return b.RollupUtils.BytesFromCreateAccountNoStruct(&opts, big.NewInt(TX_CREATE_ACCOUNT), big.NewInt(to), big.NewInt(token))
 }
 
 func (b *Bazooka) DecodeCreateAccountTx(txBytes []byte) (to, token *big.Int, err error) {
@@ -577,23 +601,23 @@ func (b *Bazooka) DecodeCreateAccountTx(txBytes []byte) (to, token *big.Int, err
 	return tx.ToIndex, tx.TokenType, nil
 }
 
-func (b *Bazooka) EncodeBurnConsentTx(from, amount, nonce, txType int64, cancel bool) ([]byte, error) {
+func (b *Bazooka) EncodeBurnConsentTx(from, amount, nonce, txType int64) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.BytesFromBurnConsentNoStruct(&opts, big.NewInt(from), big.NewInt(amount), big.NewInt(nonce), cancel)
+	return b.RollupUtils.BytesFromBurnConsentNoStruct(&opts, big.NewInt(TX_BURN_CONSENT), big.NewInt(from), big.NewInt(amount), big.NewInt(nonce))
 }
 
-func (b *Bazooka) DecodeBurnConsentTx(txBytes []byte) (from, amount, nonce, txType *big.Int, cancel bool, err error) {
+func (b *Bazooka) DecodeBurnConsentTx(txBytes []byte) (from, amount, nonce, txType *big.Int, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	tx, err := b.RollupUtils.BurnConsentFromBytes(&opts, txBytes)
 	if err != nil {
 		return
 	}
-	return tx.FromIndex, tx.Amount, tx.Nonce, big.NewInt(TX_BURN_CONSENT), tx.Cancel, nil
+	return tx.FromIndex, tx.Amount, tx.Nonce, big.NewInt(TX_BURN_CONSENT), nil
 }
 
 func (b *Bazooka) EncodeBurnExecTx(from, txType int64) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.BytesFromBurnExecutionNoStruct(&opts, big.NewInt(from))
+	return b.RollupUtils.BytesFromBurnExecutionNoStruct(&opts, big.NewInt(TX_BURN_EXEC), big.NewInt(from))
 }
 
 func (b *Bazooka) DecodeBurnExecTx(txBytes []byte) (from, txType *big.Int, err error) {
@@ -693,7 +717,6 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced UserAccount, siblings []Use
 	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
 	stakeAmount := big.NewInt(0)
 	stakeAmount.SetString("32000000000000000000", 10)
-	fmt.Println("Stake committed", stakeAmount)
 
 	// generate call msg
 	callMsg := ethereum.CallMsg{
@@ -706,9 +729,22 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced UserAccount, siblings []Use
 	if err != nil {
 		return err
 	}
+	lastTxBroadcasted, err := DBInstance.GetLastTransaction()
+	if err != nil {
+		return err
+	}
+	if lastTxBroadcasted.Nonce+1 != auth.Nonce.Uint64() {
+		b.log.Info("Replacing nonce", "nonceEstimated", auth.Nonce.String(), "replacedBy", lastTxBroadcasted.Nonce+1)
+		auth.Nonce = big.NewInt(int64(lastTxBroadcasted.Nonce + 1))
+	}
 	b.log.Info("Broadcasting deposit finalisation transaction")
 
 	tx, err := b.RollupContract.FinaliseDepositsAndSubmitBatch(auth, depositSubTreeHeight, accountProof)
+	if err != nil {
+		return err
+	}
+	// TODO change this to deposit type
+	err = DBInstance.LogBatch(tx.Hash().String(), auth.Nonce.Uint64(), 100)
 	if err != nil {
 		return err
 	}
@@ -759,6 +795,16 @@ func (b *Bazooka) SubmitBatch(updatedRoot ByteArray, txs []Tx) error {
 		return err
 	}
 
+	lastTxBroadcasted, err := DBInstance.GetLastTransaction()
+	if err != nil {
+		return err
+	}
+
+	if lastTxBroadcasted.Nonce+1 != auth.Nonce.Uint64() {
+		b.log.Info("Replacing nonce", "nonceEstimated", auth.Nonce.String(), "replacedBy", lastTxBroadcasted.Nonce+1)
+		auth.Nonce = big.NewInt(int64(lastTxBroadcasted.Nonce + 1))
+	}
+
 	latestBatch, err := DBInstance.GetLatestBatch()
 	if err != nil {
 		return err
@@ -770,12 +816,19 @@ func (b *Bazooka) SubmitBatch(updatedRoot ByteArray, txs []Tx) error {
 		Committer: config.OperatorAddress.String(),
 		Status:    BATCH_BROADCASTED,
 	}
+
 	b.log.Info("Broadcasting a new batch", "newBatch", newBatch)
 	err = DBInstance.AddNewBatch(newBatch)
 	if err != nil {
 		return err
 	}
+
 	tx, err := b.RollupContract.SubmitBatch(auth, compressedTxs, updatedRoot, uint8(txs[0].Type))
+	if err != nil {
+		return err
+	}
+
+	err = DBInstance.LogBatch(tx.Hash().String(), auth.Nonce.Uint64(), txs[0].Type)
 	if err != nil {
 		return err
 	}
@@ -808,11 +861,14 @@ func (b *Bazooka) GenerateAuthObj(client *ethclient.Client, callMsg ethereum.Cal
 	// fetch gas limit
 	callMsg.From = fromAddress
 	gasLimit, err := client.EstimateGas(context.Background(), callMsg)
-
+	if err != nil {
+		return
+	}
 	// create auth
 	auth = bind.NewKeyedTransactor(config.OperatorKey)
-	auth.GasPrice = gasprice
+	bumpUpGasPriceBy := big.NewInt(20)
+	auth.GasPrice = gasprice.Add(gasprice, bumpUpGasPriceBy)
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.GasLimit = uint64(gasLimit) // uint64(gasLimit)
+	auth.GasLimit = uint64(gasLimit)
 	return
 }

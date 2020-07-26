@@ -19,7 +19,7 @@ import (
 const ZEROROOT = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
 func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
-	s.Logger.Info("New deposit found")
+	s.Logger.Info("New pubkey added")
 
 	// unpack event
 	event := new(logger.LoggerNewPubkeyAdded)
@@ -36,9 +36,12 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 		"accountID", event.AccountID.String(),
 		"pubkey", event.Pubkey,
 	)
-
+	params, err := s.DBInstance.GetParams()
+	if err != nil {
+		return
+	}
 	// add new account in pending state to DB and
-	pathToNode, err := core.SolidityPathToNodePath(event.AccountID.Uint64(), 4)
+	pathToNode, err := core.SolidityPathToNodePath(event.AccountID.Uint64(), params.MaxDepth)
 	if err != nil {
 		// TODO do something with this error
 		fmt.Println("Unable to convert path", err)
@@ -279,7 +282,7 @@ func (s *Syncer) ApplyTxsFromBatch(txs [][]byte, txType uint64) error {
 				return err
 			}
 			sig = decodedSig
-			fromAccount, err := s.DBInstance.GetAccountByID(from.Uint64())
+			fromAccount, err := s.DBInstance.GetAccountByIndex(from.Uint64())
 			if err != nil {
 				return err
 			}
@@ -310,12 +313,12 @@ func (s *Syncer) ApplyTxsFromBatch(txs [][]byte, txType uint64) error {
 				return err
 			}
 		case core.TX_BURN_CONSENT:
-			from, amount, nonce, cancel, sig, err := s.loadedBazooka.DecompressBurnConsentTx(txs[i])
+			from, amount, nonce, sig, err := s.loadedBazooka.DecompressBurnConsentTx(txs[i])
 			if err != nil {
 				return err
 			}
 			s.Logger.Debug("Fetched tx data", "from", from, "to", to, "amount", amount, "sig", sig)
-			fromAccount, err := s.DBInstance.GetAccountByID(from.Uint64())
+			fromAccount, err := s.DBInstance.GetAccountByIndex(from.Uint64())
 			if err != nil {
 				return err
 			}
@@ -323,7 +326,7 @@ func (s *Syncer) ApplyTxsFromBatch(txs [][]byte, txType uint64) error {
 			if err != nil {
 				return err
 			}
-			txData, err = s.loadedBazooka.EncodeBurnConsentTx(from.Int64(), amount.Int64(), nonce.Int64(), int64(txType), cancel)
+			txData, err = s.loadedBazooka.EncodeBurnConsentTx(from.Int64(), amount.Int64(), nonce.Int64(), int64(txType))
 			if err != nil {
 				return err
 			}
@@ -333,7 +336,7 @@ func (s *Syncer) ApplyTxsFromBatch(txs [][]byte, txType uint64) error {
 				return err
 			}
 			s.Logger.Debug("Fetched tx data", "from", from, "to", to, "amount", amount, "sig", sig)
-			fromAccount, err := s.DBInstance.GetAccountByID(from.Uint64())
+			fromAccount, err := s.DBInstance.GetAccountByIndex(from.Uint64())
 			if err != nil {
 				return err
 			}

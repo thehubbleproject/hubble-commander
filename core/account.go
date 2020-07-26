@@ -202,7 +202,7 @@ func (db *DB) InitBalancesTree(depth uint64, genesisAccounts []UserAccount) erro
 		prevNodePath = genesisAccounts[i].Path
 	}
 
-	db.Logger.Info("Creating accounts tree, might take a minute or two, sit back.....", "count", len(insertRecords))
+	db.Logger.Info("Creating user accounts, might take a minute or two, sit back.....", "count", len(insertRecords))
 	err = gormbulk.BulkInsert(db.Instance, insertRecords, CHUNK_SIZE)
 	if err != nil {
 		db.Logger.Error("Unable to insert accounts to DB", "err", err)
@@ -268,7 +268,7 @@ func (db *DB) UpdateAccount(account UserAccount) error {
 		return err
 	}
 
-	db.Logger.Debug("Updating account", "Hash", account.Hash, "Path", account.Path, "siblings", siblings, "countOfSiblings", len(siblings))
+	db.Logger.Debug("Updating account", "Hash", account.Hash, "Path", account.Path, "countOfSiblings", len(siblings))
 	return db.StoreLeaf(account, account.Path, siblings)
 }
 
@@ -380,18 +380,22 @@ func (db *DB) GetAccountByPath(path string) (UserAccount, error) {
 	return account, nil
 }
 
+func (db *DB) GetAccountByIndex(index uint64) (acc UserAccount, err error) {
+	params, err := db.GetParams()
+	if err != nil {
+		return
+	}
+	path, err := SolidityPathToNodePath(index, params.MaxDepth)
+	if err != nil {
+		return
+	}
+	return db.GetAccountByPath(path)
+}
+
 func (db *DB) GetAccountByHash(hash string) (UserAccount, error) {
 	var account UserAccount
 	if db.Instance.First(&account, hash).RecordNotFound() {
 		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record for hash: %v", hash))
-	}
-	return account, nil
-}
-
-func (db *DB) GetAccountByID(ID uint64) (UserAccount, error) {
-	var account UserAccount
-	if err := db.Instance.Where("account_id = ? AND status = ?", ID, STATUS_ACTIVE).Find(&account).Error; err != nil {
-		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record for ID: %v", ID))
 	}
 	return account, nil
 }
@@ -432,6 +436,16 @@ func (db *DB) GetAccountCount() (int, error) {
 	return count, nil
 }
 
+// GetFirstEmptyAccount fetches the first empty account
+func (db *DB) GetFirstEmptyAccount() (acc UserAccount, err error) {
+	params, err := db.GetParams()
+	if err != nil {
+		return acc, err
+	}
+	expectedHash := defaultHashes[params.MaxDepositSubTreeHeight]
+	return db.GetAccountByHash(expectedHash.String())
+}
+
 func (db *DB) DeletePendingAccount(ID uint64) error {
 	var account UserAccount
 	if err := db.Instance.Where("account_id = ? AND status = ?", ID, STATUS_PENDING).Delete(&account).Error; err != nil {
@@ -457,7 +471,6 @@ func (db *DB) AttachDepositInfo(root ByteArray) error {
 func (db *DB) GetPendingAccByDepositRoot(root ByteArray) ([]UserAccount, error) {
 	// find all accounts with CreatedByDepositSubTree as `root`
 	var pendingAccounts []UserAccount
-
 	if err := db.Instance.Where("created_by_deposit_sub_tree = ? AND status = ?", root.String(), STATUS_PENDING).Find(&pendingAccounts).Error; err != nil {
 		return pendingAccounts, err
 	}

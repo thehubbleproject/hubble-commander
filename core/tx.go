@@ -81,7 +81,7 @@ func (tx *Tx) Apply(updatedFrom, updatedTo []byte) error {
 	db.Instance = mysqlTx
 
 	// apply transaction on from account
-	fromAcc, err := db.GetAccountByID(tx.From)
+	fromAcc, err := db.GetAccountByIndex(tx.From)
 	if err != nil {
 		mysqlTx.Rollback()
 		return err
@@ -94,9 +94,7 @@ func (tx *Tx) Apply(updatedFrom, updatedTo []byte) error {
 		mysqlTx.Rollback()
 		return err
 	}
-
-	// apply transaction on to account
-	toAcc, err := db.GetAccountByID(tx.To)
+	toAcc, err := DBInstance.GetAccountByIndex(tx.To)
 	if err != nil {
 		mysqlTx.Rollback()
 		return err
@@ -143,7 +141,7 @@ func (db *DB) PopTxs() (txs []Tx, err error) {
 		db.Logger.Error("error while fetching pending transactions", err)
 		return txs, err
 	}
-	db.Logger.Info("found txs", "pendingTxs", pendingTxs)
+	db.Logger.Info("Found txs", "pendingTxs", len(pendingTxs))
 	var ids []string
 	for _, tx := range pendingTxs {
 		ids = append(ids, tx.ID)
@@ -195,7 +193,7 @@ func (tx *Tx) UpdateStatus(status uint64) error {
 
 // GetVerificationData fetches all the data required to prove validity fo transaction
 func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, err error) {
-	fromAcc, err := DBInstance.GetAccountByID(tx.From)
+	fromAcc, err := DBInstance.GetAccountByIndex(tx.From)
 	if err != nil {
 		return
 	}
@@ -220,7 +218,7 @@ func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof AccountMerkl
 	// 	return
 	// }
 	fromMerkleProof = NewAccountMerkleProof(fromAcc, fromSiblings)
-	toAcc, err := DBInstance.GetAccountByID(tx.To)
+	toAcc, err := DBInstance.GetAccountByIndex(tx.To)
 	if err != nil {
 		return
 	}

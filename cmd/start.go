@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math"
@@ -197,6 +198,15 @@ func LoadGenesisData(genesis config.Genesis) {
 	core.DBInstance.UpdateFinalisationTimePerBatch(40320)
 
 	// load sync status
-	core.DBInstance.UpdateSyncStatusWithBlockNumber(genesis.StartEthBlock)
-	core.DBInstance.UpdateSyncStatusWithBatchNumber(0)
+	err = core.DBInstance.InitSyncStatus(genesis.StartEthBlock)
+	if err != nil {
+		panic(err)
+	}
+
+	// load last nonce
+	nonce, err := core.LoadedBazooka.EthClient.PendingNonceAt(context.Background(), config.OperatorAddress)
+	if err != nil {
+		return
+	}
+	core.DBInstance.LogBatch("INIT", nonce-1, core.TX_GENESIS)
 }

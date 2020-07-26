@@ -329,6 +329,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "toIndex",
               "type": "uint256"
             },
@@ -358,6 +363,11 @@
     {
       "constant": true,
       "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
         {
           "internalType": "uint256",
           "name": "toIndex",
@@ -396,6 +406,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "toIndex",
               "type": "uint256"
             },
@@ -419,6 +434,11 @@
       "inputs": [
         {
           "components": [
+            {
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
             {
               "internalType": "uint256",
               "name": "toIndex",
@@ -527,6 +547,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "fromIndex",
               "type": "uint256"
             },
@@ -543,11 +568,6 @@
             {
               "internalType": "uint256",
               "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "txType",
               "type": "uint256"
             },
             {
@@ -583,6 +603,11 @@
       "inputs": [
         {
           "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
           "name": "from",
           "type": "uint256"
         },
@@ -599,11 +624,6 @@
         {
           "internalType": "uint256",
           "name": "nonce",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "txType",
           "type": "uint256"
         },
         {
@@ -639,6 +659,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "fromIndex",
               "type": "uint256"
             },
@@ -655,11 +680,6 @@
             {
               "internalType": "uint256",
               "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "txType",
               "type": "uint256"
             },
             {
@@ -695,6 +715,11 @@
       "outputs": [
         {
           "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
           "name": "from",
           "type": "uint256"
         },
@@ -715,11 +740,6 @@
         },
         {
           "internalType": "uint256",
-          "name": "txType",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
         }
@@ -733,6 +753,11 @@
       "inputs": [
         {
           "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
           "name": "fromIndex",
           "type": "uint256"
         },
@@ -744,11 +769,6 @@
         {
           "internalType": "uint256",
           "name": "tokenType",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "txType",
           "type": "uint256"
         },
         {
@@ -781,6 +801,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "fromIndex",
               "type": "uint256"
             },
@@ -797,11 +822,6 @@
             {
               "internalType": "uint256",
               "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "txType",
               "type": "uint256"
             },
             {
@@ -927,6 +947,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "fromIndex",
               "type": "uint256"
             },
@@ -943,11 +968,6 @@
             {
               "internalType": "uint256",
               "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "txType",
               "type": "uint256"
             },
             {
@@ -983,6 +1003,11 @@
       "inputs": [
         {
           "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
           "name": "from",
           "type": "uint256"
         },
@@ -999,11 +1024,6 @@
         {
           "internalType": "uint256",
           "name": "nonce",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "txType",
           "type": "uint256"
         },
         {
@@ -1039,6 +1059,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "fromIndex",
               "type": "uint256"
             },
@@ -1055,11 +1080,6 @@
             {
               "internalType": "uint256",
               "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "txType",
               "type": "uint256"
             },
             {
@@ -1095,6 +1115,11 @@
       "outputs": [
         {
           "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
           "name": "from",
           "type": "uint256"
         },
@@ -1115,11 +1140,6 @@
         },
         {
           "internalType": "uint256",
-          "name": "txType",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
         }
@@ -1133,6 +1153,11 @@
       "inputs": [
         {
           "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
           "name": "fromIndex",
           "type": "uint256"
         },
@@ -1144,11 +1169,6 @@
         {
           "internalType": "uint256",
           "name": "tokenType",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "txType",
           "type": "uint256"
         },
         {
@@ -1181,6 +1201,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "fromIndex",
               "type": "uint256"
             },
@@ -1197,11 +1222,6 @@
             {
               "internalType": "uint256",
               "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "txType",
               "type": "uint256"
             },
             {
@@ -1301,6 +1321,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "fromIndex",
               "type": "uint256"
             },
@@ -1317,11 +1342,6 @@
             {
               "internalType": "uint256",
               "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "txType",
               "type": "uint256"
             },
             {
@@ -1359,6 +1379,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "fromIndex",
               "type": "uint256"
             },
@@ -1371,11 +1396,6 @@
               "internalType": "uint256",
               "name": "nonce",
               "type": "uint256"
-            },
-            {
-              "internalType": "bool",
-              "name": "cancel",
-              "type": "bool"
             },
             {
               "internalType": "bytes",
@@ -1405,6 +1425,11 @@
       "inputs": [
         {
           "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
           "name": "fromIndex",
           "type": "uint256"
         },
@@ -1417,11 +1442,6 @@
           "internalType": "uint256",
           "name": "nonce",
           "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "cancel",
-          "type": "bool"
         }
       ],
       "name": "BytesFromBurnConsentNoStruct",
@@ -1451,6 +1471,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "fromIndex",
               "type": "uint256"
             },
@@ -1463,11 +1488,6 @@
               "internalType": "uint256",
               "name": "nonce",
               "type": "uint256"
-            },
-            {
-              "internalType": "bool",
-              "name": "cancel",
-              "type": "bool"
             },
             {
               "internalType": "bytes",
@@ -1489,6 +1509,11 @@
       "inputs": [
         {
           "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
           "name": "fromIndex",
           "type": "uint256"
         },
@@ -1501,11 +1526,6 @@
           "internalType": "uint256",
           "name": "nonce",
           "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "cancel",
-          "type": "bool"
         }
       ],
       "name": "BurnConsentSignBytes",
@@ -1527,6 +1547,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "fromIndex",
               "type": "uint256"
             },
@@ -1539,11 +1564,6 @@
               "internalType": "uint256",
               "name": "nonce",
               "type": "uint256"
-            },
-            {
-              "internalType": "bool",
-              "name": "cancel",
-              "type": "bool"
             },
             {
               "internalType": "bytes",
@@ -1585,11 +1605,6 @@
           "internalType": "uint256",
           "name": "nonce",
           "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "cancel",
-          "type": "bool"
         },
         {
           "internalType": "bytes",
@@ -1662,11 +1677,6 @@
           "type": "uint256"
         },
         {
-          "internalType": "bool",
-          "name": "cancel",
-          "type": "bool"
-        },
-        {
           "internalType": "bytes",
           "name": "signature",
           "type": "bytes"
@@ -1683,6 +1693,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "fromIndex",
               "type": "uint256"
             },
@@ -1695,11 +1710,6 @@
               "internalType": "uint256",
               "name": "nonce",
               "type": "uint256"
-            },
-            {
-              "internalType": "bool",
-              "name": "cancel",
-              "type": "bool"
             },
             {
               "internalType": "bytes",
@@ -1731,6 +1741,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "fromIndex",
               "type": "uint256"
             }
@@ -1755,6 +1770,11 @@
     {
       "constant": true,
       "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
         {
           "internalType": "uint256",
           "name": "fromIndex",
@@ -1788,6 +1808,11 @@
           "components": [
             {
               "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "fromIndex",
               "type": "uint256"
             }
@@ -1804,6 +1829,11 @@
     {
       "constant": true,
       "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
         {
           "internalType": "uint256",
           "name": "fromIndex",
@@ -1827,6 +1857,11 @@
       "inputs": [
         {
           "components": [
+            {
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
             {
               "internalType": "uint256",
               "name": "fromIndex",
@@ -1918,6 +1953,11 @@
       "inputs": [
         {
           "components": [
+            {
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
             {
               "internalType": "uint256",
               "name": "fromIndex",

@@ -1,6 +1,8 @@
 package core
 
-import "math/big"
+import (
+	"math/big"
+)
 
 // Params stores all the parameters which are maintained on-chain and keeps updating
 // them whenever they change on-chain
@@ -26,7 +28,7 @@ type Params struct {
 
 // Maintains sync information
 type SyncStatus struct {
-	DBModel
+	ID string `json:"-" gorm:"primary_key;size:100;default:'6ba7b810-9dad-11d1-80b4-00c04fd430c8'"`
 	// Last eth block seen by the syncer is persisted here so that we can resume sync from it
 	LastEthBlockRecorded uint64 `json:"lastEthBlockRecorded"`
 
@@ -40,17 +42,32 @@ func (ss *SyncStatus) LastEthBlockBigInt() *big.Int {
 }
 
 func (db *DB) UpdateSyncStatusWithBatchNumber(batchIndex uint64) error {
+	syncStatus, err := db.GetSyncStatus()
+	if err != nil {
+		return err
+	}
 	var updatedSyncStatus SyncStatus
 	updatedSyncStatus.LastBatchRecorded = batchIndex
-	if err := db.Instance.Table("sync_statuses").Assign(SyncStatus{LastBatchRecorded: batchIndex}).FirstOrCreate(&updatedSyncStatus).Error; err != nil {
+	updatedSyncStatus.LastEthBlockRecorded = syncStatus.LastEthBlockRecorded
+	if err := db.Instance.Table("sync_statuses").Where("id = ?", syncStatus.ID).Update(&updatedSyncStatus).Error; err != nil {
 		return err
 	}
 	return nil
 }
+
+func (db *DB) InitSyncStatus(startBlock uint64) error {
+	return db.Instance.Create(&SyncStatus{LastEthBlockRecorded: startBlock}).Error
+}
+
 func (db *DB) UpdateSyncStatusWithBlockNumber(blkNum uint64) error {
+	syncStatus, err := db.GetSyncStatus()
+	if err != nil {
+		return err
+	}
 	var updatedSyncStatus SyncStatus
+	updatedSyncStatus.LastBatchRecorded = syncStatus.LastBatchRecorded
 	updatedSyncStatus.LastEthBlockRecorded = blkNum
-	if err := db.Instance.Table("sync_statuses").Assign(SyncStatus{LastEthBlockRecorded: blkNum}).FirstOrCreate(&updatedSyncStatus).Error; err != nil {
+	if err := db.Instance.Table("sync_statuses").Where("id = ?", syncStatus.ID).Update(&updatedSyncStatus).Error; err != nil {
 		return err
 	}
 	return nil

@@ -74,7 +74,6 @@ func ResetCmd() *cobra.Command {
 		Use:   "reset",
 		Short: "reset database",
 		Run: func(cmd *cobra.Command, args []string) {
-
 			err := config.ParseAndInitGlobalConfig("")
 			common.PanicIfError(err)
 			// TODO fix this command for mysql database
@@ -106,7 +105,7 @@ func CreateUsers() *cobra.Command {
 		Short: "Create users to be used in simulations",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var users []User
-			for i := 0; i < 3; i++ {
+			for i := 0; i < 100000; i++ {
 				privKey, err := crypto.GenerateKey()
 				if err != nil {
 					fmt.Println("Error generating private key", err)
@@ -127,10 +126,9 @@ func CreateUsers() *cobra.Command {
 			return ioutil.WriteFile("users.json", bz, 0644)
 		},
 	}
-	// cmd.Flags().Int64(FlagNumberOfUsers, 2, "--count=<count>")
-	// cmd.MarkFlagRequired(FlagNumberOfUsers)
 	return cmd
 }
+
 func AddGenesisAcccountsCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "add-gen-accounts",

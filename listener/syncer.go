@@ -121,6 +121,7 @@ func (s *Syncer) startHeaderProcess(ctx context.Context) {
 	for {
 		select {
 		case newHeader := <-s.HeaderChannel:
+			s.wg.Wait()
 			s.processHeader(*newHeader)
 		case <-ctx.Done():
 			return
@@ -200,7 +201,6 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 	} else if len(logs) > 0 {
 		s.Logger.Debug("New logs found", "numberOfLogs", len(logs))
 	}
-	s.wg.Wait()
 	s.wg.Add(1)
 	go s.processEvents(logs, header)
 }

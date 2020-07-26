@@ -100,7 +100,7 @@ func (db *DB) UpdatePDALeaf(leaf PDA) error {
 		return err
 	}
 
-	db.Logger.Debug("Updating account", "Hash", leaf.Hash, "Path", leaf.Path, "siblings", siblings, "countOfSiblings", len(siblings))
+	db.Logger.Debug("Updating account", "Hash", leaf.Hash, "Path", leaf.Path, "countOfSiblings", len(siblings))
 	return db.StorePDALeaf(leaf, leaf.Path, siblings)
 }
 
@@ -243,6 +243,7 @@ func (db *DB) InitPDATree(depth uint64, genesisPDA []PDA) error {
 		prevNodePath = genesisPDA[i].Path
 	}
 
+	db.Logger.Info("Creating PDA tree, might take a minute or two, sit back.....", "count", len(insertRecords))
 	err = gormbulk.BulkInsert(db.Instance, insertRecords, CHUNK_SIZE)
 	if err != nil {
 		db.Logger.Error("Unable to insert leaves to DB", "err", err)
@@ -280,7 +281,6 @@ func (db *DB) InitPDATree(depth uint64, genesisPDA []PDA) error {
 			newAccNode := *NewPDANode(parentPath, parentHash.String())
 			nextLevelAccounts = append(nextLevelAccounts, newAccNode)
 		}
-		db.Logger.Info("Creating PDA tree, might take a minute or two, sit back.....", "count", len(insertRecords))
 		err = gormbulk.BulkInsert(db.Instance, nextLevelAccounts, CHUNK_SIZE)
 		if err != nil {
 			db.Logger.Error("Unable to insert PDA leaves to DB", "err", err)
@@ -329,7 +329,7 @@ func abiEncodePubkey(pubkey string) ([]byte, error) {
 func (db *DB) GetPDALeafByID(ID uint64) (PDA, error) {
 	var pda PDA
 	if err := db.Instance.Where("account_id = ?", ID).Find(&pda).Error; err != nil {
-		return pda, ErrRecordNotFound(fmt.Sprintf("unable to find record for ID: %v", ID))
+		return pda, ErrRecordNotFound(fmt.Sprintf("unable to find record for ID: %v in PDA tree", ID))
 	}
 	return pda, nil
 }
@@ -338,7 +338,7 @@ func (db *DB) GetPDARoot() (PDA, error) {
 	var PDAAccount PDA
 	err := db.Instance.Where("level = ?", 0).Find(&PDAAccount).GetErrors()
 	if len(err) != 0 {
-		return PDAAccount, ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v", err))
+		return PDAAccount, ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v in PDA tree", err))
 	}
 	return PDAAccount, nil
 }
