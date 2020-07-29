@@ -2,7 +2,10 @@ package aggregator
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
+	"sync"
 	"time"
 
 	"github.com/BOPR/common"
@@ -32,6 +35,9 @@ type Aggregator struct {
 
 	// header listener subscription
 	cancelAggregating context.CancelFunc
+
+	// wait group
+	wg sync.WaitGroup
 }
 
 // NewAggregator returns new aggregator object
@@ -80,8 +86,9 @@ func (a *Aggregator) startAggregating(ctx context.Context, interval time.Duratio
 	for {
 		select {
 		case <-ticker.C:
-			a.pickBatch()
-			// pick batch from DB
+			a.wg.Wait()
+			a.wg.Add(1)
+			go a.pickBatch()
 		case <-ctx.Done():
 			ticker.Stop()
 			return
@@ -90,10 +97,12 @@ func (a *Aggregator) startAggregating(ctx context.Context, interval time.Duratio
 }
 
 func (a *Aggregator) pickBatch() {
+	defer a.wg.Done()
 	txs, err := a.DB.PopTxs()
 	if err != nil {
 		fmt.Println("Error while popping txs from mempool", "Error", err)
 	}
+	a.Logger.Info("Processing new batch", "numberOfTxs", len(txs))
 
 	// Step-2
 	err = a.ProcessTx(txs)
@@ -119,50 +128,64 @@ func (a *Aggregator) pickBatch() {
 // ProcessTx fetches all the data required to validate tx from smart contact
 // and calls the proccess tx function to return the updated balance root and accounts
 func (a *Aggregator) ProcessTx(txs []core.Tx) error {
+	if len(txs) == 0 {
+		return errors.New("no tx to process,aborting!")
+	}
+
+	var redditPDAProof core.PDAMerkleProof
+	if (txs[0]).Type == core.TX_AIRDROP_TYPE {
+		core.VerifierWaitGroup.Add(1)
+		err := core.DBInstance.FetchPDAProofWithID(txs[0].From, &redditPDAProof)
+		if err != nil {
+			return err
+		}
+	}
+
+	start := time.Now()
 	for _, tx := range txs {
 		rootAcc, err := a.DB.GetRoot()
 		if err != nil {
 			return err
 		}
-
 		a.Logger.Debug("Latest root", "root", rootAcc.Hash)
-
 		currentRoot, err := core.HexToByteArray(rootAcc.Hash)
 		if err != nil {
 			return err
 		}
-
 		pdaRoot, err := a.DB.GetPDARoot()
 		if err != nil {
 			return err
 		}
 		currentAccountTreeRoot := pdaRoot.HashToByteArray()
-		fromAccProof, toAccProof, PDAproof, err := tx.GetVerificationData()
+		fromAccProof, toAccProof, PDAproof, txDBConn, err := tx.GetVerificationData()
 		if err != nil {
 			a.Logger.Error("Unable to create verification data", "error", err)
 			return err
 		}
-
-		a.Logger.Debug("Fetched latest account proofs", "tx", tx.String())
-
-		updatedRoot, updatedFrom, updatedTo, err := a.LoadedBazooka.ProcessTx(currentRoot, currentAccountTreeRoot, tx, fromAccProof, toAccProof, PDAproof)
+		if (txs[0]).Type == core.TX_AIRDROP_TYPE {
+			PDAproof = redditPDAProof
+		}
+		updatedRoot, _, updatedTo, err := a.LoadedBazooka.ProcessTx(currentRoot, currentAccountTreeRoot, tx, fromAccProof, toAccProof, PDAproof)
 		if err != nil {
 			a.Logger.Error("Error processing tx", "tx", tx.String(), "error", err)
-			errWhileUpdatingStatus := tx.UpdateStatus(core.TX_STATUS_REVERTED)
-			if errWhileUpdatingStatus != nil {
-				a.Logger.Error("Unable to update transaction status", "tx", tx.String(), "Error", errWhileUpdatingStatus)
-				return errWhileUpdatingStatus
-			}
+			txDBConn.Rollback()
 			return err
 		}
-
-		// if the transactions is valid, apply it
-		err = tx.Apply(updatedFrom, updatedTo)
-		if err != nil {
-			return err
+		switch txType := tx.Type; txType {
+		case core.TX_TRANSFER_TYPE:
+			tx.ApplySingleTx(toAccProof.Account, updatedTo)
+		case core.TX_AIRDROP_TYPE:
+			tx.ApplySingleTx(toAccProof.Account, updatedTo)
+		case core.TX_CREATE_ACCOUNT:
+			tx.ApplySingleTx(toAccProof.Account, updatedTo)
+		case core.TX_BURN_CONSENT:
+			fmt.Println("burnconsent")
+		case core.TX_BURN_EXEC:
+			fmt.Println("burn exec")
 		}
-
 		currentRoot = updatedRoot
 	}
+	elapsed := time.Since(start)
+	log.Printf("Process batch took %s", elapsed)
 	return nil
 }

@@ -295,11 +295,11 @@ func (s *Syncer) ApplyTxsFromBatch(txs [][]byte, txType uint64) error {
 				return err
 			}
 		case core.TX_CREATE_ACCOUNT:
-			to, token, err := s.loadedBazooka.DecompressCreateAccountTx(txs[i])
+			toAccID, toStateID, token, err := s.loadedBazooka.DecompressCreateAccountTx(txs[i])
 			if err != nil {
 				return err
 			}
-			txData, err = s.loadedBazooka.EncodeCreateAccountTx(to.Int64(), token.Int64())
+			txData, err = s.loadedBazooka.EncodeCreateAccountTx(toAccID.Int64(), toStateID.Int64(), token.Int64())
 			if err != nil {
 				return err
 			}
@@ -354,7 +354,7 @@ func (s *Syncer) ApplyTxsFromBatch(txs [][]byte, txType uint64) error {
 		}
 		coreTx := core.NewTx(from, to, txType, txData, hex.EncodeToString(sig))
 		coreTxs = append(coreTxs, coreTx)
-		fromMP, toMP, _, err := coreTx.GetVerificationData()
+		fromMP, toMP, _, _, err := coreTx.GetVerificationData()
 		if err != nil {
 			return err
 		}

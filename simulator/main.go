@@ -14,8 +14,9 @@ const (
 	BATCH_SIZE       = 32
 	AIRDROP_AMOUNT   = 10
 	TRANSFER_AMOUNT  = 1
+	TOKEN            = 1
 	BURN_AMOUNT      = 1
-	REDDIT_ACCOUNT   = 1
+	REDDIT_ACCOUNT   = 2
 )
 
 type Simulator struct {
@@ -72,10 +73,10 @@ func (s *Simulator) OnStart() error {
 		// if err != nil {
 		// 	panic(err)
 		// }
-		startIndex := uint64(2)
+		startIndex := uint64(4)
 		s.DB.LogCycle(core.STAGE_TRANSFER, startIndex, startIndex+BATCH_SIZE)
 	}
-	go s.SimulationStart(ctx, 30*time.Second)
+	go s.SimulationStart(ctx, 60*time.Second)
 
 	s.toSwap = false
 	return nil
@@ -155,7 +156,7 @@ func (s *Simulator) startCycle() {
 
 func (s *Simulator) simulateCreateAccounts(startIndex, endIndex int64) {
 	for i := int64(0); i < BATCH_SIZE; i++ {
-		txBytes, err := s.LoadedBazooka.EncodeCreateAccountTx(startIndex+i, 1)
+		txBytes, err := s.LoadedBazooka.EncodeCreateAccountTx(startIndex+i, startIndex+i, TOKEN)
 		if err != nil {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
@@ -187,7 +188,7 @@ func (s *Simulator) simulateBurnConsent(startIndex, endIndex int64) {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
 		}
-		txCore := core.NewPendingTx(0, uint64(startIndex+i), core.TX_CREATE_ACCOUNT, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		txCore := core.NewPendingTx(uint64(startIndex+i), 0, core.TX_BURN_CONSENT, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)
@@ -204,12 +205,12 @@ func (s *Simulator) simulateTransfer(startIndex, endIndex int64) {
 			s.Logger.Error("unable to fetch latest account", "error", err)
 			return
 		}
-		_, _, nonce, token, _, _, err := s.LoadedBazooka.DecodeAccount(latestFromAcc.Data)
+		_, _, nonce, _, _, _, err := s.LoadedBazooka.DecodeAccount(latestFromAcc.Data)
 		if err != nil {
 			s.Logger.Error("unable to decode account", "error", err)
 			return
 		}
-		txBytes, err := s.LoadedBazooka.EncodeTransferTx(startIndex+i, REDDIT_ACCOUNT, token.Int64(), nonce.Int64()+1, TRANSFER_AMOUNT, core.TX_TRANSFER_TYPE)
+		txBytes, err := s.LoadedBazooka.EncodeTransferTx(startIndex+i, REDDIT_ACCOUNT, TOKEN, nonce.Int64()+1, TRANSFER_AMOUNT, core.TX_TRANSFER_TYPE)
 		if err != nil {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
@@ -231,14 +232,14 @@ func (s *Simulator) simulateAirdrop(startIndex, endIndex int64) {
 		s.Logger.Error("unable to fetch latest account", "error", err)
 		return
 	}
-	_, _, nonce, token, _, _, err := s.LoadedBazooka.DecodeAccount(latestFromAcc.Data)
+	_, _, nonce, _, _, _, err := s.LoadedBazooka.DecodeAccount(latestFromAcc.Data)
 	if err != nil {
 		s.Logger.Error("unable to decode account", "error", err)
 		return
 	}
 	redditNonce = nonce.Int64() + 1
 	for i := int64(0); i < BATCH_SIZE; i++ {
-		txBytes, err := s.LoadedBazooka.EncodeAirdropTx(REDDIT_ACCOUNT, startIndex+i, token.Int64(), redditNonce, TRANSFER_AMOUNT, core.TX_AIRDROP_TYPE)
+		txBytes, err := s.LoadedBazooka.EncodeAirdropTx(REDDIT_ACCOUNT, startIndex+i, TOKEN, redditNonce, TRANSFER_AMOUNT, core.TX_AIRDROP_TYPE)
 		if err != nil {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return

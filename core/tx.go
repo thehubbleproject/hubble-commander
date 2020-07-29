@@ -3,12 +3,16 @@ package core
 import (
 	"encoding/hex"
 	"fmt"
+	"sync"
 
 	"github.com/BOPR/config"
 	ethCmn "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/sha3"
 )
+
+var VerifierWaitGroup sync.WaitGroup
 
 // Tx represets the transaction on hubble
 type Tx struct {
@@ -62,6 +66,7 @@ func (t *Tx) AssignHash() {
 }
 
 func (tx *Tx) Apply(updatedFrom, updatedTo []byte) error {
+	// defer TimeTrack(time.Now(), "applying transaction to database time")
 	// get fresh copy of database
 	db, err := NewDB()
 	if err != nil {
@@ -115,6 +120,15 @@ func (tx *Tx) Apply(updatedFrom, updatedTo []byte) error {
 	return nil
 }
 
+func (tx *Tx) ApplySingleTx(account UserAccount, updatedData []byte) error {
+	account.Data = updatedData
+	err := DBInstance.UpdateAccount(account)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (t *Tx) String() string {
 	return fmt.Sprintf("To: %v From: %v Status:%v Hash: %v Data: %v", t.To, t.From, t.Status, t.TxHash, hex.EncodeToString(t.Data))
 }
@@ -137,7 +151,7 @@ func (db *DB) PopTxs() (txs []Tx, err error) {
 	}
 	var pendingTxs []Tx
 	// select N number of transactions which are pending in mempool and
-	if err := tx.Limit(config.GlobalCfg.TxsPerBatch).Where(&Tx{Status: TX_STATUS_PENDING, Type: txType}).Find(&pendingTxs).Error; err != nil {
+	if err := tx.Limit(config.GlobalCfg.TxsPerBatch).Order("created_at").Where(&Tx{Status: TX_STATUS_PENDING, Type: txType}).Find(&pendingTxs).Error; err != nil {
 		db.Logger.Error("error while fetching pending transactions", err)
 		return txs, err
 	}
@@ -192,32 +206,28 @@ func (tx *Tx) UpdateStatus(status uint64) error {
 }
 
 // GetVerificationData fetches all the data required to prove validity fo transaction
-func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, err error) {
-	fromAcc, err := DBInstance.GetAccountByIndex(tx.From)
-	if err != nil {
+func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn *gorm.DB, err error) {
+	switch txType := tx.Type; txType {
+	case TX_TRANSFER_TYPE:
+		return tx.CreateVerificationDataForTransfer()
+	case TX_AIRDROP_TYPE:
+		return tx.CreateVerificationDataForAirdrop()
+	case TX_CREATE_ACCOUNT:
+		return tx.CreateVerificationDataForCreateAccount()
+	case TX_BURN_CONSENT:
+		return tx.CreateVerificationDataForBurnConsent()
+	case TX_BURN_EXEC:
+		return tx.CreateVerificationDataForBurnExec()
+	default:
+		fmt.Println("TxType didnt match any options", tx.Type)
 		return
 	}
-	fromSiblings, err := DBInstance.GetSiblings(fromAcc.Path)
-	if err != nil {
-		return
-	}
-	fromPDA, err := DBInstance.GetPDALeafByID(tx.From)
-	if err != nil {
-		return
-	}
-	fromPDASiblings, err := DBInstance.GetPDASiblings(fromPDA.Path)
-	if err != nil {
-		return
-	}
-	// toPDA, err := DBInstance.GetPDALeafByID(tx.To)
-	// if err != nil {
-	// 	return
-	// }
-	// toPDASiblings, err := DBInstance.GetPDASiblings(toPDA.Path)
-	// if err != nil {
-	// 	return
-	// }
-	fromMerkleProof = NewAccountMerkleProof(fromAcc, fromSiblings)
+}
+
+func (tx *Tx) CreateVerificationDataForTransfer() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn *gorm.DB, err error) {
+	VerifierWaitGroup.Add(2)
+	go DBInstance.FetchPDAProofWithID(tx.From, &PDAProof)
+	go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
 	toAcc, err := DBInstance.GetAccountByIndex(tx.To)
 	if err != nil {
 		return
@@ -231,27 +241,85 @@ func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof AccountMerkl
 	}()
 	dbCopy, _ := NewDB()
 	dbCopy.Instance = mysqlTx
+	VerifierWaitGroup.Wait()
 	updatedFromAccountBytes, _, err := LoadedBazooka.ApplyTx(fromMerkleProof, *tx)
 	if err != nil {
 		return
 	}
 
-	fromAcc.Data = updatedFromAccountBytes
-	err = dbCopy.UpdateAccount(fromAcc)
+	fromMerkleProof.Account.Data = updatedFromAccountBytes
+	err = dbCopy.UpdateAccount(fromMerkleProof.Account)
 	if err != nil {
 		return
 	}
-
 	// TODO add a check to ensure that DB copy of state matches the one returned by ApplyTransferTx
 	toSiblings, err = dbCopy.GetSiblings(toAcc.Path)
 	if err != nil {
 		return
 	}
-
 	toMerkleProof = NewAccountMerkleProof(toAcc, toSiblings)
-	PDAProof = NewPDAProof(fromPDA.Path, fromPDA.PublicKey, fromPDASiblings)
-	mysqlTx.Rollback()
-	return fromMerkleProof, toMerkleProof, PDAProof, nil
+	return fromMerkleProof, toMerkleProof, PDAProof, mysqlTx, nil
+}
+
+func (tx *Tx) CreateVerificationDataForAirdrop() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn *gorm.DB, err error) {
+	VerifierWaitGroup.Add(1)
+	go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
+	toAcc, err := DBInstance.GetAccountByIndex(tx.To)
+	if err != nil {
+		return
+	}
+	var toSiblings []UserAccount
+	mysqlTx := DBInstance.Instance.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			mysqlTx.Rollback()
+		}
+	}()
+	dbCopy, _ := NewDB()
+	dbCopy.Instance = mysqlTx
+	VerifierWaitGroup.Wait()
+	updatedFromAccountBytes, _, err := LoadedBazooka.ApplyTx(fromMerkleProof, *tx)
+	if err != nil {
+		return
+	}
+	err = tx.ApplySingleTx(fromMerkleProof.Account, updatedFromAccountBytes)
+	if err != nil {
+		return
+	}
+	// TODO add a check to ensure that DB copy of state matches the one returned by ApplyTransferTx
+	toSiblings, err = dbCopy.GetSiblings(toAcc.Path)
+	if err != nil {
+		return
+	}
+	toMerkleProof = NewAccountMerkleProof(toAcc, toSiblings)
+	return fromMerkleProof, toMerkleProof, PDAProof, mysqlTx, nil
+}
+
+func (tx *Tx) CreateVerificationDataForCreateAccount() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn *gorm.DB, err error) {
+	VerifierWaitGroup.Add(2)
+	go DBInstance.FetchPDAProofWithID(tx.To, &PDAProof)
+	go DBInstance.FetchMPWithID(tx.To, &toMerkleProof)
+	VerifierWaitGroup.Wait()
+	mysqlTx := DBInstance.Instance.Begin()
+	return fromMerkleProof, toMerkleProof, PDAProof, mysqlTx, nil
+}
+
+func (tx *Tx) CreateVerificationDataForBurnConsent() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn *gorm.DB, err error) {
+	VerifierWaitGroup.Add(2)
+	go DBInstance.FetchPDAProofWithID(tx.From, &PDAProof)
+	go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
+	mysqlTx := DBInstance.Instance.Begin()
+	VerifierWaitGroup.Wait()
+	return fromMerkleProof, toMerkleProof, PDAProof, mysqlTx, nil
+}
+
+func (tx *Tx) CreateVerificationDataForBurnExec() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn *gorm.DB, err error) {
+	VerifierWaitGroup.Add(2)
+	go DBInstance.FetchPDAProofWithID(tx.From, &PDAProof)
+	go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
+	mysqlTx := DBInstance.Instance.Begin()
+	VerifierWaitGroup.Wait()
+	return fromMerkleProof, toMerkleProof, PDAProof, mysqlTx, nil
 }
 
 func rlpHash(x interface{}) (h ethCmn.Hash) {
@@ -267,4 +335,38 @@ func ConcatTxs(txs [][]byte) []byte {
 		concatenatedTxs = append(concatenatedTxs, tx[:]...)
 	}
 	return concatenatedTxs
+}
+
+func (db *DB) FetchPDAProofWithID(id uint64, pdaProof *PDAMerkleProof) (err error) {
+	leaf, err := DBInstance.GetPDALeafByID(id)
+	if err != nil {
+		fmt.Println("error while getting pda leaf", err)
+		return
+	}
+	siblings, err := DBInstance.GetPDASiblings(leaf.Path)
+	if err != nil {
+		fmt.Println("error while getting pda siblings", err)
+		return
+	}
+	pdaMP := NewPDAProof(leaf.Path, leaf.PublicKey, siblings)
+	*pdaProof = pdaMP
+	VerifierWaitGroup.Done()
+	return nil
+}
+
+func (db *DB) FetchMPWithID(id uint64, accountMP *AccountMerkleProof) (err error) {
+	leaf, err := DBInstance.GetAccountByIndex(id)
+	if err != nil {
+		fmt.Println("error while getting leaf", err)
+		return
+	}
+	siblings, err := DBInstance.GetSiblings(leaf.Path)
+	if err != nil {
+		fmt.Println("error while getting siblings", err)
+		return
+	}
+	accMP := NewAccountMerkleProof(leaf, siblings)
+	*accountMP = accMP
+	VerifierWaitGroup.Done()
+	return nil
 }

@@ -193,16 +193,22 @@ func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash) (txs [][]byte, err err
 // ProcessTx calls the ProcessTx function on the contract to verify the tx
 // returns the updated accounts and the new balance root
 func (b *Bazooka) ProcessTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof AccountMerkleProof, pdaProof PDAMerkleProof) (newBalanceRoot ByteArray, from, to []byte, err error) {
+	b.log.Info("Processing new tx", "type", tx.Type)
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
+		fmt.Println("transfer")
 		return b.processTransferTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
 	case TX_AIRDROP_TYPE:
+		fmt.Println("airdrop")
 		return b.processAirdropTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
 	case TX_CREATE_ACCOUNT:
+		fmt.Println("create_account")
 		return b.processCreateAccountTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
 	case TX_BURN_CONSENT:
+		fmt.Println("burnconsent")
 		return b.processBurnConsentTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
 	case TX_BURN_EXEC:
+		fmt.Println("burn exec")
 		return b.processBurnExecTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
@@ -252,15 +258,7 @@ func (b *Bazooka) processCreateAccountTx(balanceTreeRoot, accountTreeRoot ByteAr
 	if err != nil {
 		return
 	}
-	toPDA, err := DBInstance.GetPDALeafByID(tx.To)
-	if err != nil {
-		return
-	}
-	toPDASiblings, err := DBInstance.GetPDASiblings(toPDA.Path)
-	if err != nil {
-		return
-	}
-	toPDAProof := NewPDAProof(toPDA.Path, toPDA.PublicKey, toPDASiblings)
+	toPDAProof := NewPDAProof(pdaProof.Path, pdaProof.PublicKey, pdaProof.Siblings)
 	updatedRoot, newToAccount, errCode, IsValidTx, err := b.RollupCaller.ProcessCreateAccountTx(&opts,
 		balanceTreeRoot,
 		accountTreeRoot,
@@ -338,7 +336,7 @@ func (b *Bazooka) processAirdropTx(balanceTreeRoot, accountTreeRoot ByteArray, t
 		return
 	}
 
-	b.log.Info("Processed transaction", "IsSuccess", IsValidTx, "newRoot", updatedRoot)
+	b.log.Info("Processed transaction", "IsSuccess", IsValidTx, "newRoot", ByteArray(updatedRoot).String())
 
 	if !IsValidTx {
 		b.log.Error("Invalid transaction", "error_code", errCode)
@@ -406,6 +404,8 @@ func (b *Bazooka) applyTransferTx(accountMP AccountMerkleProof, tx Tx) ([]byte, 
 	if err != nil {
 		return nil, ByteArray{}, err
 	}
+	from, to, token, nonce, txType, amount, err := b.DecodeAirdropTx(tx.Data)
+	fmt.Println("decoded tx", from, to, token, nonce, txType, amount)
 	updatedAccountBytes, updatedRoot, err := b.RollupCaller.ApplyTransferTx(&opts, accMP, tx.Data)
 	if err != nil {
 		return updatedAccountBytes, updatedRoot, err
@@ -519,13 +519,13 @@ func (b *Bazooka) DecompressTransferTx(compressedTx []byte) (from, to, amount *b
 	return decompressedTx.From, decompressedTx.To, decompressedTx.Amount, sig, nil
 }
 
-func (b *Bazooka) DecompressCreateAccountTx(compressedTx []byte) (to, tokenType *big.Int, err error) {
+func (b *Bazooka) DecompressCreateAccountTx(compressedTx []byte) (to, stateID, tokenType *big.Int, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	decompressedTx, err := b.RollupUtils.DecompressCreateAccount(&opts, compressedTx)
 	if err != nil {
-		return to, tokenType, err
+		return to, stateID, tokenType, err
 	}
-	return decompressedTx.ToIndex, decompressedTx.TokenType, nil
+	return decompressedTx.AccountID, decompressedTx.StateID, decompressedTx.TokenType, nil
 }
 
 func (b *Bazooka) DecompressBurnConsentTx(compressedTx []byte) (from, amount, nonce *big.Int, sig []byte, err error) {
@@ -561,7 +561,7 @@ func (b *Bazooka) DecompressAirdropTx(compressedTx []byte) (from, to, amount *bi
 
 func (b *Bazooka) EncodeTransferTx(from, to, token, nonce, amount, txType int64) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.BytesFromTxDeconstructed(&opts, big.NewInt(from), big.NewInt(to), big.NewInt(token), big.NewInt(nonce), big.NewInt(txType), big.NewInt(amount))
+	return b.RollupUtils.BytesFromTxDeconstructed(&opts, big.NewInt(txType), big.NewInt(from), big.NewInt(to), big.NewInt(token), big.NewInt(nonce), big.NewInt(amount))
 }
 
 func (b *Bazooka) DecodeTransferTx(txBytes []byte) (from, to, token, nonce, txType, amount *big.Int, err error) {
@@ -575,7 +575,7 @@ func (b *Bazooka) DecodeTransferTx(txBytes []byte) (from, to, token, nonce, txTy
 
 func (b *Bazooka) EncodeAirdropTx(from, to, token, nonce, amount, txType int64) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.BytesFromAirdropNoStruct(&opts, big.NewInt(from), big.NewInt(to), big.NewInt(token), big.NewInt(nonce), big.NewInt(txType), big.NewInt(amount))
+	return b.RollupUtils.BytesFromAirdropNoStruct(&opts, big.NewInt(txType), big.NewInt(from), big.NewInt(to), big.NewInt(token), big.NewInt(nonce), big.NewInt(amount))
 }
 
 func (b *Bazooka) DecodeAirdropTx(txBytes []byte) (from, to, token, nonce, txType, amount *big.Int, err error) {
@@ -587,18 +587,18 @@ func (b *Bazooka) DecodeAirdropTx(txBytes []byte) (from, to, token, nonce, txTyp
 	return tx.From, tx.To, tx.TokenType, tx.Nonce, tx.TxType, tx.Amount, nil
 }
 
-func (b *Bazooka) EncodeCreateAccountTx(to, token int64) ([]byte, error) {
+func (b *Bazooka) EncodeCreateAccountTx(to, stateID, token int64) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.BytesFromCreateAccountNoStruct(&opts, big.NewInt(TX_CREATE_ACCOUNT), big.NewInt(to), big.NewInt(token))
+	return b.RollupUtils.BytesFromCreateAccountNoStruct(&opts, big.NewInt(TX_CREATE_ACCOUNT), big.NewInt(to), big.NewInt(stateID), big.NewInt(token))
 }
 
-func (b *Bazooka) DecodeCreateAccountTx(txBytes []byte) (to, token *big.Int, err error) {
+func (b *Bazooka) DecodeCreateAccountTx(txBytes []byte) (toAccID, toStateID, token *big.Int, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	tx, err := b.RollupUtils.CreateAccountFromBytes(&opts, txBytes)
 	if err != nil {
 		return
 	}
-	return tx.ToIndex, tx.TokenType, nil
+	return tx.AccountID, tx.StateID, tx.TokenType, nil
 }
 
 func (b *Bazooka) EncodeBurnConsentTx(from, amount, nonce, txType int64) ([]byte, error) {

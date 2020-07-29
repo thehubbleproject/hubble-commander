@@ -18,6 +18,7 @@ import (
 	"github.com/BOPR/simulator"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gorilla/mux"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -112,11 +113,12 @@ func CreateUsers() *cobra.Command {
 					return err
 				}
 				publicKey := privKey.Public()
+
 				ecsdaPubKey, ok := publicKey.(*ecdsa.PublicKey)
 				if !ok {
 					return errors.New("Unable to convert public key")
 				}
-				newUser := User{Address: crypto.PubkeyToAddress(*ecsdaPubKey).String(), PublicKey: "0x" + hex.EncodeToString(crypto.FromECDSAPub(ecsdaPubKey)), PrivKey: hex.EncodeToString(crypto.FromECDSA(privKey))}
+				newUser := User{Address: crypto.PubkeyToAddress(*ecsdaPubKey).String(), PublicKey: "0x" + hexutil.Encode(crypto.FromECDSAPub(ecsdaPubKey))[4:], PrivKey: hex.EncodeToString(crypto.FromECDSA(privKey))}
 				users = append(users, newUser)
 			}
 			bz, err := json.MarshalIndent(UserList{Users: users}, "", " ")

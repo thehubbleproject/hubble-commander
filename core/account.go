@@ -261,7 +261,7 @@ func (db *DB) GetAccountsAtDepth(depth uint64) ([]UserAccount, error) {
 }
 
 func (db *DB) UpdateAccount(account UserAccount) error {
-	db.Logger.Info("Updated account pubkey", "ID", account.AccountID)
+	db.Logger.Info("Updated account", "PATH", account.Path)
 	account.CreateAccountHash()
 	siblings, err := db.GetSiblings(account.Path)
 	if err != nil {
@@ -274,6 +274,7 @@ func (db *DB) UpdateAccount(account UserAccount) error {
 
 func (db *DB) StoreLeaf(account UserAccount, path string, siblings []UserAccount) error {
 	var err error
+	var isLeft bool
 	computedNode := account
 	for i := 0; i < len(siblings); i++ {
 		var parentHash ByteArray
@@ -287,8 +288,9 @@ func (db *DB) StoreLeaf(account UserAccount, path string, siblings []UserAccount
 			if err != nil {
 				return err
 			}
+			isLeft = true
 			// Store the node!
-			err = db.StoreNode(parentHash, computedNode, sibling)
+			err = db.StoreNode(parentHash, computedNode, sibling, isLeft)
 			if err != nil {
 				return err
 			}
@@ -297,40 +299,41 @@ func (db *DB) StoreLeaf(account UserAccount, path string, siblings []UserAccount
 			if err != nil {
 				return err
 			}
+			isLeft = false
 			// Store the node!
-			err = db.StoreNode(parentHash, sibling, computedNode)
+			err = db.StoreNode(parentHash, sibling, computedNode, isLeft)
 			if err != nil {
 				return err
 			}
 		}
-
 		parentAccount, err := db.GetAccountByPath(GetParentPath(computedNode.Path))
 		if err != nil {
 			return err
 		}
 		computedNode = parentAccount
 	}
-
 	// Store the new root
 	err = db.UpdateRootNodeHashes(computedNode.HashToByteArray())
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
 // StoreNode updates the nodes given the parent hash
-func (db *DB) StoreNode(parentHash ByteArray, leftNode UserAccount, rightNode UserAccount) (err error) {
-	// update left account
-	err = db.updateAccount(leftNode, leftNode.Path)
-	if err != nil {
-		return err
-	}
-	// update right account
-	err = db.updateAccount(rightNode, rightNode.Path)
-	if err != nil {
-		return err
+func (db *DB) StoreNode(parentHash ByteArray, leftNode UserAccount, rightNode UserAccount, isLeft bool) (err error) {
+	if isLeft {
+		// update left account
+		err = db.updateAccount(leftNode, leftNode.Path)
+		if err != nil {
+			return err
+		}
+	} else {
+		// update right account
+		err = db.updateAccount(rightNode, rightNode.Path)
+		if err != nil {
+			return err
+		}
 	}
 	// update the parent with the new hashes
 	return db.UpdateParentWithHash(GetParentPath(leftNode.Path), parentHash)
@@ -427,7 +430,7 @@ func (db *DB) InsertCoordinatorAccounts(acc *UserAccount, depth uint64) error {
 
 // updateAccount will simply replace all the changed fields
 func (db *DB) updateAccount(newAcc UserAccount, path string) error {
-	return db.Instance.Model(&newAcc).Where("path = ?", path).Update(newAcc).Error
+	return db.Instance.Model(&newAcc).Where("path = ?", path).Updates(UserAccount{Data: newAcc.Data, Hash: newAcc.Hash}).Error
 }
 
 func (db *DB) GetAccountCount() (int, error) {

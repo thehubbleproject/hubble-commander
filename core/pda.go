@@ -15,7 +15,7 @@ import (
 type PDA struct {
 	// ID is the path of the user account in the PDA Tree
 	// Cannot be changed once created
-	AccountID uint64 `gorm:"not null;index:AccountID"`
+	AccountID uint64 `gorm:"not null"`
 
 	// Public key for the user
 	PublicKey string `gorm:"type:varchar(1000)"`
@@ -29,12 +29,12 @@ type PDA struct {
 	// 1 => terminal
 	// 0 => root
 	// 2 => non terminal
-	Type uint64 `gorm:"not null;index:Type"`
+	Type uint64 `gorm:"not null"`
 
 	// keccak hash of the node
-	Hash string `gorm:"not null;index:Hash"`
+	Hash string `gorm:"not null"`
 
-	Level uint64 `gorm:"not null;index:Level"`
+	Level uint64 `gorm:"not null"`
 }
 
 func NewPDA(id uint64, pubkey, path string) (*PDA, error) {
