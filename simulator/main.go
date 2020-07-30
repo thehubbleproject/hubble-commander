@@ -76,7 +76,7 @@ func (s *Simulator) OnStart() error {
 		startIndex := uint64(4)
 		s.DB.LogCycle(core.STAGE_TRANSFER, startIndex, startIndex+BATCH_SIZE)
 	}
-	go s.SimulationStart(ctx, 60*time.Second)
+	go s.SimulationStart(ctx, 30*time.Second)
 
 	s.toSwap = false
 	return nil
@@ -137,20 +137,10 @@ func (s *Simulator) startCycle() {
 		s.DB.LogCycle(core.STAGE_BURN_EXEC, lastCycle.StartIndex, lastCycle.EndIndex)
 	case core.STAGE_BURN_EXEC:
 		fmt.Println("Starting transfer cycle")
-		s.simulateTransfer(int64(lastCycle.StartIndex), int64(lastCycle.EndIndex))
+		// s.simulateTransfer(int64(lastCycle.StartIndex), int64(lastCycle.EndIndex))
 		// Mark cycle complete, update the indexes
 		s.Logger.Info("Simulation cycle ending", "startIndex", lastCycle.StartIndex, "end", lastCycle.EndIndex)
-		firstEmptyAccount, err := s.DB.GetFirstEmptyAccount()
-		if err != nil {
-			s.Logger.Error("Error fetching the first empty account", "error", err)
-			return
-		}
-		startIndex, err := core.StringToUint(firstEmptyAccount.Path)
-		if err != nil {
-			s.Logger.Error("Error converting path to index", "err", err)
-			return
-		}
-		s.DB.LogCycle(core.STAGE_TRANSFER, startIndex, startIndex+BATCH_SIZE)
+		s.DB.LogCycle(core.STAGE_TRANSFER, lastCycle.EndIndex+1, lastCycle.EndIndex+BATCH_SIZE)
 	}
 }
 

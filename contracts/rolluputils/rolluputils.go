@@ -20,12 +20,19 @@ var (
 	_ = big.NewInt
 	_ = strings.NewReader
 	_ = ethereum.NotFound
-	_ = abi.U256
 	_ = bind.Bind
 	_ = common.Big1
 	_ = types.BloomLookup
 	_ = event.NewSubscription
 )
+
+// TxTransfer is an auto generated low-level Go binding around an user-defined struct.
+type TxTransfer struct {
+	FromIndex *big.Int
+	ToIndex   *big.Int
+	Amount    *big.Int
+	Signature []byte
+}
 
 // TypesBurnConsent is an auto generated low-level Go binding around an user-defined struct.
 type TypesBurnConsent struct {
@@ -88,7 +95,7 @@ type TypesUserAccount struct {
 }
 
 // RolluputilsABI is the input ABI used to generate the binding from.
-const RolluputilsABI = "[{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"bytes\",\"name\":\"pubkey\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.PDALeaf\",\"name\":\"_PDA_Leaf\",\"type\":\"tuple\"}],\"name\":\"PDALeafToHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"accountBytes\",\"type\":\"bytes\"}],\"name\":\"AccountFromBytes\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"account\",\"type\":\"tuple\"}],\"name\":\"BytesFromAccount\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"name\":\"BytesFromAccountDeconstructed\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"name\":\"getAccountHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"account\",\"type\":\"tuple\"}],\"name\":\"HashFromAccount\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"pub\",\"type\":\"bytes\"}],\"name\":\"calculateAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"GetGenesisLeaves\",\"outputs\":[{\"internalType\":\"bytes32[2]\",\"name\":\"leaves\",\"type\":\"bytes32[2]\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"GetGenesisDataBlocks\",\"outputs\":[{\"internalType\":\"bytes[2]\",\"name\":\"dataBlocks\",\"type\":\"bytes[2]\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"accountID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stateID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.CreateAccount\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromCreateAccount\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"accountID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stateID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"name\":\"BytesFromCreateAccountNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"CreateAccountFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"accountID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stateID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.CreateAccount\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"accountID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stateID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.CreateAccount\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressCreateAccount\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"accountID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stateID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"name\":\"CompressCreateAccountNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"CompressCreateAccountWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressCreateAccount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"accountID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stateID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.DropTx\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromAirdrop\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BytesFromAirdropNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"AirdropFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.DropTx\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"AirdropFromBytesNoStruct\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"AirdropSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.DropTx\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressAirdrop\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressAirdropNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressAirdropTxWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressAirdrop\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromTx\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BytesFromTxDeconstructed\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"TxFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"TxFromBytesDeconstructed\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"getTxSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressTx\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressTxWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressTx\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"HashFromTx\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.BurnConsent\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromBurnConsent\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"name\":\"BytesFromBurnConsentNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"BurnConsentFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.BurnConsent\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"name\":\"BurnConsentSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.BurnConsent\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressBurnConsent\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressBurnConsentNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressBurnConsentWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressBurnConsent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.BurnConsent\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"HashFromBurnConsent\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.BurnExecution\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromBurnExecution\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"name\":\"BytesFromBurnExecutionNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"BurnExecutionFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.BurnExecution\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"name\":\"BurnExecutionSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.BurnExecution\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressBurnExecution\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"CompressBurnExecutionWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"name\":\"CompressBurnExecutionNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressBurnExecution\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.BurnExecution\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"HashFromBurnExecution\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"GetYearMonth\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"yearMonth\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
+const RolluputilsABI = "[{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"bytes\",\"name\":\"pubkey\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.PDALeaf\",\"name\":\"_PDA_Leaf\",\"type\":\"tuple\"}],\"name\":\"PDALeafToHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"accountBytes\",\"type\":\"bytes\"}],\"name\":\"AccountFromBytes\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"account\",\"type\":\"tuple\"}],\"name\":\"BytesFromAccount\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"name\":\"BytesFromAccountDeconstructed\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"name\":\"getAccountHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"account\",\"type\":\"tuple\"}],\"name\":\"HashFromAccount\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"pub\",\"type\":\"bytes\"}],\"name\":\"calculateAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"GetGenesisLeaves\",\"outputs\":[{\"internalType\":\"bytes32[2]\",\"name\":\"leaves\",\"type\":\"bytes32[2]\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"GetGenesisDataBlocks\",\"outputs\":[{\"internalType\":\"bytes[2]\",\"name\":\"dataBlocks\",\"type\":\"bytes[2]\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"accountID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stateID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.CreateAccount\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromCreateAccount\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"accountID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stateID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"name\":\"BytesFromCreateAccountNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"CreateAccountFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"accountID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stateID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.CreateAccount\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"accountID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stateID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.CreateAccount\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressCreateAccount\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"accountID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stateID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"name\":\"CompressCreateAccountNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"CompressCreateAccountWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressCreateAccount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"accountID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stateID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"CompressCreateAccountFromEncoded\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"txBytes\",\"type\":\"bytes[]\"}],\"name\":\"CompressManyCreateAccountFromEncoded\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.DropTx\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromAirdrop\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BytesFromAirdropNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"AirdropFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.DropTx\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"AirdropFromBytesNoStruct\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"AirdropSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.DropTx\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressAirdrop\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressAirdropNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressAirdropTxWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressAirdrop\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressAirdropFromEncoded\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"txBytes\",\"type\":\"bytes[]\"},{\"internalType\":\"bytes[]\",\"name\":\"sigs\",\"type\":\"bytes[]\"}],\"name\":\"CompressManyAirdropFromEncoded\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromTx\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BytesFromTxDeconstructed\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"TxFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"TxFromBytesDeconstructed\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"getTxSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressTx\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressTxWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressTx\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txs\",\"type\":\"bytes\"}],\"name\":\"DecompressTransfers\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTx.Transfer[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.Transaction\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"HashFromTx\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressTransferFromEncoded\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"txBytes\",\"type\":\"bytes[]\"},{\"internalType\":\"bytes[]\",\"name\":\"sigs\",\"type\":\"bytes[]\"}],\"name\":\"CompressManyTransferFromEncoded\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.BurnConsent\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromBurnConsent\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"name\":\"BytesFromBurnConsentNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"BurnConsentFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.BurnConsent\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"name\":\"BurnConsentSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.BurnConsent\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressBurnConsent\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressBurnConsentNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"sig\",\"type\":\"bytes\"}],\"name\":\"CompressBurnConsentWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressBurnConsent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.BurnConsent\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"HashFromBurnConsent\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"CompressBurnConsentFromEncoded\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"txBytes\",\"type\":\"bytes[]\"}],\"name\":\"CompressManyBurnConsentFromEncoded\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.BurnExecution\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"BytesFromBurnExecution\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"name\":\"BytesFromBurnExecutionNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"BurnExecutionFromBytes\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.BurnExecution\",\"name\":\"\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"name\":\"BurnExecutionSignBytes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.BurnExecution\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"CompressBurnExecution\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"CompressBurnExecutionWithMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"name\":\"CompressBurnExecutionNoStruct\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"DecompressBurnExecution\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.BurnExecution\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"HashFromBurnExecution\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txBytes\",\"type\":\"bytes\"}],\"name\":\"CompressBurnExecutionFromEncoded\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"txBytes\",\"type\":\"bytes[]\"}],\"name\":\"CompressManyBurnExecutionFromEncoded\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"GetYearMonth\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"yearMonth\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Rolluputils is an auto generated Go binding around an Ethereum contract.
 type Rolluputils struct {
@@ -286,7 +293,7 @@ func (_Rolluputils *RolluputilsCallerSession) AccountFromBytes(accountBytes []by
 
 // AirdropFromBytes is a free data retrieval call binding the contract method 0xbfecfbf3.
 //
-// Solidity: function AirdropFromBytes(bytes txBytes) pure returns(TypesDropTx)
+// Solidity: function AirdropFromBytes(bytes txBytes) pure returns((uint256,uint256,uint256,uint256,uint256,uint256,bytes))
 func (_Rolluputils *RolluputilsCaller) AirdropFromBytes(opts *bind.CallOpts, txBytes []byte) (TypesDropTx, error) {
 	var (
 		ret0 = new(TypesDropTx)
@@ -298,14 +305,14 @@ func (_Rolluputils *RolluputilsCaller) AirdropFromBytes(opts *bind.CallOpts, txB
 
 // AirdropFromBytes is a free data retrieval call binding the contract method 0xbfecfbf3.
 //
-// Solidity: function AirdropFromBytes(bytes txBytes) pure returns(TypesDropTx)
+// Solidity: function AirdropFromBytes(bytes txBytes) pure returns((uint256,uint256,uint256,uint256,uint256,uint256,bytes))
 func (_Rolluputils *RolluputilsSession) AirdropFromBytes(txBytes []byte) (TypesDropTx, error) {
 	return _Rolluputils.Contract.AirdropFromBytes(&_Rolluputils.CallOpts, txBytes)
 }
 
 // AirdropFromBytes is a free data retrieval call binding the contract method 0xbfecfbf3.
 //
-// Solidity: function AirdropFromBytes(bytes txBytes) pure returns(TypesDropTx)
+// Solidity: function AirdropFromBytes(bytes txBytes) pure returns((uint256,uint256,uint256,uint256,uint256,uint256,bytes))
 func (_Rolluputils *RolluputilsCallerSession) AirdropFromBytes(txBytes []byte) (TypesDropTx, error) {
 	return _Rolluputils.Contract.AirdropFromBytes(&_Rolluputils.CallOpts, txBytes)
 }
@@ -390,7 +397,7 @@ func (_Rolluputils *RolluputilsCallerSession) AirdropSignBytes(txType *big.Int, 
 
 // BurnConsentFromBytes is a free data retrieval call binding the contract method 0x6811105b.
 //
-// Solidity: function BurnConsentFromBytes(bytes txBytes) pure returns(TypesBurnConsent)
+// Solidity: function BurnConsentFromBytes(bytes txBytes) pure returns((uint256,uint256,uint256,uint256,bytes))
 func (_Rolluputils *RolluputilsCaller) BurnConsentFromBytes(opts *bind.CallOpts, txBytes []byte) (TypesBurnConsent, error) {
 	var (
 		ret0 = new(TypesBurnConsent)
@@ -402,14 +409,14 @@ func (_Rolluputils *RolluputilsCaller) BurnConsentFromBytes(opts *bind.CallOpts,
 
 // BurnConsentFromBytes is a free data retrieval call binding the contract method 0x6811105b.
 //
-// Solidity: function BurnConsentFromBytes(bytes txBytes) pure returns(TypesBurnConsent)
+// Solidity: function BurnConsentFromBytes(bytes txBytes) pure returns((uint256,uint256,uint256,uint256,bytes))
 func (_Rolluputils *RolluputilsSession) BurnConsentFromBytes(txBytes []byte) (TypesBurnConsent, error) {
 	return _Rolluputils.Contract.BurnConsentFromBytes(&_Rolluputils.CallOpts, txBytes)
 }
 
 // BurnConsentFromBytes is a free data retrieval call binding the contract method 0x6811105b.
 //
-// Solidity: function BurnConsentFromBytes(bytes txBytes) pure returns(TypesBurnConsent)
+// Solidity: function BurnConsentFromBytes(bytes txBytes) pure returns((uint256,uint256,uint256,uint256,bytes))
 func (_Rolluputils *RolluputilsCallerSession) BurnConsentFromBytes(txBytes []byte) (TypesBurnConsent, error) {
 	return _Rolluputils.Contract.BurnConsentFromBytes(&_Rolluputils.CallOpts, txBytes)
 }
@@ -442,7 +449,7 @@ func (_Rolluputils *RolluputilsCallerSession) BurnConsentSignBytes(txType *big.I
 
 // BurnExecutionFromBytes is a free data retrieval call binding the contract method 0x7b1849fa.
 //
-// Solidity: function BurnExecutionFromBytes(bytes txBytes) pure returns(TypesBurnExecution)
+// Solidity: function BurnExecutionFromBytes(bytes txBytes) pure returns((uint256,uint256))
 func (_Rolluputils *RolluputilsCaller) BurnExecutionFromBytes(opts *bind.CallOpts, txBytes []byte) (TypesBurnExecution, error) {
 	var (
 		ret0 = new(TypesBurnExecution)
@@ -454,14 +461,14 @@ func (_Rolluputils *RolluputilsCaller) BurnExecutionFromBytes(opts *bind.CallOpt
 
 // BurnExecutionFromBytes is a free data retrieval call binding the contract method 0x7b1849fa.
 //
-// Solidity: function BurnExecutionFromBytes(bytes txBytes) pure returns(TypesBurnExecution)
+// Solidity: function BurnExecutionFromBytes(bytes txBytes) pure returns((uint256,uint256))
 func (_Rolluputils *RolluputilsSession) BurnExecutionFromBytes(txBytes []byte) (TypesBurnExecution, error) {
 	return _Rolluputils.Contract.BurnExecutionFromBytes(&_Rolluputils.CallOpts, txBytes)
 }
 
 // BurnExecutionFromBytes is a free data retrieval call binding the contract method 0x7b1849fa.
 //
-// Solidity: function BurnExecutionFromBytes(bytes txBytes) pure returns(TypesBurnExecution)
+// Solidity: function BurnExecutionFromBytes(bytes txBytes) pure returns((uint256,uint256))
 func (_Rolluputils *RolluputilsCallerSession) BurnExecutionFromBytes(txBytes []byte) (TypesBurnExecution, error) {
 	return _Rolluputils.Contract.BurnExecutionFromBytes(&_Rolluputils.CallOpts, txBytes)
 }
@@ -494,7 +501,7 @@ func (_Rolluputils *RolluputilsCallerSession) BurnExecutionSignBytes(txType *big
 
 // BytesFromAccount is a free data retrieval call binding the contract method 0x04af2a83.
 //
-// Solidity: function BytesFromAccount(TypesUserAccount account) pure returns(bytes)
+// Solidity: function BytesFromAccount((uint256,uint256,uint256,uint256,uint256,uint256) account) pure returns(bytes)
 func (_Rolluputils *RolluputilsCaller) BytesFromAccount(opts *bind.CallOpts, account TypesUserAccount) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
@@ -506,14 +513,14 @@ func (_Rolluputils *RolluputilsCaller) BytesFromAccount(opts *bind.CallOpts, acc
 
 // BytesFromAccount is a free data retrieval call binding the contract method 0x04af2a83.
 //
-// Solidity: function BytesFromAccount(TypesUserAccount account) pure returns(bytes)
+// Solidity: function BytesFromAccount((uint256,uint256,uint256,uint256,uint256,uint256) account) pure returns(bytes)
 func (_Rolluputils *RolluputilsSession) BytesFromAccount(account TypesUserAccount) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromAccount(&_Rolluputils.CallOpts, account)
 }
 
 // BytesFromAccount is a free data retrieval call binding the contract method 0x04af2a83.
 //
-// Solidity: function BytesFromAccount(TypesUserAccount account) pure returns(bytes)
+// Solidity: function BytesFromAccount((uint256,uint256,uint256,uint256,uint256,uint256) account) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) BytesFromAccount(account TypesUserAccount) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromAccount(&_Rolluputils.CallOpts, account)
 }
@@ -546,7 +553,7 @@ func (_Rolluputils *RolluputilsCallerSession) BytesFromAccountDeconstructed(ID *
 
 // BytesFromAirdrop is a free data retrieval call binding the contract method 0x29d87dd9.
 //
-// Solidity: function BytesFromAirdrop(TypesDropTx _tx) pure returns(bytes)
+// Solidity: function BytesFromAirdrop((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCaller) BytesFromAirdrop(opts *bind.CallOpts, _tx TypesDropTx) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
@@ -558,14 +565,14 @@ func (_Rolluputils *RolluputilsCaller) BytesFromAirdrop(opts *bind.CallOpts, _tx
 
 // BytesFromAirdrop is a free data retrieval call binding the contract method 0x29d87dd9.
 //
-// Solidity: function BytesFromAirdrop(TypesDropTx _tx) pure returns(bytes)
+// Solidity: function BytesFromAirdrop((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsSession) BytesFromAirdrop(_tx TypesDropTx) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromAirdrop(&_Rolluputils.CallOpts, _tx)
 }
 
 // BytesFromAirdrop is a free data retrieval call binding the contract method 0x29d87dd9.
 //
-// Solidity: function BytesFromAirdrop(TypesDropTx _tx) pure returns(bytes)
+// Solidity: function BytesFromAirdrop((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) BytesFromAirdrop(_tx TypesDropTx) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromAirdrop(&_Rolluputils.CallOpts, _tx)
 }
@@ -598,7 +605,7 @@ func (_Rolluputils *RolluputilsCallerSession) BytesFromAirdropNoStruct(txType *b
 
 // BytesFromBurnConsent is a free data retrieval call binding the contract method 0x9b4bf464.
 //
-// Solidity: function BytesFromBurnConsent(TypesBurnConsent _tx) pure returns(bytes)
+// Solidity: function BytesFromBurnConsent((uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCaller) BytesFromBurnConsent(opts *bind.CallOpts, _tx TypesBurnConsent) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
@@ -610,14 +617,14 @@ func (_Rolluputils *RolluputilsCaller) BytesFromBurnConsent(opts *bind.CallOpts,
 
 // BytesFromBurnConsent is a free data retrieval call binding the contract method 0x9b4bf464.
 //
-// Solidity: function BytesFromBurnConsent(TypesBurnConsent _tx) pure returns(bytes)
+// Solidity: function BytesFromBurnConsent((uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsSession) BytesFromBurnConsent(_tx TypesBurnConsent) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromBurnConsent(&_Rolluputils.CallOpts, _tx)
 }
 
 // BytesFromBurnConsent is a free data retrieval call binding the contract method 0x9b4bf464.
 //
-// Solidity: function BytesFromBurnConsent(TypesBurnConsent _tx) pure returns(bytes)
+// Solidity: function BytesFromBurnConsent((uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) BytesFromBurnConsent(_tx TypesBurnConsent) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromBurnConsent(&_Rolluputils.CallOpts, _tx)
 }
@@ -650,7 +657,7 @@ func (_Rolluputils *RolluputilsCallerSession) BytesFromBurnConsentNoStruct(txTyp
 
 // BytesFromBurnExecution is a free data retrieval call binding the contract method 0xd7199f92.
 //
-// Solidity: function BytesFromBurnExecution(TypesBurnExecution _tx) pure returns(bytes)
+// Solidity: function BytesFromBurnExecution((uint256,uint256) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCaller) BytesFromBurnExecution(opts *bind.CallOpts, _tx TypesBurnExecution) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
@@ -662,14 +669,14 @@ func (_Rolluputils *RolluputilsCaller) BytesFromBurnExecution(opts *bind.CallOpt
 
 // BytesFromBurnExecution is a free data retrieval call binding the contract method 0xd7199f92.
 //
-// Solidity: function BytesFromBurnExecution(TypesBurnExecution _tx) pure returns(bytes)
+// Solidity: function BytesFromBurnExecution((uint256,uint256) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsSession) BytesFromBurnExecution(_tx TypesBurnExecution) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromBurnExecution(&_Rolluputils.CallOpts, _tx)
 }
 
 // BytesFromBurnExecution is a free data retrieval call binding the contract method 0xd7199f92.
 //
-// Solidity: function BytesFromBurnExecution(TypesBurnExecution _tx) pure returns(bytes)
+// Solidity: function BytesFromBurnExecution((uint256,uint256) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) BytesFromBurnExecution(_tx TypesBurnExecution) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromBurnExecution(&_Rolluputils.CallOpts, _tx)
 }
@@ -702,7 +709,7 @@ func (_Rolluputils *RolluputilsCallerSession) BytesFromBurnExecutionNoStruct(txT
 
 // BytesFromCreateAccount is a free data retrieval call binding the contract method 0x89fd704b.
 //
-// Solidity: function BytesFromCreateAccount(TypesCreateAccount _tx) pure returns(bytes)
+// Solidity: function BytesFromCreateAccount((uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCaller) BytesFromCreateAccount(opts *bind.CallOpts, _tx TypesCreateAccount) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
@@ -714,14 +721,14 @@ func (_Rolluputils *RolluputilsCaller) BytesFromCreateAccount(opts *bind.CallOpt
 
 // BytesFromCreateAccount is a free data retrieval call binding the contract method 0x89fd704b.
 //
-// Solidity: function BytesFromCreateAccount(TypesCreateAccount _tx) pure returns(bytes)
+// Solidity: function BytesFromCreateAccount((uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsSession) BytesFromCreateAccount(_tx TypesCreateAccount) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromCreateAccount(&_Rolluputils.CallOpts, _tx)
 }
 
 // BytesFromCreateAccount is a free data retrieval call binding the contract method 0x89fd704b.
 //
-// Solidity: function BytesFromCreateAccount(TypesCreateAccount _tx) pure returns(bytes)
+// Solidity: function BytesFromCreateAccount((uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) BytesFromCreateAccount(_tx TypesCreateAccount) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromCreateAccount(&_Rolluputils.CallOpts, _tx)
 }
@@ -754,7 +761,7 @@ func (_Rolluputils *RolluputilsCallerSession) BytesFromCreateAccountNoStruct(txT
 
 // BytesFromTx is a free data retrieval call binding the contract method 0xd0dbc902.
 //
-// Solidity: function BytesFromTx(TypesTransaction _tx) pure returns(bytes)
+// Solidity: function BytesFromTx((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCaller) BytesFromTx(opts *bind.CallOpts, _tx TypesTransaction) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
@@ -766,14 +773,14 @@ func (_Rolluputils *RolluputilsCaller) BytesFromTx(opts *bind.CallOpts, _tx Type
 
 // BytesFromTx is a free data retrieval call binding the contract method 0xd0dbc902.
 //
-// Solidity: function BytesFromTx(TypesTransaction _tx) pure returns(bytes)
+// Solidity: function BytesFromTx((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsSession) BytesFromTx(_tx TypesTransaction) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromTx(&_Rolluputils.CallOpts, _tx)
 }
 
 // BytesFromTx is a free data retrieval call binding the contract method 0xd0dbc902.
 //
-// Solidity: function BytesFromTx(TypesTransaction _tx) pure returns(bytes)
+// Solidity: function BytesFromTx((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) BytesFromTx(_tx TypesTransaction) ([]byte, error) {
 	return _Rolluputils.Contract.BytesFromTx(&_Rolluputils.CallOpts, _tx)
 }
@@ -806,7 +813,7 @@ func (_Rolluputils *RolluputilsCallerSession) BytesFromTxDeconstructed(txType *b
 
 // CompressAirdrop is a free data retrieval call binding the contract method 0x296d2f03.
 //
-// Solidity: function CompressAirdrop(TypesDropTx _tx) pure returns(bytes)
+// Solidity: function CompressAirdrop((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCaller) CompressAirdrop(opts *bind.CallOpts, _tx TypesDropTx) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
@@ -818,16 +825,42 @@ func (_Rolluputils *RolluputilsCaller) CompressAirdrop(opts *bind.CallOpts, _tx 
 
 // CompressAirdrop is a free data retrieval call binding the contract method 0x296d2f03.
 //
-// Solidity: function CompressAirdrop(TypesDropTx _tx) pure returns(bytes)
+// Solidity: function CompressAirdrop((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsSession) CompressAirdrop(_tx TypesDropTx) ([]byte, error) {
 	return _Rolluputils.Contract.CompressAirdrop(&_Rolluputils.CallOpts, _tx)
 }
 
 // CompressAirdrop is a free data retrieval call binding the contract method 0x296d2f03.
 //
-// Solidity: function CompressAirdrop(TypesDropTx _tx) pure returns(bytes)
+// Solidity: function CompressAirdrop((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) CompressAirdrop(_tx TypesDropTx) ([]byte, error) {
 	return _Rolluputils.Contract.CompressAirdrop(&_Rolluputils.CallOpts, _tx)
+}
+
+// CompressAirdropFromEncoded is a free data retrieval call binding the contract method 0x175284f7.
+//
+// Solidity: function CompressAirdropFromEncoded(bytes txBytes, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressAirdropFromEncoded(opts *bind.CallOpts, txBytes []byte, sig []byte) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressAirdropFromEncoded", txBytes, sig)
+	return *ret0, err
+}
+
+// CompressAirdropFromEncoded is a free data retrieval call binding the contract method 0x175284f7.
+//
+// Solidity: function CompressAirdropFromEncoded(bytes txBytes, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressAirdropFromEncoded(txBytes []byte, sig []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressAirdropFromEncoded(&_Rolluputils.CallOpts, txBytes, sig)
+}
+
+// CompressAirdropFromEncoded is a free data retrieval call binding the contract method 0x175284f7.
+//
+// Solidity: function CompressAirdropFromEncoded(bytes txBytes, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressAirdropFromEncoded(txBytes []byte, sig []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressAirdropFromEncoded(&_Rolluputils.CallOpts, txBytes, sig)
 }
 
 // CompressAirdropNoStruct is a free data retrieval call binding the contract method 0x1345dc05.
@@ -884,7 +917,7 @@ func (_Rolluputils *RolluputilsCallerSession) CompressAirdropTxWithMessage(messa
 
 // CompressBurnConsent is a free data retrieval call binding the contract method 0x625c7972.
 //
-// Solidity: function CompressBurnConsent(TypesBurnConsent _tx) pure returns(bytes)
+// Solidity: function CompressBurnConsent((uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCaller) CompressBurnConsent(opts *bind.CallOpts, _tx TypesBurnConsent) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
@@ -896,16 +929,42 @@ func (_Rolluputils *RolluputilsCaller) CompressBurnConsent(opts *bind.CallOpts, 
 
 // CompressBurnConsent is a free data retrieval call binding the contract method 0x625c7972.
 //
-// Solidity: function CompressBurnConsent(TypesBurnConsent _tx) pure returns(bytes)
+// Solidity: function CompressBurnConsent((uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsSession) CompressBurnConsent(_tx TypesBurnConsent) ([]byte, error) {
 	return _Rolluputils.Contract.CompressBurnConsent(&_Rolluputils.CallOpts, _tx)
 }
 
 // CompressBurnConsent is a free data retrieval call binding the contract method 0x625c7972.
 //
-// Solidity: function CompressBurnConsent(TypesBurnConsent _tx) pure returns(bytes)
+// Solidity: function CompressBurnConsent((uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) CompressBurnConsent(_tx TypesBurnConsent) ([]byte, error) {
 	return _Rolluputils.Contract.CompressBurnConsent(&_Rolluputils.CallOpts, _tx)
+}
+
+// CompressBurnConsentFromEncoded is a free data retrieval call binding the contract method 0xe43494aa.
+//
+// Solidity: function CompressBurnConsentFromEncoded(bytes txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressBurnConsentFromEncoded(opts *bind.CallOpts, txBytes []byte) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressBurnConsentFromEncoded", txBytes)
+	return *ret0, err
+}
+
+// CompressBurnConsentFromEncoded is a free data retrieval call binding the contract method 0xe43494aa.
+//
+// Solidity: function CompressBurnConsentFromEncoded(bytes txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressBurnConsentFromEncoded(txBytes []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressBurnConsentFromEncoded(&_Rolluputils.CallOpts, txBytes)
+}
+
+// CompressBurnConsentFromEncoded is a free data retrieval call binding the contract method 0xe43494aa.
+//
+// Solidity: function CompressBurnConsentFromEncoded(bytes txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressBurnConsentFromEncoded(txBytes []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressBurnConsentFromEncoded(&_Rolluputils.CallOpts, txBytes)
 }
 
 // CompressBurnConsentNoStruct is a free data retrieval call binding the contract method 0x70db63d0.
@@ -962,7 +1021,7 @@ func (_Rolluputils *RolluputilsCallerSession) CompressBurnConsentWithMessage(mes
 
 // CompressBurnExecution is a free data retrieval call binding the contract method 0x89903a66.
 //
-// Solidity: function CompressBurnExecution(TypesBurnExecution _tx) pure returns(bytes)
+// Solidity: function CompressBurnExecution((uint256,uint256) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCaller) CompressBurnExecution(opts *bind.CallOpts, _tx TypesBurnExecution) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
@@ -974,16 +1033,42 @@ func (_Rolluputils *RolluputilsCaller) CompressBurnExecution(opts *bind.CallOpts
 
 // CompressBurnExecution is a free data retrieval call binding the contract method 0x89903a66.
 //
-// Solidity: function CompressBurnExecution(TypesBurnExecution _tx) pure returns(bytes)
+// Solidity: function CompressBurnExecution((uint256,uint256) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsSession) CompressBurnExecution(_tx TypesBurnExecution) ([]byte, error) {
 	return _Rolluputils.Contract.CompressBurnExecution(&_Rolluputils.CallOpts, _tx)
 }
 
 // CompressBurnExecution is a free data retrieval call binding the contract method 0x89903a66.
 //
-// Solidity: function CompressBurnExecution(TypesBurnExecution _tx) pure returns(bytes)
+// Solidity: function CompressBurnExecution((uint256,uint256) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) CompressBurnExecution(_tx TypesBurnExecution) ([]byte, error) {
 	return _Rolluputils.Contract.CompressBurnExecution(&_Rolluputils.CallOpts, _tx)
+}
+
+// CompressBurnExecutionFromEncoded is a free data retrieval call binding the contract method 0xe3c996b7.
+//
+// Solidity: function CompressBurnExecutionFromEncoded(bytes txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressBurnExecutionFromEncoded(opts *bind.CallOpts, txBytes []byte) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressBurnExecutionFromEncoded", txBytes)
+	return *ret0, err
+}
+
+// CompressBurnExecutionFromEncoded is a free data retrieval call binding the contract method 0xe3c996b7.
+//
+// Solidity: function CompressBurnExecutionFromEncoded(bytes txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressBurnExecutionFromEncoded(txBytes []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressBurnExecutionFromEncoded(&_Rolluputils.CallOpts, txBytes)
+}
+
+// CompressBurnExecutionFromEncoded is a free data retrieval call binding the contract method 0xe3c996b7.
+//
+// Solidity: function CompressBurnExecutionFromEncoded(bytes txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressBurnExecutionFromEncoded(txBytes []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressBurnExecutionFromEncoded(&_Rolluputils.CallOpts, txBytes)
 }
 
 // CompressBurnExecutionNoStruct is a free data retrieval call binding the contract method 0xe2b75030.
@@ -1040,7 +1125,7 @@ func (_Rolluputils *RolluputilsCallerSession) CompressBurnExecutionWithMessage(m
 
 // CompressCreateAccount is a free data retrieval call binding the contract method 0x0a40b1f0.
 //
-// Solidity: function CompressCreateAccount(TypesCreateAccount _tx) pure returns(bytes)
+// Solidity: function CompressCreateAccount((uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCaller) CompressCreateAccount(opts *bind.CallOpts, _tx TypesCreateAccount) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
@@ -1052,16 +1137,42 @@ func (_Rolluputils *RolluputilsCaller) CompressCreateAccount(opts *bind.CallOpts
 
 // CompressCreateAccount is a free data retrieval call binding the contract method 0x0a40b1f0.
 //
-// Solidity: function CompressCreateAccount(TypesCreateAccount _tx) pure returns(bytes)
+// Solidity: function CompressCreateAccount((uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsSession) CompressCreateAccount(_tx TypesCreateAccount) ([]byte, error) {
 	return _Rolluputils.Contract.CompressCreateAccount(&_Rolluputils.CallOpts, _tx)
 }
 
 // CompressCreateAccount is a free data retrieval call binding the contract method 0x0a40b1f0.
 //
-// Solidity: function CompressCreateAccount(TypesCreateAccount _tx) pure returns(bytes)
+// Solidity: function CompressCreateAccount((uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) CompressCreateAccount(_tx TypesCreateAccount) ([]byte, error) {
 	return _Rolluputils.Contract.CompressCreateAccount(&_Rolluputils.CallOpts, _tx)
+}
+
+// CompressCreateAccountFromEncoded is a free data retrieval call binding the contract method 0x87bb25b8.
+//
+// Solidity: function CompressCreateAccountFromEncoded(bytes txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressCreateAccountFromEncoded(opts *bind.CallOpts, txBytes []byte) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressCreateAccountFromEncoded", txBytes)
+	return *ret0, err
+}
+
+// CompressCreateAccountFromEncoded is a free data retrieval call binding the contract method 0x87bb25b8.
+//
+// Solidity: function CompressCreateAccountFromEncoded(bytes txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressCreateAccountFromEncoded(txBytes []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressCreateAccountFromEncoded(&_Rolluputils.CallOpts, txBytes)
+}
+
+// CompressCreateAccountFromEncoded is a free data retrieval call binding the contract method 0x87bb25b8.
+//
+// Solidity: function CompressCreateAccountFromEncoded(bytes txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressCreateAccountFromEncoded(txBytes []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressCreateAccountFromEncoded(&_Rolluputils.CallOpts, txBytes)
 }
 
 // CompressCreateAccountNoStruct is a free data retrieval call binding the contract method 0xc7d4234d.
@@ -1116,9 +1227,165 @@ func (_Rolluputils *RolluputilsCallerSession) CompressCreateAccountWithMessage(m
 	return _Rolluputils.Contract.CompressCreateAccountWithMessage(&_Rolluputils.CallOpts, message)
 }
 
+// CompressManyAirdropFromEncoded is a free data retrieval call binding the contract method 0xe1b72cc2.
+//
+// Solidity: function CompressManyAirdropFromEncoded(bytes[] txBytes, bytes[] sigs) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressManyAirdropFromEncoded(opts *bind.CallOpts, txBytes [][]byte, sigs [][]byte) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressManyAirdropFromEncoded", txBytes, sigs)
+	return *ret0, err
+}
+
+// CompressManyAirdropFromEncoded is a free data retrieval call binding the contract method 0xe1b72cc2.
+//
+// Solidity: function CompressManyAirdropFromEncoded(bytes[] txBytes, bytes[] sigs) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressManyAirdropFromEncoded(txBytes [][]byte, sigs [][]byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressManyAirdropFromEncoded(&_Rolluputils.CallOpts, txBytes, sigs)
+}
+
+// CompressManyAirdropFromEncoded is a free data retrieval call binding the contract method 0xe1b72cc2.
+//
+// Solidity: function CompressManyAirdropFromEncoded(bytes[] txBytes, bytes[] sigs) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressManyAirdropFromEncoded(txBytes [][]byte, sigs [][]byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressManyAirdropFromEncoded(&_Rolluputils.CallOpts, txBytes, sigs)
+}
+
+// CompressManyBurnConsentFromEncoded is a free data retrieval call binding the contract method 0xa882f5f4.
+//
+// Solidity: function CompressManyBurnConsentFromEncoded(bytes[] txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressManyBurnConsentFromEncoded(opts *bind.CallOpts, txBytes [][]byte) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressManyBurnConsentFromEncoded", txBytes)
+	return *ret0, err
+}
+
+// CompressManyBurnConsentFromEncoded is a free data retrieval call binding the contract method 0xa882f5f4.
+//
+// Solidity: function CompressManyBurnConsentFromEncoded(bytes[] txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressManyBurnConsentFromEncoded(txBytes [][]byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressManyBurnConsentFromEncoded(&_Rolluputils.CallOpts, txBytes)
+}
+
+// CompressManyBurnConsentFromEncoded is a free data retrieval call binding the contract method 0xa882f5f4.
+//
+// Solidity: function CompressManyBurnConsentFromEncoded(bytes[] txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressManyBurnConsentFromEncoded(txBytes [][]byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressManyBurnConsentFromEncoded(&_Rolluputils.CallOpts, txBytes)
+}
+
+// CompressManyBurnExecutionFromEncoded is a free data retrieval call binding the contract method 0x56f29b49.
+//
+// Solidity: function CompressManyBurnExecutionFromEncoded(bytes[] txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressManyBurnExecutionFromEncoded(opts *bind.CallOpts, txBytes [][]byte) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressManyBurnExecutionFromEncoded", txBytes)
+	return *ret0, err
+}
+
+// CompressManyBurnExecutionFromEncoded is a free data retrieval call binding the contract method 0x56f29b49.
+//
+// Solidity: function CompressManyBurnExecutionFromEncoded(bytes[] txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressManyBurnExecutionFromEncoded(txBytes [][]byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressManyBurnExecutionFromEncoded(&_Rolluputils.CallOpts, txBytes)
+}
+
+// CompressManyBurnExecutionFromEncoded is a free data retrieval call binding the contract method 0x56f29b49.
+//
+// Solidity: function CompressManyBurnExecutionFromEncoded(bytes[] txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressManyBurnExecutionFromEncoded(txBytes [][]byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressManyBurnExecutionFromEncoded(&_Rolluputils.CallOpts, txBytes)
+}
+
+// CompressManyCreateAccountFromEncoded is a free data retrieval call binding the contract method 0xdc3498b5.
+//
+// Solidity: function CompressManyCreateAccountFromEncoded(bytes[] txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressManyCreateAccountFromEncoded(opts *bind.CallOpts, txBytes [][]byte) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressManyCreateAccountFromEncoded", txBytes)
+	return *ret0, err
+}
+
+// CompressManyCreateAccountFromEncoded is a free data retrieval call binding the contract method 0xdc3498b5.
+//
+// Solidity: function CompressManyCreateAccountFromEncoded(bytes[] txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressManyCreateAccountFromEncoded(txBytes [][]byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressManyCreateAccountFromEncoded(&_Rolluputils.CallOpts, txBytes)
+}
+
+// CompressManyCreateAccountFromEncoded is a free data retrieval call binding the contract method 0xdc3498b5.
+//
+// Solidity: function CompressManyCreateAccountFromEncoded(bytes[] txBytes) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressManyCreateAccountFromEncoded(txBytes [][]byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressManyCreateAccountFromEncoded(&_Rolluputils.CallOpts, txBytes)
+}
+
+// CompressManyTransferFromEncoded is a free data retrieval call binding the contract method 0x8ee4ac06.
+//
+// Solidity: function CompressManyTransferFromEncoded(bytes[] txBytes, bytes[] sigs) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressManyTransferFromEncoded(opts *bind.CallOpts, txBytes [][]byte, sigs [][]byte) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressManyTransferFromEncoded", txBytes, sigs)
+	return *ret0, err
+}
+
+// CompressManyTransferFromEncoded is a free data retrieval call binding the contract method 0x8ee4ac06.
+//
+// Solidity: function CompressManyTransferFromEncoded(bytes[] txBytes, bytes[] sigs) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressManyTransferFromEncoded(txBytes [][]byte, sigs [][]byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressManyTransferFromEncoded(&_Rolluputils.CallOpts, txBytes, sigs)
+}
+
+// CompressManyTransferFromEncoded is a free data retrieval call binding the contract method 0x8ee4ac06.
+//
+// Solidity: function CompressManyTransferFromEncoded(bytes[] txBytes, bytes[] sigs) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressManyTransferFromEncoded(txBytes [][]byte, sigs [][]byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressManyTransferFromEncoded(&_Rolluputils.CallOpts, txBytes, sigs)
+}
+
+// CompressTransferFromEncoded is a free data retrieval call binding the contract method 0x57ed1f1f.
+//
+// Solidity: function CompressTransferFromEncoded(bytes txBytes, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsCaller) CompressTransferFromEncoded(opts *bind.CallOpts, txBytes []byte, sig []byte) ([]byte, error) {
+	var (
+		ret0 = new([]byte)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "CompressTransferFromEncoded", txBytes, sig)
+	return *ret0, err
+}
+
+// CompressTransferFromEncoded is a free data retrieval call binding the contract method 0x57ed1f1f.
+//
+// Solidity: function CompressTransferFromEncoded(bytes txBytes, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsSession) CompressTransferFromEncoded(txBytes []byte, sig []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressTransferFromEncoded(&_Rolluputils.CallOpts, txBytes, sig)
+}
+
+// CompressTransferFromEncoded is a free data retrieval call binding the contract method 0x57ed1f1f.
+//
+// Solidity: function CompressTransferFromEncoded(bytes txBytes, bytes sig) pure returns(bytes)
+func (_Rolluputils *RolluputilsCallerSession) CompressTransferFromEncoded(txBytes []byte, sig []byte) ([]byte, error) {
+	return _Rolluputils.Contract.CompressTransferFromEncoded(&_Rolluputils.CallOpts, txBytes, sig)
+}
+
 // CompressTx is a free data retrieval call binding the contract method 0x02c36512.
 //
-// Solidity: function CompressTx(TypesTransaction _tx) pure returns(bytes)
+// Solidity: function CompressTx((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCaller) CompressTx(opts *bind.CallOpts, _tx TypesTransaction) ([]byte, error) {
 	var (
 		ret0 = new([]byte)
@@ -1130,14 +1397,14 @@ func (_Rolluputils *RolluputilsCaller) CompressTx(opts *bind.CallOpts, _tx Types
 
 // CompressTx is a free data retrieval call binding the contract method 0x02c36512.
 //
-// Solidity: function CompressTx(TypesTransaction _tx) pure returns(bytes)
+// Solidity: function CompressTx((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsSession) CompressTx(_tx TypesTransaction) ([]byte, error) {
 	return _Rolluputils.Contract.CompressTx(&_Rolluputils.CallOpts, _tx)
 }
 
 // CompressTx is a free data retrieval call binding the contract method 0x02c36512.
 //
-// Solidity: function CompressTx(TypesTransaction _tx) pure returns(bytes)
+// Solidity: function CompressTx((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes)
 func (_Rolluputils *RolluputilsCallerSession) CompressTx(_tx TypesTransaction) ([]byte, error) {
 	return _Rolluputils.Contract.CompressTx(&_Rolluputils.CallOpts, _tx)
 }
@@ -1170,7 +1437,7 @@ func (_Rolluputils *RolluputilsCallerSession) CompressTxWithMessage(message []by
 
 // CreateAccountFromBytes is a free data retrieval call binding the contract method 0xb3c2ec13.
 //
-// Solidity: function CreateAccountFromBytes(bytes txBytes) pure returns(TypesCreateAccount)
+// Solidity: function CreateAccountFromBytes(bytes txBytes) pure returns((uint256,uint256,uint256,uint256))
 func (_Rolluputils *RolluputilsCaller) CreateAccountFromBytes(opts *bind.CallOpts, txBytes []byte) (TypesCreateAccount, error) {
 	var (
 		ret0 = new(TypesCreateAccount)
@@ -1182,14 +1449,14 @@ func (_Rolluputils *RolluputilsCaller) CreateAccountFromBytes(opts *bind.CallOpt
 
 // CreateAccountFromBytes is a free data retrieval call binding the contract method 0xb3c2ec13.
 //
-// Solidity: function CreateAccountFromBytes(bytes txBytes) pure returns(TypesCreateAccount)
+// Solidity: function CreateAccountFromBytes(bytes txBytes) pure returns((uint256,uint256,uint256,uint256))
 func (_Rolluputils *RolluputilsSession) CreateAccountFromBytes(txBytes []byte) (TypesCreateAccount, error) {
 	return _Rolluputils.Contract.CreateAccountFromBytes(&_Rolluputils.CallOpts, txBytes)
 }
 
 // CreateAccountFromBytes is a free data retrieval call binding the contract method 0xb3c2ec13.
 //
-// Solidity: function CreateAccountFromBytes(bytes txBytes) pure returns(TypesCreateAccount)
+// Solidity: function CreateAccountFromBytes(bytes txBytes) pure returns((uint256,uint256,uint256,uint256))
 func (_Rolluputils *RolluputilsCallerSession) CreateAccountFromBytes(txBytes []byte) (TypesCreateAccount, error) {
 	return _Rolluputils.Contract.CreateAccountFromBytes(&_Rolluputils.CallOpts, txBytes)
 }
@@ -1344,6 +1611,32 @@ func (_Rolluputils *RolluputilsCallerSession) DecompressCreateAccount(txBytes []
 	return _Rolluputils.Contract.DecompressCreateAccount(&_Rolluputils.CallOpts, txBytes)
 }
 
+// DecompressTransfers is a free data retrieval call binding the contract method 0x67347755.
+//
+// Solidity: function DecompressTransfers(bytes txs) pure returns((uint256,uint256,uint256,bytes)[])
+func (_Rolluputils *RolluputilsCaller) DecompressTransfers(opts *bind.CallOpts, txs []byte) ([]TxTransfer, error) {
+	var (
+		ret0 = new([]TxTransfer)
+	)
+	out := ret0
+	err := _Rolluputils.contract.Call(opts, out, "DecompressTransfers", txs)
+	return *ret0, err
+}
+
+// DecompressTransfers is a free data retrieval call binding the contract method 0x67347755.
+//
+// Solidity: function DecompressTransfers(bytes txs) pure returns((uint256,uint256,uint256,bytes)[])
+func (_Rolluputils *RolluputilsSession) DecompressTransfers(txs []byte) ([]TxTransfer, error) {
+	return _Rolluputils.Contract.DecompressTransfers(&_Rolluputils.CallOpts, txs)
+}
+
+// DecompressTransfers is a free data retrieval call binding the contract method 0x67347755.
+//
+// Solidity: function DecompressTransfers(bytes txs) pure returns((uint256,uint256,uint256,bytes)[])
+func (_Rolluputils *RolluputilsCallerSession) DecompressTransfers(txs []byte) ([]TxTransfer, error) {
+	return _Rolluputils.Contract.DecompressTransfers(&_Rolluputils.CallOpts, txs)
+}
+
 // DecompressTx is a free data retrieval call binding the contract method 0xeedeb9d9.
 //
 // Solidity: function DecompressTx(bytes txBytes) pure returns(uint256 from, uint256 to, uint256 amount, bytes sig)
@@ -1468,7 +1761,7 @@ func (_Rolluputils *RolluputilsCallerSession) GetYearMonth() (*big.Int, error) {
 
 // HashFromAccount is a free data retrieval call binding the contract method 0x2953145f.
 //
-// Solidity: function HashFromAccount(TypesUserAccount account) pure returns(bytes32)
+// Solidity: function HashFromAccount((uint256,uint256,uint256,uint256,uint256,uint256) account) pure returns(bytes32)
 func (_Rolluputils *RolluputilsCaller) HashFromAccount(opts *bind.CallOpts, account TypesUserAccount) ([32]byte, error) {
 	var (
 		ret0 = new([32]byte)
@@ -1480,21 +1773,21 @@ func (_Rolluputils *RolluputilsCaller) HashFromAccount(opts *bind.CallOpts, acco
 
 // HashFromAccount is a free data retrieval call binding the contract method 0x2953145f.
 //
-// Solidity: function HashFromAccount(TypesUserAccount account) pure returns(bytes32)
+// Solidity: function HashFromAccount((uint256,uint256,uint256,uint256,uint256,uint256) account) pure returns(bytes32)
 func (_Rolluputils *RolluputilsSession) HashFromAccount(account TypesUserAccount) ([32]byte, error) {
 	return _Rolluputils.Contract.HashFromAccount(&_Rolluputils.CallOpts, account)
 }
 
 // HashFromAccount is a free data retrieval call binding the contract method 0x2953145f.
 //
-// Solidity: function HashFromAccount(TypesUserAccount account) pure returns(bytes32)
+// Solidity: function HashFromAccount((uint256,uint256,uint256,uint256,uint256,uint256) account) pure returns(bytes32)
 func (_Rolluputils *RolluputilsCallerSession) HashFromAccount(account TypesUserAccount) ([32]byte, error) {
 	return _Rolluputils.Contract.HashFromAccount(&_Rolluputils.CallOpts, account)
 }
 
 // HashFromBurnConsent is a free data retrieval call binding the contract method 0xe38a529d.
 //
-// Solidity: function HashFromBurnConsent(TypesBurnConsent _tx) pure returns(bytes32)
+// Solidity: function HashFromBurnConsent((uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes32)
 func (_Rolluputils *RolluputilsCaller) HashFromBurnConsent(opts *bind.CallOpts, _tx TypesBurnConsent) ([32]byte, error) {
 	var (
 		ret0 = new([32]byte)
@@ -1506,21 +1799,21 @@ func (_Rolluputils *RolluputilsCaller) HashFromBurnConsent(opts *bind.CallOpts, 
 
 // HashFromBurnConsent is a free data retrieval call binding the contract method 0xe38a529d.
 //
-// Solidity: function HashFromBurnConsent(TypesBurnConsent _tx) pure returns(bytes32)
+// Solidity: function HashFromBurnConsent((uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes32)
 func (_Rolluputils *RolluputilsSession) HashFromBurnConsent(_tx TypesBurnConsent) ([32]byte, error) {
 	return _Rolluputils.Contract.HashFromBurnConsent(&_Rolluputils.CallOpts, _tx)
 }
 
 // HashFromBurnConsent is a free data retrieval call binding the contract method 0xe38a529d.
 //
-// Solidity: function HashFromBurnConsent(TypesBurnConsent _tx) pure returns(bytes32)
+// Solidity: function HashFromBurnConsent((uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes32)
 func (_Rolluputils *RolluputilsCallerSession) HashFromBurnConsent(_tx TypesBurnConsent) ([32]byte, error) {
 	return _Rolluputils.Contract.HashFromBurnConsent(&_Rolluputils.CallOpts, _tx)
 }
 
 // HashFromBurnExecution is a free data retrieval call binding the contract method 0x88f6837b.
 //
-// Solidity: function HashFromBurnExecution(TypesBurnExecution _tx) pure returns(bytes32)
+// Solidity: function HashFromBurnExecution((uint256,uint256) _tx) pure returns(bytes32)
 func (_Rolluputils *RolluputilsCaller) HashFromBurnExecution(opts *bind.CallOpts, _tx TypesBurnExecution) ([32]byte, error) {
 	var (
 		ret0 = new([32]byte)
@@ -1532,21 +1825,21 @@ func (_Rolluputils *RolluputilsCaller) HashFromBurnExecution(opts *bind.CallOpts
 
 // HashFromBurnExecution is a free data retrieval call binding the contract method 0x88f6837b.
 //
-// Solidity: function HashFromBurnExecution(TypesBurnExecution _tx) pure returns(bytes32)
+// Solidity: function HashFromBurnExecution((uint256,uint256) _tx) pure returns(bytes32)
 func (_Rolluputils *RolluputilsSession) HashFromBurnExecution(_tx TypesBurnExecution) ([32]byte, error) {
 	return _Rolluputils.Contract.HashFromBurnExecution(&_Rolluputils.CallOpts, _tx)
 }
 
 // HashFromBurnExecution is a free data retrieval call binding the contract method 0x88f6837b.
 //
-// Solidity: function HashFromBurnExecution(TypesBurnExecution _tx) pure returns(bytes32)
+// Solidity: function HashFromBurnExecution((uint256,uint256) _tx) pure returns(bytes32)
 func (_Rolluputils *RolluputilsCallerSession) HashFromBurnExecution(_tx TypesBurnExecution) ([32]byte, error) {
 	return _Rolluputils.Contract.HashFromBurnExecution(&_Rolluputils.CallOpts, _tx)
 }
 
 // HashFromTx is a free data retrieval call binding the contract method 0xb90cbf51.
 //
-// Solidity: function HashFromTx(TypesTransaction _tx) pure returns(bytes32)
+// Solidity: function HashFromTx((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes32)
 func (_Rolluputils *RolluputilsCaller) HashFromTx(opts *bind.CallOpts, _tx TypesTransaction) ([32]byte, error) {
 	var (
 		ret0 = new([32]byte)
@@ -1558,21 +1851,21 @@ func (_Rolluputils *RolluputilsCaller) HashFromTx(opts *bind.CallOpts, _tx Types
 
 // HashFromTx is a free data retrieval call binding the contract method 0xb90cbf51.
 //
-// Solidity: function HashFromTx(TypesTransaction _tx) pure returns(bytes32)
+// Solidity: function HashFromTx((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes32)
 func (_Rolluputils *RolluputilsSession) HashFromTx(_tx TypesTransaction) ([32]byte, error) {
 	return _Rolluputils.Contract.HashFromTx(&_Rolluputils.CallOpts, _tx)
 }
 
 // HashFromTx is a free data retrieval call binding the contract method 0xb90cbf51.
 //
-// Solidity: function HashFromTx(TypesTransaction _tx) pure returns(bytes32)
+// Solidity: function HashFromTx((uint256,uint256,uint256,uint256,uint256,uint256,bytes) _tx) pure returns(bytes32)
 func (_Rolluputils *RolluputilsCallerSession) HashFromTx(_tx TypesTransaction) ([32]byte, error) {
 	return _Rolluputils.Contract.HashFromTx(&_Rolluputils.CallOpts, _tx)
 }
 
 // PDALeafToHash is a free data retrieval call binding the contract method 0xc2ddab33.
 //
-// Solidity: function PDALeafToHash(TypesPDALeaf _PDA_Leaf) pure returns(bytes32)
+// Solidity: function PDALeafToHash((bytes) _PDA_Leaf) pure returns(bytes32)
 func (_Rolluputils *RolluputilsCaller) PDALeafToHash(opts *bind.CallOpts, _PDA_Leaf TypesPDALeaf) ([32]byte, error) {
 	var (
 		ret0 = new([32]byte)
@@ -1584,21 +1877,21 @@ func (_Rolluputils *RolluputilsCaller) PDALeafToHash(opts *bind.CallOpts, _PDA_L
 
 // PDALeafToHash is a free data retrieval call binding the contract method 0xc2ddab33.
 //
-// Solidity: function PDALeafToHash(TypesPDALeaf _PDA_Leaf) pure returns(bytes32)
+// Solidity: function PDALeafToHash((bytes) _PDA_Leaf) pure returns(bytes32)
 func (_Rolluputils *RolluputilsSession) PDALeafToHash(_PDA_Leaf TypesPDALeaf) ([32]byte, error) {
 	return _Rolluputils.Contract.PDALeafToHash(&_Rolluputils.CallOpts, _PDA_Leaf)
 }
 
 // PDALeafToHash is a free data retrieval call binding the contract method 0xc2ddab33.
 //
-// Solidity: function PDALeafToHash(TypesPDALeaf _PDA_Leaf) pure returns(bytes32)
+// Solidity: function PDALeafToHash((bytes) _PDA_Leaf) pure returns(bytes32)
 func (_Rolluputils *RolluputilsCallerSession) PDALeafToHash(_PDA_Leaf TypesPDALeaf) ([32]byte, error) {
 	return _Rolluputils.Contract.PDALeafToHash(&_Rolluputils.CallOpts, _PDA_Leaf)
 }
 
 // TxFromBytes is a free data retrieval call binding the contract method 0xbdbf417a.
 //
-// Solidity: function TxFromBytes(bytes txBytes) pure returns(TypesTransaction)
+// Solidity: function TxFromBytes(bytes txBytes) pure returns((uint256,uint256,uint256,uint256,uint256,uint256,bytes))
 func (_Rolluputils *RolluputilsCaller) TxFromBytes(opts *bind.CallOpts, txBytes []byte) (TypesTransaction, error) {
 	var (
 		ret0 = new(TypesTransaction)
@@ -1610,14 +1903,14 @@ func (_Rolluputils *RolluputilsCaller) TxFromBytes(opts *bind.CallOpts, txBytes 
 
 // TxFromBytes is a free data retrieval call binding the contract method 0xbdbf417a.
 //
-// Solidity: function TxFromBytes(bytes txBytes) pure returns(TypesTransaction)
+// Solidity: function TxFromBytes(bytes txBytes) pure returns((uint256,uint256,uint256,uint256,uint256,uint256,bytes))
 func (_Rolluputils *RolluputilsSession) TxFromBytes(txBytes []byte) (TypesTransaction, error) {
 	return _Rolluputils.Contract.TxFromBytes(&_Rolluputils.CallOpts, txBytes)
 }
 
 // TxFromBytes is a free data retrieval call binding the contract method 0xbdbf417a.
 //
-// Solidity: function TxFromBytes(bytes txBytes) pure returns(TypesTransaction)
+// Solidity: function TxFromBytes(bytes txBytes) pure returns((uint256,uint256,uint256,uint256,uint256,uint256,bytes))
 func (_Rolluputils *RolluputilsCallerSession) TxFromBytes(txBytes []byte) (TypesTransaction, error) {
 	return _Rolluputils.Contract.TxFromBytes(&_Rolluputils.CallOpts, txBytes)
 }

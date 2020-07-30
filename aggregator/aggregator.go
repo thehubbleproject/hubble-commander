@@ -170,6 +170,8 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) error {
 			a.Logger.Error("Error processing tx", "tx", tx.String(), "error", err)
 			txDBConn.Rollback()
 			return err
+		} else {
+			txDBConn.Commit()
 		}
 		switch txType := tx.Type; txType {
 		case core.TX_TRANSFER_TYPE:

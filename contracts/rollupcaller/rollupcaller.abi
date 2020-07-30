@@ -1266,11 +1266,6 @@
           "internalType": "struct Types.AccountMerkleProof",
           "name": "_merkle_proof",
           "type": "tuple"
-        },
-        {
-          "internalType": "bytes",
-          "name": "txBytes",
-          "type": "bytes"
         }
       ],
       "name": "ApplyBurnExecutionTx",
@@ -1406,9 +1401,9 @@
           "type": "bytes32"
         },
         {
-          "internalType": "bytes[]",
-          "name": "_txs",
-          "type": "bytes[]"
+          "internalType": "bytes",
+          "name": "txs",
+          "type": "bytes"
         },
         {
           "internalType": "bytes[]",

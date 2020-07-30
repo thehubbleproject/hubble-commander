@@ -574,6 +574,48 @@
       "constant": true,
       "inputs": [
         {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+        }
+      ],
+      "name": "CompressCreateAccountFromEncoded",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes[]",
+          "name": "txBytes",
+          "type": "bytes[]"
+        }
+      ],
+      "name": "CompressManyCreateAccountFromEncoded",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
           "components": [
             {
               "internalType": "uint256",
@@ -974,6 +1016,58 @@
       "constant": true,
       "inputs": [
         {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "sig",
+          "type": "bytes"
+        }
+      ],
+      "name": "CompressAirdropFromEncoded",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes[]",
+          "name": "txBytes",
+          "type": "bytes[]"
+        },
+        {
+          "internalType": "bytes[]",
+          "name": "sigs",
+          "type": "bytes[]"
+        }
+      ],
+      "name": "CompressManyAirdropFromEncoded",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
           "components": [
             {
               "internalType": "uint256",
@@ -1348,6 +1442,49 @@
       "constant": true,
       "inputs": [
         {
+          "internalType": "bytes",
+          "name": "txs",
+          "type": "bytes"
+        }
+      ],
+      "name": "DecompressTransfers",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "toIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Tx.Transfer[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
           "components": [
             {
               "internalType": "uint256",
@@ -1396,6 +1533,58 @@
           "internalType": "bytes32",
           "name": "",
           "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "sig",
+          "type": "bytes"
+        }
+      ],
+      "name": "CompressTransferFromEncoded",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes[]",
+          "name": "txBytes",
+          "type": "bytes[]"
+        },
+        {
+          "internalType": "bytes[]",
+          "name": "sigs",
+          "type": "bytes[]"
+        }
+      ],
+      "name": "CompressManyTransferFromEncoded",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
         }
       ],
       "payable": false,
@@ -1768,6 +1957,48 @@
       "constant": true,
       "inputs": [
         {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+        }
+      ],
+      "name": "CompressBurnConsentFromEncoded",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes[]",
+          "name": "txBytes",
+          "type": "bytes[]"
+        }
+      ],
+      "name": "CompressManyBurnConsentFromEncoded",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
           "components": [
             {
               "internalType": "uint256",
@@ -2005,6 +2236,48 @@
           "internalType": "bytes32",
           "name": "",
           "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+        }
+      ],
+      "name": "CompressBurnExecutionFromEncoded",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes[]",
+          "name": "txBytes",
+          "type": "bytes[]"
+        }
+      ],
+      "name": "CompressManyBurnExecutionFromEncoded",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
         }
       ],
       "payable": false,

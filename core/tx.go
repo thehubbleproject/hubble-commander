@@ -66,7 +66,6 @@ func (t *Tx) AssignHash() {
 }
 
 func (tx *Tx) Apply(updatedFrom, updatedTo []byte) error {
-	// defer TimeTrack(time.Now(), "applying transaction to database time")
 	// get fresh copy of database
 	db, err := NewDB()
 	if err != nil {

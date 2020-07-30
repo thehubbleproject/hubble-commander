@@ -28,21 +28,6 @@
     {
       "constant": true,
       "inputs": [],
-      "name": "ZERO_BYTES32",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
       "name": "accountsTree",
       "outputs": [
         {
@@ -93,18 +78,13 @@
         },
         {
           "internalType": "uint256",
-          "name": "stakeCommitted",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
           "name": "finalisesOn",
           "type": "uint256"
         },
         {
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
+          "internalType": "bool",
+          "name": "withdrawn",
+          "type": "bool"
         },
         {
           "internalType": "enum Types.Usage",
@@ -171,18 +151,13 @@
             },
             {
               "internalType": "uint256",
-              "name": "stakeCommitted",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
               "name": "finalisesOn",
               "type": "uint256"
             },
             {
-              "internalType": "uint256",
-              "name": "timestamp",
-              "type": "uint256"
+              "internalType": "bool",
+              "name": "withdrawn",
+              "type": "bool"
             },
             {
               "internalType": "enum Types.Usage",
@@ -338,9 +313,9 @@
       "constant": false,
       "inputs": [
         {
-          "internalType": "bytes[]",
-          "name": "_txs",
-          "type": "bytes[]"
+          "internalType": "bytes",
+          "name": "txs",
+          "type": "bytes"
         },
         {
           "internalType": "bytes32",
@@ -444,9 +419,9 @@
           "type": "uint256"
         },
         {
-          "internalType": "bytes[]",
-          "name": "_txs",
-          "type": "bytes[]"
+          "internalType": "bytes",
+          "name": "txs",
+          "type": "bytes"
         },
         {
           "internalType": "bytes[]",
