@@ -85,23 +85,30 @@ func TestTxProcessing(t *testing.T) {
 	// }
 
 	// txCore := core.NewPendingTx(0, uint64(11), core.TX_CREATE_ACCOUNT, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
-	// txBytes, err := bazooka.EncodeBurnConsentTx(5, 1, 1, core.TX_BURN_CONSENT)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// txCore := core.NewPendingTx(2, uint64(5), core.TX_BURN_CONSENT, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
-	account, err := core.DBInstance.GetAccountByIndex(4)
+	account, err := core.DBInstance.GetAccountByIndex(2)
 	fmt.Println("account data", hex.EncodeToString(account.Data))
 	id, balance, nonce, token, burn, lastBurn, err := core.LoadedBazooka.DecodeAccount(account.Data)
 	if err != nil {
 		panic("error while decoding alice account")
 	}
 	fmt.Println("data", id, "balance", balance, "nonce", nonce, "token", token, burn, lastBurn)
-	txBytes, err := bazooka.EncodeBurnExecTx(4, core.TX_BURN_EXEC)
+	txBytes, err := bazooka.EncodeBurnConsentTx(2, 1, 1, core.TX_BURN_CONSENT)
 	if err != nil {
 		panic(err)
 	}
-	txCore := core.NewPendingTx(4, uint64(2), core.TX_BURN_EXEC, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+	txCore := core.NewPendingTx(2, uint64(2), core.TX_BURN_CONSENT, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+	// account, err := core.DBInstance.GetAccountByIndex(4)
+	// fmt.Println("account data", hex.EncodeToString(account.Data))
+	// id, balance, nonce, token, burn, lastBurn, err := core.LoadedBazooka.DecodeAccount(account.Data)
+	// if err != nil {
+	// 	panic("error while decoding alice account")
+	// }
+	// fmt.Println("data", id, "balance", balance, "nonce", nonce, "token", token, burn, lastBurn)
+	// txBytes, err := bazooka.EncodeBurnExecTx(4, core.TX_BURN_EXEC)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// txCore := core.NewPendingTx(4, uint64(2), core.TX_BURN_EXEC, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
 	txs = append(txs, txCore)
 	err = agg.ProcessTx(txs)
 	require.Equal(t, err, nil, "error processing tx")

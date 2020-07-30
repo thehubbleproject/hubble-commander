@@ -76,7 +76,7 @@ func (s *Simulator) OnStart() error {
 		startIndex := uint64(4)
 		s.DB.LogCycle(core.STAGE_TRANSFER, startIndex, startIndex+BATCH_SIZE)
 	}
-	go s.SimulationStart(ctx, 30*time.Second)
+	go s.SimulationStart(ctx, 10*time.Second)
 
 	s.toSwap = false
 	return nil
@@ -151,7 +151,7 @@ func (s *Simulator) simulateCreateAccounts(startIndex, endIndex int64) {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
 		}
-		txCore := core.NewPendingTx(0, uint64(startIndex+i), core.TX_CREATE_ACCOUNT, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		txCore := core.NewPendingTx(0, uint64(startIndex+i), core.TX_CREATE_ACCOUNT, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)
@@ -178,7 +178,7 @@ func (s *Simulator) simulateBurnConsent(startIndex, endIndex int64) {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
 		}
-		txCore := core.NewPendingTx(uint64(startIndex+i), 0, core.TX_BURN_CONSENT, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		txCore := core.NewPendingTx(uint64(startIndex+i), 0, core.TX_BURN_CONSENT, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)
@@ -205,7 +205,7 @@ func (s *Simulator) simulateTransfer(startIndex, endIndex int64) {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
 		}
-		txCore := core.NewPendingTx(uint64(startIndex+i), REDDIT_ACCOUNT, core.TX_TRANSFER_TYPE, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		txCore := core.NewPendingTx(uint64(startIndex+i), REDDIT_ACCOUNT, core.TX_TRANSFER_TYPE, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)
@@ -234,7 +234,7 @@ func (s *Simulator) simulateAirdrop(startIndex, endIndex int64) {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
 		}
-		txCore := core.NewPendingTx(REDDIT_ACCOUNT, uint64(startIndex+i), core.TX_AIRDROP_TYPE, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		txCore := core.NewPendingTx(REDDIT_ACCOUNT, uint64(startIndex+i), core.TX_AIRDROP_TYPE, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)
@@ -252,7 +252,7 @@ func (s *Simulator) simulateBurnExec(startIndex, endIndex int64) {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
 		}
-		txCore := core.NewPendingTx(uint64(startIndex+i), REDDIT_ACCOUNT, core.TX_BURN_EXEC, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		txCore := core.NewPendingTx(uint64(startIndex+i), REDDIT_ACCOUNT, core.TX_BURN_EXEC, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)

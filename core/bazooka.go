@@ -234,20 +234,20 @@ func (b *Bazooka) ApplyTx(accountMP AccountMerkleProof, tx Tx) (updatedAccount [
 	}
 }
 
-func (b *Bazooka) CompressTx(tx *Tx) ([]byte, error) {
-	switch txType := tx.Type; txType {
+func (b *Bazooka) CompressTxs(txs []Tx) ([]byte, error) {
+	switch txType := txs[0].Type; txType {
 	case TX_TRANSFER_TYPE:
-		return LoadedBazooka.CompressTransferTx(*tx)
+		return LoadedBazooka.compressTransferTxs(txs)
 	case TX_AIRDROP_TYPE:
-		return LoadedBazooka.CompressAirdropTx(*tx)
+		return LoadedBazooka.compressAirdropTxs(txs)
 	case TX_CREATE_ACCOUNT:
-		return LoadedBazooka.CompressCreateAccount(*tx)
+		return LoadedBazooka.compressCreateAccounts(txs)
 	case TX_BURN_CONSENT:
-		return LoadedBazooka.CompressBurnConsent(*tx)
+		return LoadedBazooka.compressBurnConsents(txs)
 	case TX_BURN_EXEC:
-		return LoadedBazooka.CompressBurnExecution(*tx)
+		return LoadedBazooka.compressBurnExecutions(txs)
 	default:
-		fmt.Println("TxType didnt match any options", tx.Type)
+		fmt.Println("TxType didnt match any options", txs[0].Type)
 		return []byte(""), errors.New("Did not match any options")
 	}
 }
@@ -279,7 +279,11 @@ func (b *Bazooka) processCreateAccountTx(balanceTreeRoot, accountTreeRoot ByteAr
 }
 
 func (b *Bazooka) processTransferTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof AccountMerkleProof, pdaProof PDAMerkleProof) (newBalanceRoot ByteArray, from, to []byte, err error) {
-	decodedSignature, _ := hex.DecodeString(tx.Signature)
+	decodedSignature, err := hex.DecodeString(tx.Signature)
+	if err != nil {
+		b.log.Error("err decoding signature", "error", err)
+		return
+	}
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	fromMP, err := fromMerkleProof.ToABIVersion()
 	if err != nil {
@@ -313,7 +317,11 @@ func (b *Bazooka) processTransferTx(balanceTreeRoot, accountTreeRoot ByteArray, 
 }
 
 func (b *Bazooka) processAirdropTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof AccountMerkleProof, pdaProof PDAMerkleProof) (newBalanceRoot ByteArray, from, to []byte, err error) {
-	decodedSignature, _ := hex.DecodeString(tx.Signature)
+	decodedSignature, err := hex.DecodeString(tx.Signature)
+	if err != nil {
+		b.log.Error("err decoding signature", "error", err)
+		return
+	}
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	fromMP, err := fromMerkleProof.ToABIVersion()
 	if err != nil {
@@ -370,7 +378,11 @@ func (b *Bazooka) processBurnExecTx(balanceTreeRoot, accountTreeRoot ByteArray, 
 }
 
 func (b *Bazooka) processBurnConsentTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof AccountMerkleProof, pdaProof PDAMerkleProof) (newBalanceRoot ByteArray, from, to []byte, err error) {
-	decodedSignature, _ := hex.DecodeString(tx.Signature)
+	decodedSignature, err := hex.DecodeString(tx.Signature)
+	if err != nil {
+		b.log.Error("err decoding signature", "error", err)
+		return
+	}
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	fromMP, err := fromMerkleProof.ToABIVersion()
 	if err != nil {
@@ -404,8 +416,6 @@ func (b *Bazooka) applyTransferTx(accountMP AccountMerkleProof, tx Tx) ([]byte, 
 	if err != nil {
 		return nil, ByteArray{}, err
 	}
-	from, to, token, nonce, txType, amount, err := b.DecodeAirdropTx(tx.Data)
-	fmt.Println("decoded tx", from, to, token, nonce, txType, amount)
 	updatedAccountBytes, updatedRoot, err := b.RollupCaller.ApplyTransferTx(&opts, accMP, tx.Data)
 	if err != nil {
 		return updatedAccountBytes, updatedRoot, err
@@ -466,48 +476,71 @@ func (b *Bazooka) applyBurnExecTx(accountMP AccountMerkleProof, tx Tx) ([]byte, 
 	if err != nil {
 		return nil, ByteArray{}, err
 	}
-	postApplyState, err := b.RollupCaller.ApplyBurnExecutionTx(&opts, accMP, tx.Data)
+	postApplyState, err := b.RollupCaller.ApplyBurnExecutionTx(&opts, accMP)
 	if err != nil {
 		return postApplyState.UpdatedAccount, postApplyState.NewRoot, err
 	}
 	return postApplyState.UpdatedAccount, postApplyState.NewRoot, nil
 }
 
-func (b *Bazooka) CompressTransferTx(tx Tx) ([]byte, error) {
+func (b *Bazooka) compressTransferTxs(txs []Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	sigBytes, err := hex.DecodeString(tx.Signature[2:])
-	if err != nil {
-		return nil, err
+	var data, sigs [][]byte
+	for _, tx := range txs {
+		sigBytes, err := hex.DecodeString(tx.Signature[2:])
+		if err != nil {
+			return nil, err
+		}
+		sigs = append(sigs, sigBytes)
+		data = append(data, tx.Data)
 	}
-	return b.RollupUtils.CompressTxWithMessage(&opts, tx.Data, sigBytes)
+	return b.RollupUtils.CompressManyTransferFromEncoded(&opts, data, sigs)
 }
 
-func (b *Bazooka) CompressAirdropTx(tx Tx) ([]byte, error) {
+func (b *Bazooka) compressAirdropTxs(txs []Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	sigBytes, err := hex.DecodeString(tx.Signature[2:])
-	if err != nil {
-		return nil, err
+	var data, sigs [][]byte
+	for _, tx := range txs {
+		sigBytes, err := hex.DecodeString(tx.Signature[2:])
+		if err != nil {
+			return nil, err
+		}
+		sigs = append(sigs, sigBytes)
+		data = append(data, tx.Data)
 	}
-	return b.RollupUtils.CompressAirdropTxWithMessage(&opts, tx.Data, sigBytes)
+	return b.RollupUtils.CompressManyAirdropFromEncoded(&opts, data, sigs)
 }
 
-func (b *Bazooka) CompressCreateAccount(tx Tx) ([]byte, error) {
+func (b *Bazooka) compressCreateAccounts(txs []Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.CompressCreateAccountWithMessage(&opts, tx.Data)
-}
-
-func (b *Bazooka) CompressBurnConsent(tx Tx) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	sigBytes, err := hex.DecodeString(tx.Signature[2:])
-	if err != nil {
-		return nil, err
+	var data [][]byte
+	for _, tx := range txs {
+		data = append(data, tx.Data)
 	}
-	return b.RollupUtils.CompressBurnConsentWithMessage(&opts, tx.Data, sigBytes)
+	return b.RollupUtils.CompressManyCreateAccountFromEncoded(&opts, data)
 }
 
-func (b *Bazooka) CompressBurnExecution(tx Tx) ([]byte, error) {
+func (b *Bazooka) compressBurnConsents(txs []Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.CompressBurnExecutionWithMessage(&opts, tx.Data)
+	var data, sigs [][]byte
+	for _, tx := range txs {
+		sigBytes, err := hex.DecodeString(tx.Signature[2:])
+		if err != nil {
+			return nil, err
+		}
+		sigs = append(sigs, sigBytes)
+		data = append(data, tx.Data)
+	}
+	return b.RollupUtils.CompressManyBurnConsentFromEncoded(&opts, data, sigs)
+}
+
+func (b *Bazooka) compressBurnExecutions(txs []Tx) ([]byte, error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	var data [][]byte
+	for _, tx := range txs {
+		data = append(data, tx.Data)
+	}
+	return b.RollupUtils.CompressManyBurnExecutionFromEncoded(&opts, data)
 }
 
 func (b *Bazooka) DecompressTransferTx(compressedTx []byte) (from, to, amount *big.Int, sig []byte, err error) {
@@ -765,13 +798,10 @@ func (b *Bazooka) SubmitBatch(updatedRoot ByteArray, txs []Tx) error {
 		b.log.Info("No transactions to submit, waiting....")
 		return nil
 	}
-	var compressedTxs [][]byte
-	for _, tx := range txs {
-		compressedTx, err := b.CompressTx(&tx)
-		if err != nil {
-			return err
-		}
-		compressedTxs = append(compressedTxs, compressedTx)
+	compressedTxs, err := b.CompressTxs(txs)
+	if err != nil {
+		b.log.Error("Unable to compress txs", "error", err)
+		return err
 	}
 
 	data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitBatch", compressedTxs, updatedRoot, uint8(txs[0].Type))
