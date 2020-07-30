@@ -31,6 +31,12 @@ func init() {
 			if !db.HasTable(&types.UserAccount{}) {
 				db.CreateTable(&types.UserAccount{})
 			}
+			if !db.HasTable(&types.BroadcastDetails{}) {
+				db.CreateTable(&types.BroadcastDetails{})
+			}
+			if !db.HasTable(&types.Cycle{}) {
+				db.CreateTable(&types.Cycle{})
+			}
 			return nil
 		},
 		Down: func(db *gorm.DB) error {
@@ -41,6 +47,8 @@ func init() {
 			db.DropTableIfExists(&types.Token{})
 			db.DropTableIfExists(&types.PDA{})
 			db.DropTableIfExists(&types.UserAccount{})
+			db.DropTableIfExists(&types.BroadcastDetails{})
+			db.DropTableIfExists(&types.Cycle{})
 			return nil
 		},
 	}

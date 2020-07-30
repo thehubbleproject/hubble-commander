@@ -2,6 +2,7 @@ package simulator
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/BOPR/common"
@@ -10,6 +11,12 @@ import (
 
 const (
 	SimulatorService = "simulator"
+	BATCH_SIZE       = 32
+	AIRDROP_AMOUNT   = 10
+	TRANSFER_AMOUNT  = 1
+	TOKEN            = 1
+	BURN_AMOUNT      = 1
+	REDDIT_ACCOUNT   = 2
 )
 
 type Simulator struct {
@@ -53,6 +60,22 @@ func (s *Simulator) OnStart() error {
 	ctx, cancelSimulator := context.WithCancel(context.Background())
 	s.cancelSimulator = cancelSimulator
 
+	totalCycles, err := s.DB.CycleCount()
+	if err != nil {
+		panic(err)
+	}
+	if totalCycles == 0 {
+		// firstEmptyAccount, err := s.DB.GetFirstEmptyAccount()
+		// if err != nil {
+		// 	panic(err)
+		// }
+		// startIndex, err := core.StringToUint(firstEmptyAccount.Path)
+		// if err != nil {
+		// 	panic(err)
+		// }
+		startIndex := uint64(4)
+		s.DB.LogCycle(core.STAGE_TRANSFER, startIndex, startIndex+BATCH_SIZE)
+	}
 	go s.SimulationStart(ctx, 10*time.Second)
 
 	s.toSwap = false
@@ -74,7 +97,7 @@ func (s *Simulator) SimulationStart(ctx context.Context, interval time.Duration)
 	for {
 		select {
 		case <-ticker.C:
-			s.sendTxsToAndFro()
+			s.startCycle()
 			// pick batch from DB
 		case <-ctx.Done():
 			ticker.Stop()
@@ -84,45 +107,157 @@ func (s *Simulator) SimulationStart(ctx context.Context, interval time.Duration)
 }
 
 // tries sending transactins to and fro accounts to the rollup node
-func (s *Simulator) sendTxsToAndFro() {
-	transferAmount := 1
-	FromID := uint64(2)
-	ToID := uint64(3)
-
-	if s.toSwap {
-		tempID := FromID
-		FromID = ToID
-		ToID = tempID
-		s.toSwap = !s.toSwap
+func (s *Simulator) startCycle() {
+	lastCycle, err := s.DB.GetLastCycle()
+	if err != nil {
+		s.Logger.Error("Error getting last cycle info", "error", err)
+		return
 	}
+	fmt.Println("Last cycle info:", lastCycle)
+	switch lastCycle.Stage {
+	case core.STAGE_TRANSFER:
+		fmt.Println("Starting create account cycle")
+		// do something
+		s.simulateCreateAccounts(int64(lastCycle.StartIndex), int64(lastCycle.EndIndex))
+		s.DB.LogCycle(core.STAGE_ACCOUNT_CREATE, lastCycle.StartIndex, lastCycle.EndIndex)
+	case core.STAGE_ACCOUNT_CREATE:
+		fmt.Println("Starting burn consent cycle")
+		// do something
+		s.simulateBurnConsent(int64(lastCycle.StartIndex), int64(lastCycle.EndIndex))
+		s.DB.LogCycle(core.STAGE_BURN_CONSENT, lastCycle.StartIndex, lastCycle.EndIndex)
+	case core.STAGE_BURN_CONSENT:
+		fmt.Println("Starting airdrop cycle")
+		// do something
+		s.simulateAirdrop(int64(lastCycle.StartIndex), int64(lastCycle.EndIndex))
+		s.DB.LogCycle(core.STAGE_AIRDROP, lastCycle.StartIndex, lastCycle.EndIndex)
+	case core.STAGE_AIRDROP:
+		fmt.Println("Starting burn exec cycle")
+		// do something
+		s.simulateBurnExec(int64(lastCycle.StartIndex), int64(lastCycle.EndIndex))
+		s.DB.LogCycle(core.STAGE_BURN_EXEC, lastCycle.StartIndex, lastCycle.EndIndex)
+	case core.STAGE_BURN_EXEC:
+		fmt.Println("Starting transfer cycle")
+		// s.simulateTransfer(int64(lastCycle.StartIndex), int64(lastCycle.EndIndex))
+		// Mark cycle complete, update the indexes
+		s.Logger.Info("Simulation cycle ending", "startIndex", lastCycle.StartIndex, "end", lastCycle.EndIndex)
+		s.DB.LogCycle(core.STAGE_TRANSFER, lastCycle.EndIndex+1, lastCycle.EndIndex+BATCH_SIZE)
+	}
+}
 
-	for i := 0; i < 3; i++ {
-		latestFromAcc, err := s.DB.GetAccountByID(FromID)
-		if err != nil {
-			s.Logger.Error("unable to fetch latest account", "error", err)
-			return
-		}
-		_, _, nonce, token, _, _, err := s.LoadedBazooka.DecodeAccount(latestFromAcc.Data)
-		if err != nil {
-			s.Logger.Error("unable to decode account", "error", err)
-			return
-		}
-		txBytes, err := s.LoadedBazooka.EncodeTransferTx(int64(FromID), int64(ToID), int64(token.Uint64()), int64(nonce.Uint64())+1, int64(transferAmount), 1)
+func (s *Simulator) simulateCreateAccounts(startIndex, endIndex int64) {
+	for i := int64(0); i < BATCH_SIZE; i++ {
+		txBytes, err := s.LoadedBazooka.EncodeCreateAccountTx(startIndex+i, startIndex+i, TOKEN)
 		if err != nil {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
 		}
-		txCore := core.NewPendingTx(FromID, ToID, core.TX_TRANSFER_TYPE, "0x1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
-
+		txCore := core.NewPendingTx(0, uint64(startIndex+i), core.TX_CREATE_ACCOUNT, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)
 			return
 		}
 		s.Logger.Info("Sent a tx!", "TxHash", txCore.TxHash, "From", txCore.From, "To", txCore.To)
+	}
+}
 
-		if txCore.From == uint64(2) {
-			s.toSwap = true
+func (s *Simulator) simulateBurnConsent(startIndex, endIndex int64) {
+	for i := int64(0); i < BATCH_SIZE; i++ {
+		latestFromAcc, err := s.DB.GetAccountByIndex(uint64(startIndex + i))
+		if err != nil {
+			s.Logger.Error("unable to fetch latest account", "error", err)
+			return
 		}
+		_, _, nonce, _, _, _, err := s.LoadedBazooka.DecodeAccount(latestFromAcc.Data)
+		if err != nil {
+			s.Logger.Error("unable to decode account", "error", err)
+			return
+		}
+		txBytes, err := s.LoadedBazooka.EncodeBurnConsentTx(startIndex+i, BURN_AMOUNT, nonce.Int64()+1, core.TX_BURN_CONSENT)
+		if err != nil {
+			s.Logger.Error("unable to encode tx", "error", err)
+			return
+		}
+		txCore := core.NewPendingTx(uint64(startIndex+i), 0, core.TX_BURN_CONSENT, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		err = s.DB.InsertTx(&txCore)
+		if err != nil {
+			s.Logger.Error("unable to insert tx", "error", err)
+			return
+		}
+		s.Logger.Info("Sent a tx!", "TxHash", txCore.TxHash, "From", txCore.From, "To", txCore.To)
+	}
+}
+
+func (s *Simulator) simulateTransfer(startIndex, endIndex int64) {
+	for i := int64(0); i < BATCH_SIZE; i++ {
+		latestFromAcc, err := s.DB.GetAccountByIndex(uint64(startIndex + i))
+		if err != nil {
+			s.Logger.Error("unable to fetch latest account", "error", err)
+			return
+		}
+		_, _, nonce, _, _, _, err := s.LoadedBazooka.DecodeAccount(latestFromAcc.Data)
+		if err != nil {
+			s.Logger.Error("unable to decode account", "error", err)
+			return
+		}
+		txBytes, err := s.LoadedBazooka.EncodeTransferTx(startIndex+i, REDDIT_ACCOUNT, TOKEN, nonce.Int64()+1, TRANSFER_AMOUNT, core.TX_TRANSFER_TYPE)
+		if err != nil {
+			s.Logger.Error("unable to encode tx", "error", err)
+			return
+		}
+		txCore := core.NewPendingTx(uint64(startIndex+i), REDDIT_ACCOUNT, core.TX_TRANSFER_TYPE, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		err = s.DB.InsertTx(&txCore)
+		if err != nil {
+			s.Logger.Error("unable to insert tx", "error", err)
+			return
+		}
+		s.Logger.Info("Sent a tx!", "TxHash", txCore.TxHash, "From", txCore.From, "To", txCore.To)
+	}
+}
+
+func (s *Simulator) simulateAirdrop(startIndex, endIndex int64) {
+	var redditNonce int64
+	latestFromAcc, err := s.DB.GetAccountByIndex(REDDIT_ACCOUNT)
+	if err != nil {
+		s.Logger.Error("unable to fetch latest account", "error", err)
+		return
+	}
+	_, _, nonce, _, _, _, err := s.LoadedBazooka.DecodeAccount(latestFromAcc.Data)
+	if err != nil {
+		s.Logger.Error("unable to decode account", "error", err)
+		return
+	}
+	redditNonce = nonce.Int64() + 1
+	for i := int64(0); i < BATCH_SIZE; i++ {
+		txBytes, err := s.LoadedBazooka.EncodeAirdropTx(REDDIT_ACCOUNT, startIndex+i, TOKEN, redditNonce, TRANSFER_AMOUNT, core.TX_AIRDROP_TYPE)
+		if err != nil {
+			s.Logger.Error("unable to encode tx", "error", err)
+			return
+		}
+		txCore := core.NewPendingTx(REDDIT_ACCOUNT, uint64(startIndex+i), core.TX_AIRDROP_TYPE, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		err = s.DB.InsertTx(&txCore)
+		if err != nil {
+			s.Logger.Error("unable to insert tx", "error", err)
+			return
+		}
+		s.Logger.Info("Sent a tx!", "TxHash", txCore.TxHash, "From", txCore.From, "To", txCore.To)
+		redditNonce++
+	}
+}
+
+func (s *Simulator) simulateBurnExec(startIndex, endIndex int64) {
+	for i := int64(0); i < BATCH_SIZE; i++ {
+		txBytes, err := s.LoadedBazooka.EncodeBurnExecTx(startIndex+i, core.TX_BURN_EXEC)
+		if err != nil {
+			s.Logger.Error("unable to encode tx", "error", err)
+			return
+		}
+		txCore := core.NewPendingTx(uint64(startIndex+i), REDDIT_ACCOUNT, core.TX_BURN_EXEC, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		err = s.DB.InsertTx(&txCore)
+		if err != nil {
+			s.Logger.Error("unable to insert tx", "error", err)
+			return
+		}
+		s.Logger.Info("Sent a tx!", "TxHash", txCore.TxHash, "From", txCore.From, "To", txCore.To)
 	}
 }

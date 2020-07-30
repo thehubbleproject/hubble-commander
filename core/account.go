@@ -7,7 +7,7 @@ import (
 	"math/big"
 
 	"github.com/BOPR/common"
-	"github.com/BOPR/contracts/rollup"
+	"github.com/BOPR/contracts/rollupcaller"
 	"github.com/jinzhu/gorm"
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
 )
@@ -99,7 +99,7 @@ func (acc *UserAccount) String() string {
 	return fmt.Sprintf("ID: %d Bal: %d Nonce: %d Token: %v Path: %v TokenType:%v NodeType: %v Burn: %v LastBurn: %v", acc.AccountID, balance, nonce, token, acc.Path, acc.Type, acc.Hash, burn, lastBurn)
 }
 
-func (acc *UserAccount) ToABIAccount() (rollupAcc rollup.TypesUserAccount, err error) {
+func (acc *UserAccount) ToABIAccount() (rollupAcc rollupcaller.TypesUserAccount, err error) {
 	var ID, balance, nonce, token, burn, lastBurn *big.Int = big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0)
 	if acc.Type == TYPE_TERMINAL {
 		ID, balance, nonce, token, burn, lastBurn, err = LoadedBazooka.DecodeAccount(acc.Data)
@@ -141,12 +141,12 @@ func (acc *UserAccount) IsCoordinator() bool {
 	return true
 }
 
-func (acc *UserAccount) AccountInclusionProof(path int64) (accInclusionProof rollup.TypesAccountInclusionProof, err error) {
+func (acc *UserAccount) AccountInclusionProof(path int64) (accInclusionProof rollupcaller.TypesAccountInclusionProof, err error) {
 	accABI, err := acc.ToABIAccount()
 	if err != nil {
 		return
 	}
-	accInclusionProof = rollup.TypesAccountInclusionProof{
+	accInclusionProof = rollupcaller.TypesAccountInclusionProof{
 		PathToAccount: big.NewInt(path),
 		Account:       accABI,
 	}
@@ -202,8 +202,8 @@ func (db *DB) InitBalancesTree(depth uint64, genesisAccounts []UserAccount) erro
 		prevNodePath = genesisAccounts[i].Path
 	}
 
-	db.Logger.Info("Inserting all accounts to DB", "count", len(insertRecords))
-	err = gormbulk.BulkInsert(db.Instance, insertRecords, len(insertRecords))
+	db.Logger.Info("Creating user accounts, might take a minute or two, sit back.....", "count", len(insertRecords))
+	err = gormbulk.BulkInsert(db.Instance, insertRecords, CHUNK_SIZE)
 	if err != nil {
 		db.Logger.Error("Unable to insert accounts to DB", "err", err)
 		return errors.New("Unable to insert accounts")
@@ -240,8 +240,7 @@ func (db *DB) InitBalancesTree(depth uint64, genesisAccounts []UserAccount) erro
 			newAccNode := *NewAccountNode(parentPath, parentHash.String())
 			nextLevelAccounts = append(nextLevelAccounts, newAccNode)
 		}
-
-		err = gormbulk.BulkInsert(db.Instance, nextLevelAccounts, len(nextLevelAccounts))
+		err = gormbulk.BulkInsert(db.Instance, nextLevelAccounts, CHUNK_SIZE)
 		if err != nil {
 			db.Logger.Error("Unable to insert accounts to DB", "err", err)
 			return errors.New("Unable to insert accounts")
@@ -262,19 +261,20 @@ func (db *DB) GetAccountsAtDepth(depth uint64) ([]UserAccount, error) {
 }
 
 func (db *DB) UpdateAccount(account UserAccount) error {
-	db.Logger.Info("Updated account pubkey", "ID", account.AccountID)
+	db.Logger.Info("Updated account", "PATH", account.Path)
 	account.CreateAccountHash()
 	siblings, err := db.GetSiblings(account.Path)
 	if err != nil {
 		return err
 	}
 
-	db.Logger.Debug("Updating account", "Hash", account.Hash, "Path", account.Path, "siblings", siblings, "countOfSiblings", len(siblings))
+	db.Logger.Debug("Updating account", "Hash", account.Hash, "Path", account.Path, "countOfSiblings", len(siblings))
 	return db.StoreLeaf(account, account.Path, siblings)
 }
 
 func (db *DB) StoreLeaf(account UserAccount, path string, siblings []UserAccount) error {
 	var err error
+	var isLeft bool
 	computedNode := account
 	for i := 0; i < len(siblings); i++ {
 		var parentHash ByteArray
@@ -288,8 +288,9 @@ func (db *DB) StoreLeaf(account UserAccount, path string, siblings []UserAccount
 			if err != nil {
 				return err
 			}
+			isLeft = true
 			// Store the node!
-			err = db.StoreNode(parentHash, computedNode, sibling)
+			err = db.StoreNode(parentHash, computedNode, sibling, isLeft)
 			if err != nil {
 				return err
 			}
@@ -298,40 +299,41 @@ func (db *DB) StoreLeaf(account UserAccount, path string, siblings []UserAccount
 			if err != nil {
 				return err
 			}
+			isLeft = false
 			// Store the node!
-			err = db.StoreNode(parentHash, sibling, computedNode)
+			err = db.StoreNode(parentHash, sibling, computedNode, isLeft)
 			if err != nil {
 				return err
 			}
 		}
-
 		parentAccount, err := db.GetAccountByPath(GetParentPath(computedNode.Path))
 		if err != nil {
 			return err
 		}
 		computedNode = parentAccount
 	}
-
 	// Store the new root
 	err = db.UpdateRootNodeHashes(computedNode.HashToByteArray())
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
 // StoreNode updates the nodes given the parent hash
-func (db *DB) StoreNode(parentHash ByteArray, leftNode UserAccount, rightNode UserAccount) (err error) {
-	// update left account
-	err = db.updateAccount(leftNode, leftNode.Path)
-	if err != nil {
-		return err
-	}
-	// update right account
-	err = db.updateAccount(rightNode, rightNode.Path)
-	if err != nil {
-		return err
+func (db *DB) StoreNode(parentHash ByteArray, leftNode UserAccount, rightNode UserAccount, isLeft bool) (err error) {
+	if isLeft {
+		// update left account
+		err = db.updateAccount(leftNode, leftNode.Path)
+		if err != nil {
+			return err
+		}
+	} else {
+		// update right account
+		err = db.updateAccount(rightNode, rightNode.Path)
+		if err != nil {
+			return err
+		}
 	}
 	// update the parent with the new hashes
 	return db.UpdateParentWithHash(GetParentPath(leftNode.Path), parentHash)
@@ -381,18 +383,22 @@ func (db *DB) GetAccountByPath(path string) (UserAccount, error) {
 	return account, nil
 }
 
+func (db *DB) GetAccountByIndex(index uint64) (acc UserAccount, err error) {
+	params, err := db.GetParams()
+	if err != nil {
+		return
+	}
+	path, err := SolidityPathToNodePath(index, params.MaxDepth)
+	if err != nil {
+		return
+	}
+	return db.GetAccountByPath(path)
+}
+
 func (db *DB) GetAccountByHash(hash string) (UserAccount, error) {
 	var account UserAccount
 	if db.Instance.First(&account, hash).RecordNotFound() {
 		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record for hash: %v", hash))
-	}
-	return account, nil
-}
-
-func (db *DB) GetAccountByID(ID uint64) (UserAccount, error) {
-	var account UserAccount
-	if err := db.Instance.Where("account_id = ? AND status = ?", ID, STATUS_ACTIVE).Find(&account).Error; err != nil {
-		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record for ID: %v", ID))
 	}
 	return account, nil
 }
@@ -424,13 +430,23 @@ func (db *DB) InsertCoordinatorAccounts(acc *UserAccount, depth uint64) error {
 
 // updateAccount will simply replace all the changed fields
 func (db *DB) updateAccount(newAcc UserAccount, path string) error {
-	return db.Instance.Model(&newAcc).Where("path = ?", path).Update(newAcc).Error
+	return db.Instance.Model(&newAcc).Where("path = ?", path).Updates(UserAccount{Data: newAcc.Data, Hash: newAcc.Hash}).Error
 }
 
 func (db *DB) GetAccountCount() (int, error) {
 	var count int
 	db.Instance.Table("user_accounts").Count(&count)
 	return count, nil
+}
+
+// GetFirstEmptyAccount fetches the first empty account
+func (db *DB) GetFirstEmptyAccount() (acc UserAccount, err error) {
+	params, err := db.GetParams()
+	if err != nil {
+		return acc, err
+	}
+	expectedHash := defaultHashes[params.MaxDepositSubTreeHeight]
+	return db.GetAccountByHash(expectedHash.String())
 }
 
 func (db *DB) DeletePendingAccount(ID uint64) error {
@@ -458,7 +474,6 @@ func (db *DB) AttachDepositInfo(root ByteArray) error {
 func (db *DB) GetPendingAccByDepositRoot(root ByteArray) ([]UserAccount, error) {
 	// find all accounts with CreatedByDepositSubTree as `root`
 	var pendingAccounts []UserAccount
-
 	if err := db.Instance.Where("created_by_deposit_sub_tree = ? AND status = ?", root.String(), STATUS_PENDING).Find(&pendingAccounts).Error; err != nil {
 		return pendingAccounts, err
 	}

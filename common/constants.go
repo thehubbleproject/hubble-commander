@@ -25,7 +25,7 @@ const (
 	TOKEN_REGISTRY_KEY       = "tkk"
 	LOGGER_KEY               = "logger"
 	ROLLUP_UTILS             = "rollup-utils"
-	FRAUD_PROOF              = "fraud"
+	ROLLUP_CALLER            = "rollup_caller"
 	DEPOSIT_MANAGER          = "depositmanager"
 	COORDINATOR_PROXY        = "coordinator"
 )
