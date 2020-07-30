@@ -208,5 +208,5 @@ func LoadGenesisData(genesis config.Genesis) {
 	if err != nil {
 		return
 	}
-	core.DBInstance.LogBatch("INIT", nonce-1, core.TX_GENESIS)
+	core.DBInstance.LogBatch(nonce-1, core.TX_GENESIS, "", []byte(""))
 }
