@@ -2,7 +2,10 @@ package simulator
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/BOPR/common"
@@ -33,6 +36,8 @@ type Simulator struct {
 	cancelSimulator context.CancelFunc
 
 	toSwap bool
+
+	accounts map[uint64]string
 }
 
 // NewSimulator returns new simulator object
@@ -48,36 +53,61 @@ func NewSimulator() *Simulator {
 	if err != nil {
 		panic(err)
 	}
+	sim.accounts = make(map[uint64]string)
 
 	sim.DB = db
 	return sim
 }
 
+type UserList struct {
+	Users []User `json:"users"`
+}
+
+type User struct {
+	Address   string `json:"address"`
+	PublicKey string `json:"pubkey"`
+	PrivKey   string `json:"privkey"`
+}
+
+func (s *Simulator) ReadUsers() error {
+	var userListInstance UserList
+	users, err := os.Open("users.json")
+	if err != nil {
+		return err
+	}
+	defer users.Close()
+
+	genBytes, err := ioutil.ReadAll(users)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(genBytes, &userListInstance)
+	for i, user := range userListInstance.Users {
+		s.accounts[uint64(i+4)] = user.PrivKey
+	}
+	return err
+}
+
 // OnStart starts new block subscription
 func (s *Simulator) OnStart() error {
 	s.BaseService.OnStart() // Always call the overridden method.
-
 	ctx, cancelSimulator := context.WithCancel(context.Background())
 	s.cancelSimulator = cancelSimulator
-
 	totalCycles, err := s.DB.CycleCount()
 	if err != nil {
 		panic(err)
 	}
 	if totalCycles == 0 {
-		// firstEmptyAccount, err := s.DB.GetFirstEmptyAccount()
-		// if err != nil {
-		// 	panic(err)
-		// }
-		// startIndex, err := core.StringToUint(firstEmptyAccount.Path)
-		// if err != nil {
-		// 	panic(err)
-		// }
 		startIndex := uint64(4)
 		s.DB.LogCycle(core.STAGE_TRANSFER, startIndex, startIndex+BATCH_SIZE)
 	}
-	go s.SimulationStart(ctx, 10*time.Second)
+	err = s.ReadUsers()
+	if err != nil {
+		panic(err)
+	}
 
+	go s.SimulationStart(ctx, 10*time.Second)
 	s.toSwap = false
 	return nil
 }
@@ -137,7 +167,7 @@ func (s *Simulator) startCycle() {
 		s.DB.LogCycle(core.STAGE_BURN_EXEC, lastCycle.StartIndex, lastCycle.EndIndex)
 	case core.STAGE_BURN_EXEC:
 		fmt.Println("Starting transfer cycle")
-		// s.simulateTransfer(int64(lastCycle.StartIndex), int64(lastCycle.EndIndex))
+		s.simulateTransfer(int64(lastCycle.StartIndex), int64(lastCycle.EndIndex))
 		// Mark cycle complete, update the indexes
 		s.Logger.Info("Simulation cycle ending", "startIndex", lastCycle.StartIndex, "end", lastCycle.EndIndex)
 		s.DB.LogCycle(core.STAGE_TRANSFER, lastCycle.EndIndex+1, lastCycle.EndIndex+BATCH_SIZE)
@@ -152,6 +182,7 @@ func (s *Simulator) simulateCreateAccounts(startIndex, endIndex int64) {
 			return
 		}
 		txCore := core.NewPendingTx(0, uint64(startIndex+i), core.TX_CREATE_ACCOUNT, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)
@@ -179,6 +210,17 @@ func (s *Simulator) simulateBurnConsent(startIndex, endIndex int64) {
 			return
 		}
 		txCore := core.NewPendingTx(uint64(startIndex+i), 0, core.TX_BURN_CONSENT, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		// signBytes, err := s.LoadedBazooka.SignBytes(txCore)
+		// if err != nil {
+		// 	s.Logger.Error("unable to encode tx", "error", err)
+		// 	return
+		// }
+		// // sign it
+		// err = txCore.SignTx(s.accounts[uint64(startIndex+i)], signBytes)
+		// if err != nil {
+		// 	s.Logger.Error("unable to sign tx", "error", err)
+		// 	return
+		// }
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)
@@ -206,6 +248,17 @@ func (s *Simulator) simulateTransfer(startIndex, endIndex int64) {
 			return
 		}
 		txCore := core.NewPendingTx(uint64(startIndex+i), REDDIT_ACCOUNT, core.TX_TRANSFER_TYPE, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		// signBytes, err := s.LoadedBazooka.SignBytes(txCore)
+		// if err != nil {
+		// 	s.Logger.Error("unable to encode tx", "error", err)
+		// 	return
+		// }
+		// // sign it
+		// err = txCore.SignTx(s.accounts[uint64(startIndex+i)], signBytes)
+		// if err != nil {
+		// 	s.Logger.Error("unable to sign tx", "error", err)
+		// 	return
+		// }
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)
@@ -235,6 +288,17 @@ func (s *Simulator) simulateAirdrop(startIndex, endIndex int64) {
 			return
 		}
 		txCore := core.NewPendingTx(REDDIT_ACCOUNT, uint64(startIndex+i), core.TX_AIRDROP_TYPE, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		// signBytes, err := s.LoadedBazooka.SignBytes(txCore)
+		// if err != nil {
+		// 	s.Logger.Error("unable to encode tx", "error", err)
+		// 	return
+		// }
+		// // sign it
+		// err = txCore.SignTx(s.accounts[uint64(REDDIT_ACCOUNT)], signBytes)
+		// if err != nil {
+		// 	s.Logger.Error("unable to sign tx", "error", err)
+		// 	return
+		// }
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)
