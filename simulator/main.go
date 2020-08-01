@@ -20,6 +20,7 @@ const (
 	TOKEN            = 1
 	BURN_AMOUNT      = 1
 	REDDIT_ACCOUNT   = 2
+	REDDIT_KEY       = "5f9b54d6b94235bc56b537b96bf19746ab2ff29007a353847108b494e124fda9"
 )
 
 type Simulator struct {
@@ -167,7 +168,7 @@ func (s *Simulator) startCycle() {
 		s.DB.LogCycle(core.STAGE_BURN_EXEC, lastCycle.StartIndex, lastCycle.EndIndex)
 	case core.STAGE_BURN_EXEC:
 		fmt.Println("Starting transfer cycle")
-		s.simulateTransfer(int64(lastCycle.StartIndex), int64(lastCycle.EndIndex))
+		// s.simulateTransfer(int64(lastCycle.StartIndex), int64(lastCycle.EndIndex))
 		// Mark cycle complete, update the indexes
 		s.Logger.Info("Simulation cycle ending", "startIndex", lastCycle.StartIndex, "end", lastCycle.EndIndex)
 		s.DB.LogCycle(core.STAGE_TRANSFER, lastCycle.EndIndex+1, lastCycle.EndIndex+BATCH_SIZE)
@@ -210,17 +211,17 @@ func (s *Simulator) simulateBurnConsent(startIndex, endIndex int64) {
 			return
 		}
 		txCore := core.NewPendingTx(uint64(startIndex+i), 0, core.TX_BURN_CONSENT, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
-		// signBytes, err := s.LoadedBazooka.SignBytes(txCore)
-		// if err != nil {
-		// 	s.Logger.Error("unable to encode tx", "error", err)
-		// 	return
-		// }
-		// // sign it
-		// err = txCore.SignTx(s.accounts[uint64(startIndex+i)], signBytes)
-		// if err != nil {
-		// 	s.Logger.Error("unable to sign tx", "error", err)
-		// 	return
-		// }
+		signBytes, err := s.LoadedBazooka.SignBytesForBurnConsent(int64(txCore.Type), int64(txCore.From), nonce.Int64()+1, BURN_AMOUNT)
+		if err != nil {
+			s.Logger.Error("unable to encode tx", "error", err)
+			return
+		}
+		// sign it
+		err = txCore.SignTx(s.accounts[uint64(startIndex+i)], signBytes)
+		if err != nil {
+			s.Logger.Error("unable to sign tx", "error", err)
+			return
+		}
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)
@@ -248,17 +249,17 @@ func (s *Simulator) simulateTransfer(startIndex, endIndex int64) {
 			return
 		}
 		txCore := core.NewPendingTx(uint64(startIndex+i), REDDIT_ACCOUNT, core.TX_TRANSFER_TYPE, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
-		// signBytes, err := s.LoadedBazooka.SignBytes(txCore)
-		// if err != nil {
-		// 	s.Logger.Error("unable to encode tx", "error", err)
-		// 	return
-		// }
-		// // sign it
-		// err = txCore.SignTx(s.accounts[uint64(startIndex+i)], signBytes)
-		// if err != nil {
-		// 	s.Logger.Error("unable to sign tx", "error", err)
-		// 	return
-		// }
+		signBytes, err := s.LoadedBazooka.SignBytesForTransfer(int64(txCore.Type), int64(txCore.From), int64(txCore.To), nonce.Int64()+1, TRANSFER_AMOUNT)
+		if err != nil {
+			s.Logger.Error("unable to encode tx", "error", err)
+			return
+		}
+		// sign it
+		err = txCore.SignTx(s.accounts[uint64(startIndex+i)], signBytes)
+		if err != nil {
+			s.Logger.Error("unable to sign tx", "error", err)
+			return
+		}
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)
@@ -288,17 +289,18 @@ func (s *Simulator) simulateAirdrop(startIndex, endIndex int64) {
 			return
 		}
 		txCore := core.NewPendingTx(REDDIT_ACCOUNT, uint64(startIndex+i), core.TX_AIRDROP_TYPE, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
-		// signBytes, err := s.LoadedBazooka.SignBytes(txCore)
-		// if err != nil {
-		// 	s.Logger.Error("unable to encode tx", "error", err)
-		// 	return
-		// }
-		// // sign it
-		// err = txCore.SignTx(s.accounts[uint64(REDDIT_ACCOUNT)], signBytes)
-		// if err != nil {
-		// 	s.Logger.Error("unable to sign tx", "error", err)
-		// 	return
-		// }
+		signBytes, err := s.LoadedBazooka.SignBytesForAirdrop(int64(txCore.Type), int64(txCore.From), int64(txCore.To), redditNonce, TRANSFER_AMOUNT)
+		if err != nil {
+			s.Logger.Error("unable to encode tx", "error", err)
+			return
+		}
+		// sign it
+		err = txCore.SignTx(REDDIT_KEY, signBytes)
+		if err != nil {
+			s.Logger.Error("unable to sign tx", "error", err)
+			return
+		}
+		fmt.Println("signature details", txCore.Signature, redditNonce)
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)

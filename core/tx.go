@@ -57,14 +57,14 @@ func (tx Tx) GetSignBytes() (signBytes []byte) {
 }
 
 // SignTx returns the transaction data that has to be signed
-func (tx Tx) SignTx(key string, txBytes []byte) (err error) {
+func (tx *Tx) SignTx(key string, txBytes [32]byte) (err error) {
 	privKeyBytes, err := hex.DecodeString(key)
 	if err != nil {
 		fmt.Println("unable to decode string", err)
 		return
 	}
 	privKey := crypto.ToECDSAUnsafe(privKeyBytes)
-	signBytes, err := crypto.Sign(txBytes, privKey)
+	signBytes, err := crypto.Sign(txBytes[:], privKey)
 	if err != nil {
 		return
 	}
@@ -367,11 +367,13 @@ func (db *DB) FetchPDAProofWithID(id uint64, pdaProof *PDAMerkleProof) (err erro
 }
 
 func (db *DB) FetchMPWithID(id uint64, accountMP *AccountMerkleProof) (err error) {
+	fmt.Println("fetching MP data", id)
 	leaf, err := DBInstance.GetAccountByIndex(id)
 	if err != nil {
 		fmt.Println("error while getting leaf", err)
 		return
 	}
+	fmt.Println("leaf", leaf)
 	siblings, err := DBInstance.GetSiblings(leaf.Path)
 	if err != nil {
 		fmt.Println("error while getting siblings", err)
@@ -379,6 +381,7 @@ func (db *DB) FetchMPWithID(id uint64, accountMP *AccountMerkleProof) (err error
 	}
 	accMP := NewAccountMerkleProof(leaf, siblings)
 	*accountMP = accMP
+	fmt.Println("acccount mp", accountMP.Account.AccountID)
 	VerifierWaitGroup.Done()
 	return nil
 }

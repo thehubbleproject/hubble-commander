@@ -163,6 +163,7 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) error {
 			return err
 		}
 		if (txs[0]).Type == core.TX_AIRDROP_TYPE {
+			core.VerifierWaitGroup.Wait()
 			PDAproof = redditPDAProof
 		}
 		updatedRoot, _, updatedTo, err := a.LoadedBazooka.ProcessTx(currentRoot, currentAccountTreeRoot, tx, fromAccProof, toAccProof, PDAproof)

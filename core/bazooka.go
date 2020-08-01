@@ -274,20 +274,6 @@ func (b *Bazooka) CompressTxs(txs []Tx) ([]byte, error) {
 	}
 }
 
-func (b *Bazooka) SignBytes(tx Tx) ([]byte, error) {
-	switch txType := tx.Type; txType {
-	case TX_TRANSFER_TYPE:
-		return LoadedBazooka.signBytesForTransfer(tx)
-	case TX_AIRDROP_TYPE:
-		return LoadedBazooka.signBytesForAirdrop(tx)
-	case TX_BURN_CONSENT:
-		return LoadedBazooka.signBytesForBurnConsent(tx)
-	default:
-		fmt.Println("TxType didnt match any options", tx.Type)
-		return []byte(""), errors.New("Did not match any options")
-	}
-}
-
 func (b *Bazooka) processCreateAccountTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof AccountMerkleProof, pdaProof PDAMerkleProof) (newBalanceRoot ByteArray, from, to []byte, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	toMP, err := toMerkleProof.ToABIVersion()
@@ -523,7 +509,7 @@ func (b *Bazooka) compressTransferTxs(txs []Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	var data, sigs [][]byte
 	for _, tx := range txs {
-		sigBytes, err := hex.DecodeString(tx.Signature[2:])
+		sigBytes, err := hex.DecodeString(tx.Signature)
 		if err != nil {
 			return nil, err
 		}
@@ -537,7 +523,7 @@ func (b *Bazooka) compressAirdropTxs(txs []Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	var data, sigs [][]byte
 	for _, tx := range txs {
-		sigBytes, err := hex.DecodeString(tx.Signature[2:])
+		sigBytes, err := hex.DecodeString(tx.Signature)
 		if err != nil {
 			return nil, err
 		}
@@ -560,7 +546,7 @@ func (b *Bazooka) compressBurnConsents(txs []Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	var data, sigs [][]byte
 	for _, tx := range txs {
-		sigBytes, err := hex.DecodeString(tx.Signature[2:])
+		sigBytes, err := hex.DecodeString(tx.Signature)
 		if err != nil {
 			return nil, err
 		}
@@ -624,15 +610,18 @@ func (b *Bazooka) DecompressAirdropTx(compressedTx []byte) (from, to, amount *bi
 	return big.NewInt(1), decompressedTx.ToIndex, decompressedTx.Amount, decompressedTx.Signature, nil
 }
 
-func (b *Bazooka) signBytesForTransfer(tx Tx) ([]byte, error) {
-	return []byte(""), nil
+func (b *Bazooka) SignBytesForTransfer(txType, fromIndex, toIndex, nonce, amount int64) ([32]byte, error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	return b.RollupUtils.GetTxSignBytes(&opts, big.NewInt(txType), big.NewInt(fromIndex), big.NewInt(toIndex), big.NewInt(nonce), big.NewInt(amount))
 }
 
-func (b *Bazooka) signBytesForAirdrop(tx Tx) ([]byte, error) {
-	return []byte(""), nil
+func (b *Bazooka) SignBytesForAirdrop(txType, fromIndex, toIndex, nonce, amount int64) ([32]byte, error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	return b.RollupUtils.AirdropSignBytes(&opts, big.NewInt(txType), big.NewInt(fromIndex), big.NewInt(toIndex), big.NewInt(nonce), big.NewInt(amount))
 }
-func (b *Bazooka) signBytesForBurnConsent(tx Tx) ([]byte, error) {
-	return []byte(""), nil
+func (b *Bazooka) SignBytesForBurnConsent(txType, from, nonce, amount int64) ([32]byte, error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	return b.RollupUtils.BurnConsentSignBytes(&opts, big.NewInt(txType), big.NewInt(from), big.NewInt(nonce), big.NewInt(amount))
 }
 
 //
