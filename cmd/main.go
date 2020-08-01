@@ -61,6 +61,7 @@ func main() {
 	rootCmd.AddCommand(SendTransferTx())
 	rootCmd.AddCommand(CreateDatabase())
 	rootCmd.AddCommand(CreateUsers())
+	rootCmd.AddCommand(submitBatches())
 	rootCmd.AddCommand(migrationCmd)
 
 	executor := Executor{rootCmd, os.Exit}
@@ -256,7 +257,11 @@ func submitBatches() *cobra.Command {
 				}
 				batches = append(batches, newBatch)
 			}
-			return nil
+			bz, err := json.MarshalIndent(BatchList{Batches: batches}, "", " ")
+			if err != nil {
+				return err
+			}
+			return ioutil.WriteFile("batches.json", bz, 0644)
 		},
 	}
 	return cmd
