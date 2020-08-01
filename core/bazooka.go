@@ -34,7 +34,7 @@ type BroadcastDetails struct {
 	Nonce      uint64 `json:"nonce"`
 	BatchType  uint64 `json:"batchType"`
 	UpdateRoot string `json:"updateRoot"`
-	Txs        string `json:"txs"`
+	Txs        string `gorm:"size:1000000"`
 	Status     uint64 `json:"status"`
 }
 

@@ -367,13 +367,11 @@ func (db *DB) FetchPDAProofWithID(id uint64, pdaProof *PDAMerkleProof) (err erro
 }
 
 func (db *DB) FetchMPWithID(id uint64, accountMP *AccountMerkleProof) (err error) {
-	fmt.Println("fetching MP data", id)
 	leaf, err := DBInstance.GetAccountByIndex(id)
 	if err != nil {
 		fmt.Println("error while getting leaf", err)
 		return
 	}
-	fmt.Println("leaf", leaf)
 	siblings, err := DBInstance.GetSiblings(leaf.Path)
 	if err != nil {
 		fmt.Println("error while getting siblings", err)
@@ -381,7 +379,6 @@ func (db *DB) FetchMPWithID(id uint64, accountMP *AccountMerkleProof) (err error
 	}
 	accMP := NewAccountMerkleProof(leaf, siblings)
 	*accountMP = accMP
-	fmt.Println("acccount mp", accountMP.Account.AccountID)
 	VerifierWaitGroup.Done()
 	return nil
 }

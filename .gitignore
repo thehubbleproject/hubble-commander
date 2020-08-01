@@ -2,4 +2,5 @@ vendor
 logs
 build
 config.toml
+batches.json
 users.json
