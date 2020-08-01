@@ -18,7 +18,7 @@ You can either install MySQL locally or use docker.
 $ docker run --name=mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=<your-password> -d mysql
 ```
 
-You might also want to install a GUI to view the database changes
+You might also want to install a GUI to view the database changes as we dont have a explorer yet.
 
 ```bash
 $ docker run --name myadmin -d --link mysql:db -p 8080:80 phpmyadmin/phpmyadmin
@@ -41,6 +41,7 @@ In `config.toml` you also have various params for entering ethereum RPC's and co
 ## Run migrations
 
 ```bash
+$ ./build/hubble create-database
 $ make migration-up
 ```
 
@@ -55,3 +56,5 @@ $ make migration-down
 ```bash
 $ make start
 ```
+
+You can view logs at logs/node.log
