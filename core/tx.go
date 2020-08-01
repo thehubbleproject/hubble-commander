@@ -7,8 +7,8 @@ import (
 
 	"github.com/BOPR/config"
 	ethCmn "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -54,6 +54,22 @@ func NewPendingTx(from, to, txType uint64, sig string, message []byte) Tx {
 // GetSignBytes returns the transaction data that has to be signed
 func (tx Tx) GetSignBytes() (signBytes []byte) {
 	return tx.Data
+}
+
+// SignTx returns the transaction data that has to be signed
+func (tx *Tx) SignTx(key string, txBytes [32]byte) (err error) {
+	privKeyBytes, err := hex.DecodeString(key)
+	if err != nil {
+		fmt.Println("unable to decode string", err)
+		return
+	}
+	privKey := crypto.ToECDSAUnsafe(privKeyBytes)
+	signBytes, err := crypto.Sign(txBytes[:], privKey)
+	if err != nil {
+		return
+	}
+	tx.Signature = hex.EncodeToString(signBytes)
+	return nil
 }
 
 // AssignHash creates a tx hash and add it to the tx
@@ -205,7 +221,7 @@ func (tx *Tx) UpdateStatus(status uint64) error {
 }
 
 // GetVerificationData fetches all the data required to prove validity fo transaction
-func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn *gorm.DB, err error) {
+func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn DB, err error) {
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
 		return tx.CreateVerificationDataForTransfer()
@@ -223,7 +239,7 @@ func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof AccountMerkl
 	}
 }
 
-func (tx *Tx) CreateVerificationDataForTransfer() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn *gorm.DB, err error) {
+func (tx *Tx) CreateVerificationDataForTransfer() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn DB, err error) {
 	VerifierWaitGroup.Add(2)
 	go DBInstance.FetchPDAProofWithID(tx.From, &PDAProof)
 	go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
@@ -232,13 +248,13 @@ func (tx *Tx) CreateVerificationDataForTransfer() (fromMerkleProof, toMerkleProo
 		return
 	}
 	var toSiblings []UserAccount
-	mysqlTx := DBInstance.Instance.Begin()
+	dbCopy, _ := NewDB()
+	mysqlTx := dbCopy.Instance.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			mysqlTx.Rollback()
 		}
 	}()
-	dbCopy, _ := NewDB()
 	dbCopy.Instance = mysqlTx
 	VerifierWaitGroup.Wait()
 	updatedFromAccountBytes, _, err := LoadedBazooka.ApplyTx(fromMerkleProof, *tx)
@@ -257,10 +273,10 @@ func (tx *Tx) CreateVerificationDataForTransfer() (fromMerkleProof, toMerkleProo
 		return
 	}
 	toMerkleProof = NewAccountMerkleProof(toAcc, toSiblings)
-	return fromMerkleProof, toMerkleProof, PDAProof, mysqlTx, nil
+	return fromMerkleProof, toMerkleProof, PDAProof, dbCopy, nil
 }
 
-func (tx *Tx) CreateVerificationDataForAirdrop() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn *gorm.DB, err error) {
+func (tx *Tx) CreateVerificationDataForAirdrop() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn DB, err error) {
 	VerifierWaitGroup.Add(1)
 	go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
 	toAcc, err := DBInstance.GetAccountByIndex(tx.To)
@@ -268,13 +284,13 @@ func (tx *Tx) CreateVerificationDataForAirdrop() (fromMerkleProof, toMerkleProof
 		return
 	}
 	var toSiblings []UserAccount
-	mysqlTx := DBInstance.Instance.Begin()
+	dbCopy, _ := NewDB()
+	mysqlTx := dbCopy.Instance.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			mysqlTx.Rollback()
 		}
 	}()
-	dbCopy, _ := NewDB()
 	dbCopy.Instance = mysqlTx
 	VerifierWaitGroup.Wait()
 	updatedFromAccountBytes, _, err := LoadedBazooka.ApplyTx(fromMerkleProof, *tx)
@@ -291,34 +307,31 @@ func (tx *Tx) CreateVerificationDataForAirdrop() (fromMerkleProof, toMerkleProof
 		return
 	}
 	toMerkleProof = NewAccountMerkleProof(toAcc, toSiblings)
-	return fromMerkleProof, toMerkleProof, PDAProof, mysqlTx, nil
+	return fromMerkleProof, toMerkleProof, PDAProof, dbCopy, nil
 }
 
-func (tx *Tx) CreateVerificationDataForCreateAccount() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn *gorm.DB, err error) {
+func (tx *Tx) CreateVerificationDataForCreateAccount() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn DB, err error) {
 	VerifierWaitGroup.Add(2)
 	go DBInstance.FetchPDAProofWithID(tx.To, &PDAProof)
 	go DBInstance.FetchMPWithID(tx.To, &toMerkleProof)
 	VerifierWaitGroup.Wait()
-	mysqlTx := DBInstance.Instance.Begin()
-	return fromMerkleProof, toMerkleProof, PDAProof, mysqlTx, nil
+	return fromMerkleProof, toMerkleProof, PDAProof, txDBConn, nil
 }
 
-func (tx *Tx) CreateVerificationDataForBurnConsent() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn *gorm.DB, err error) {
+func (tx *Tx) CreateVerificationDataForBurnConsent() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn DB, err error) {
 	VerifierWaitGroup.Add(2)
 	go DBInstance.FetchPDAProofWithID(tx.From, &PDAProof)
 	go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
-	mysqlTx := DBInstance.Instance.Begin()
 	VerifierWaitGroup.Wait()
-	return fromMerkleProof, toMerkleProof, PDAProof, mysqlTx, nil
+	return fromMerkleProof, toMerkleProof, PDAProof, txDBConn, nil
 }
 
-func (tx *Tx) CreateVerificationDataForBurnExec() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn *gorm.DB, err error) {
+func (tx *Tx) CreateVerificationDataForBurnExec() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn DB, err error) {
 	VerifierWaitGroup.Add(2)
 	go DBInstance.FetchPDAProofWithID(tx.From, &PDAProof)
 	go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
-	mysqlTx := DBInstance.Instance.Begin()
 	VerifierWaitGroup.Wait()
-	return fromMerkleProof, toMerkleProof, PDAProof, mysqlTx, nil
+	return fromMerkleProof, toMerkleProof, PDAProof, txDBConn, nil
 }
 
 func rlpHash(x interface{}) (h ethCmn.Hash) {
@@ -354,11 +367,13 @@ func (db *DB) FetchPDAProofWithID(id uint64, pdaProof *PDAMerkleProof) (err erro
 }
 
 func (db *DB) FetchMPWithID(id uint64, accountMP *AccountMerkleProof) (err error) {
+	fmt.Println("fetching MP data", id)
 	leaf, err := DBInstance.GetAccountByIndex(id)
 	if err != nil {
 		fmt.Println("error while getting leaf", err)
 		return
 	}
+	fmt.Println("leaf", leaf)
 	siblings, err := DBInstance.GetSiblings(leaf.Path)
 	if err != nil {
 		fmt.Println("error while getting siblings", err)
@@ -366,6 +381,7 @@ func (db *DB) FetchMPWithID(id uint64, accountMP *AccountMerkleProof) (err error
 	}
 	accMP := NewAccountMerkleProof(leaf, siblings)
 	*accountMP = accMP
+	fmt.Println("acccount mp", accountMP.Account.AccountID)
 	VerifierWaitGroup.Done()
 	return nil
 }

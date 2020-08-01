@@ -424,11 +424,6 @@
           "type": "bytes"
         },
         {
-          "internalType": "bytes[]",
-          "name": "signatures",
-          "type": "bytes[]"
-        },
-        {
           "components": [
             {
               "components": [

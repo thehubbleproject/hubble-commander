@@ -163,15 +163,22 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) error {
 			return err
 		}
 		if (txs[0]).Type == core.TX_AIRDROP_TYPE {
+			core.VerifierWaitGroup.Wait()
 			PDAproof = redditPDAProof
 		}
 		updatedRoot, _, updatedTo, err := a.LoadedBazooka.ProcessTx(currentRoot, currentAccountTreeRoot, tx, fromAccProof, toAccProof, PDAproof)
 		if err != nil {
 			a.Logger.Error("Error processing tx", "tx", tx.String(), "error", err)
-			txDBConn.Rollback()
+			if txDBConn.Instance != nil {
+				txDBConn.Instance.Rollback()
+				txDBConn.Close()
+			}
 			return err
 		} else {
-			txDBConn.Commit()
+			if txDBConn.Instance != nil {
+				txDBConn.Instance.Commit()
+				txDBConn.Close()
+			}
 		}
 		switch txType := tx.Type; txType {
 		case core.TX_TRANSFER_TYPE:

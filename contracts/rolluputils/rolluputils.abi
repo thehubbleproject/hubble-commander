@@ -878,11 +878,6 @@
         },
         {
           "internalType": "uint256",
-          "name": "tokenType",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
           "name": "nonce",
           "type": "uint256"
         },
@@ -1373,11 +1368,6 @@
         },
         {
           "internalType": "uint256",
-          "name": "tokenType",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
           "name": "nonce",
           "type": "uint256"
         },
@@ -1862,12 +1852,12 @@
         },
         {
           "internalType": "uint256",
-          "name": "amount",
+          "name": "nonce",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
-          "name": "nonce",
+          "name": "amount",
           "type": "uint256"
         }
       ],
@@ -2171,6 +2161,32 @@
       "constant": true,
       "inputs": [
         {
+          "internalType": "uint256",
+          "name": "txType",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "fromIndex",
+          "type": "uint256"
+        }
+      ],
+      "name": "BurnExecutionSignBytes",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
           "components": [
             {
               "internalType": "uint256",
@@ -2253,32 +2269,6 @@
           "internalType": "struct Types.BurnExecution",
           "name": "",
           "type": "tuple"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "txType",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "fromIndex",
-          "type": "uint256"
-        }
-      ],
-      "name": "BurnExecutionSignBytes",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
         }
       ],
       "payable": false,

@@ -34,7 +34,8 @@ type BroadcastDetails struct {
 	Nonce      uint64 `json:"nonce"`
 	BatchType  uint64 `json:"batchType"`
 	UpdateRoot string `json:"updateRoot"`
-	Txs        []byte `json:"txs"`
+	Txs        string `json:"txs"`
+	Status     uint64 `json:"status"`
 }
 
 func (db *DB) LogBatch(nonce uint64, batchType uint64, root string, txs []byte) error {
@@ -43,7 +44,8 @@ func (db *DB) LogBatch(nonce uint64, batchType uint64, root string, txs []byte) 
 	details.Nonce = nonce
 	details.BatchType = batchType
 	details.UpdateRoot = root
-	details.Txs = txs
+	details.Txs = hex.EncodeToString(txs)
+	details.Status = 0
 	return db.Instance.Create(&details).Error
 }
 
@@ -53,6 +55,21 @@ func (db *DB) GetLastTransaction() (BroadcastDetails, error) {
 		return details, err
 	}
 	return details, nil
+}
+
+// GetPendingBatches get the pending batches
+func (db *DB) GetPendingBatches() ([]BroadcastDetails, error) {
+	var details []BroadcastDetails
+	if err := db.Instance.Order("created_at").Find(&details).Error; err != nil {
+		db.Logger.Error("error while fetching pending batches", err)
+		return details, err
+	}
+	return details, nil
+}
+
+// MarkBroadcastDone updates the status of the broadcast
+func (db *DB) MarkBroadcastDone(id string, txHash string) error {
+	return db.Instance.Where("id = ? AND status = ?", id, 0).Updates(BroadcastDetails{TxHash: txHash, Status: 1}).Error
 }
 
 // IContractCaller is the common interface using which we will interact with the contracts
@@ -492,7 +509,7 @@ func (b *Bazooka) compressTransferTxs(txs []Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	var data, sigs [][]byte
 	for _, tx := range txs {
-		sigBytes, err := hex.DecodeString(tx.Signature[2:])
+		sigBytes, err := hex.DecodeString(tx.Signature)
 		if err != nil {
 			return nil, err
 		}
@@ -506,7 +523,7 @@ func (b *Bazooka) compressAirdropTxs(txs []Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	var data, sigs [][]byte
 	for _, tx := range txs {
-		sigBytes, err := hex.DecodeString(tx.Signature[2:])
+		sigBytes, err := hex.DecodeString(tx.Signature)
 		if err != nil {
 			return nil, err
 		}
@@ -529,7 +546,7 @@ func (b *Bazooka) compressBurnConsents(txs []Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	var data, sigs [][]byte
 	for _, tx := range txs {
-		sigBytes, err := hex.DecodeString(tx.Signature[2:])
+		sigBytes, err := hex.DecodeString(tx.Signature)
 		if err != nil {
 			return nil, err
 		}
@@ -591,6 +608,20 @@ func (b *Bazooka) DecompressAirdropTx(compressedTx []byte) (from, to, amount *bi
 		return
 	}
 	return big.NewInt(1), decompressedTx.ToIndex, decompressedTx.Amount, decompressedTx.Signature, nil
+}
+
+func (b *Bazooka) SignBytesForTransfer(txType, fromIndex, toIndex, nonce, amount int64) ([32]byte, error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	return b.RollupUtils.GetTxSignBytes(&opts, big.NewInt(txType), big.NewInt(fromIndex), big.NewInt(toIndex), big.NewInt(nonce), big.NewInt(amount))
+}
+
+func (b *Bazooka) SignBytesForAirdrop(txType, fromIndex, toIndex, nonce, amount int64) ([32]byte, error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	return b.RollupUtils.AirdropSignBytes(&opts, big.NewInt(txType), big.NewInt(fromIndex), big.NewInt(toIndex), big.NewInt(nonce), big.NewInt(amount))
+}
+func (b *Bazooka) SignBytesForBurnConsent(txType, from, nonce, amount int64) ([32]byte, error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	return b.RollupUtils.BurnConsentSignBytes(&opts, big.NewInt(txType), big.NewInt(from), big.NewInt(nonce), big.NewInt(amount))
 }
 
 //
@@ -871,6 +902,39 @@ func (b *Bazooka) SubmitBatch(updatedRoot ByteArray, txs []Tx) error {
 	return nil
 }
 
+func (b *Bazooka) SubmitPrePackagedBatches(compressedTxs []byte, updatedRootStr string, batchType uint8) (string, error) {
+	updatedRoot, err := HexToByteArray(updatedRootStr)
+	if err != nil {
+		fmt.Println("unable to convert updated root to byte array", err)
+		return "", err
+	}
+	data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitBatch", compressedTxs, updatedRoot, batchType)
+	if err != nil {
+		return "", err
+	}
+
+	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
+	stakeAmount := big.NewInt(0)
+	stakeAmount.SetString("32000000000000000000", 10)
+	// generate call msg
+	callMsg := ethereum.CallMsg{
+		To:    &rollupAddress,
+		Data:  data,
+		Value: stakeAmount,
+	}
+
+	auth, err := b.GenerateAuthObj(b.EthClient, callMsg)
+	if err != nil {
+		return "", err
+	}
+
+	tx, err := b.RollupContract.SubmitBatch(auth, compressedTxs, updatedRoot, batchType)
+	if err != nil {
+		return "", err
+	}
+	return tx.Hash().String(), nil
+}
+
 func GetTxsFromInput(input map[string]interface{}) (txs [][]byte) {
 	data := input["_txs"].([][]byte)
 	return data
@@ -900,7 +964,7 @@ func (b *Bazooka) GenerateAuthObj(client *ethclient.Client, callMsg ethereum.Cal
 	}
 	// create auth
 	auth = bind.NewKeyedTransactor(config.OperatorKey)
-	bumpUpGasPriceBy := big.NewInt(20)
+	bumpUpGasPriceBy := big.NewInt(40)
 	auth.GasPrice = gasprice.Add(gasprice, bumpUpGasPriceBy)
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.GasLimit = uint64(gasLimit)
