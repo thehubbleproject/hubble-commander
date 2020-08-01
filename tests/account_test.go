@@ -92,11 +92,22 @@ func TestTxProcessing(t *testing.T) {
 		panic("error while decoding alice account")
 	}
 	fmt.Println("data", id, "balance", balance, "nonce", nonce, "token", token, burn, lastBurn)
-	txBytes, err := bazooka.EncodeBurnConsentTx(2, 1, 1, core.TX_BURN_CONSENT)
+	txBytes, err := bazooka.EncodeAirdropTx(2, 1, 1, nonce.Int64()+1, 1, core.TX_AIRDROP_TYPE)
 	if err != nil {
 		panic(err)
 	}
-	txCore := core.NewPendingTx(2, uint64(2), core.TX_BURN_CONSENT, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+	key := "5f9b54d6b94235bc56b537b96bf19746ab2ff29007a353847108b494e124fda9"
+	txCore := core.NewPendingTx(2, uint64(3), core.TX_AIRDROP_TYPE, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+	signBytes, err := bazooka.SignBytesForAirdrop(int64(txCore.Type), int64(txCore.From), int64(txCore.To), nonce.Int64()+1, 1)
+	if err != nil {
+		panic(err)
+	}
+	// sign it
+	err = txCore.SignTx(key, signBytes)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("signature", txCore.Signature)
 	// account, err := core.DBInstance.GetAccountByIndex(4)
 	// fmt.Println("account data", hex.EncodeToString(account.Data))
 	// id, balance, nonce, token, burn, lastBurn, err := core.LoadedBazooka.DecodeAccount(account.Data)
