@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/BOPR/types"
+	"github.com/BOPR/core"
 )
 
 func TestPathConversion(t *testing.T) {
@@ -22,10 +22,10 @@ func TestPathConversion(t *testing.T) {
 }
 
 func TestStringToUint(t *testing.T) {
-	data, err := types.StringToUint("101")
+	data, err := core.StringToUint("101")
 	fmt.Println("error", data, err)
 }
 
 func TestFlipBitInString(t *testing.T) {
-	fmt.Println(types.FlipBitInInt("101", 1))
+	fmt.Println(core.FlipBitInInt("101", 1))
 }
