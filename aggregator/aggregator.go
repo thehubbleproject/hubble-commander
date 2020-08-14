@@ -118,7 +118,8 @@ func (a *Aggregator) pickBatch() {
 		fmt.Println("Error while getting root", "error", err)
 		return
 	}
-	go a.LoadedBazooka.SubmitBatch(rootAcc.HashToByteArray(), txs)
+
+	a.LoadedBazooka.SubmitBatch(rootAcc.HashToByteArray(), txs)
 	if err != nil {
 		fmt.Println("Error while submitting batch", "error", err)
 		return

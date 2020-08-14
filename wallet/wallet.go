@@ -1,4 +1,4 @@
-package config
+package wallet
 
 import (
 	"crypto/rand"
@@ -29,6 +29,22 @@ func NewWallet() (wallet Wallet, err error) {
 	}
 	hasher := &blswallet.HasherKeccak256{}
 	return Wallet{Account: newAccount, Hasher: hasher}, nil
+}
+
+func SecretToPublicKey(secretKey []byte) {
+	// if len(secretKey) != 32 {
+	// 	// error invalid priv key
+	// }
+	// // var se [32]byte
+	// // copy(s[:], secretKey)
+	// s := big.NewInt(0)
+	// s.SetBytes(secretKey)
+	// g2 := bn254.NewG2()
+	// public := g2.New()
+	// g2.MulScalar(public, g2.One(), s)
+	// secret := &blswallet.SecretKey{}
+	// copy(secret[32-len(s.Bytes()):], s.Bytes()[:])
+	// keyPair := blswallet.KeyPair{secret: secret, Public: public}
 }
 
 func createMessage(data []byte) *blswallet.Message {

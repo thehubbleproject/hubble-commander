@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/BOPR/contracts/logger"
 	"github.com/BOPR/contracts/rollup"
@@ -23,7 +24,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCmn "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Broadcast details is stored to the DB with each broadcast
@@ -84,8 +84,7 @@ var LoadedBazooka Bazooka
 // ContractCaller satisfies the IContractCaller interface and contains all the variables required to interact
 // With the ethereum chain along with contract addresses and ABI's
 type Bazooka struct {
-	log log.Logger
-
+	log       log.Logger
 	EthClient *ethclient.Client
 
 	ContractABI map[string]abi.ABI
@@ -840,82 +839,15 @@ func (b *Bazooka) SubmitBatch(updatedRoot ByteArray, txs []Tx) error {
 		return err
 	}
 
-	// data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitBatch", compressedTxs, updatedRoot, uint8(txs[0].Type))
-	// if err != nil {
-	// 	return err
-	// }
-
-	// rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
-	// stakeAmount := big.NewInt(0)
-	// stakeAmount.SetString("32000000000000000000", 10)
-
-	// // generate call msg
-	// callMsg := ethereum.CallMsg{
-	// 	To:    &rollupAddress,
-	// 	Data:  data,
-	// 	Value: stakeAmount,
-	// }
-
-	// auth, err := b.GenerateAuthObj(b.EthClient, callMsg)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// lastTxBroadcasted, err := DBInstance.GetLastTransaction()
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if lastTxBroadcasted.Nonce+1 != auth.Nonce.Uint64() {
-	// 	b.log.Info("Replacing nonce", "nonceEstimated", auth.Nonce.String(), "replacedBy", lastTxBroadcasted.Nonce+1)
-	// 	auth.Nonce = big.NewInt(int64(lastTxBroadcasted.Nonce + 1))
-	// }
-
-	// latestBatch, err := DBInstance.GetLatestBatch()
-	// if err != nil {
-	// 	return err
-	// }
-
-	// newBatch := Batch{
-	// 	BatchID:   latestBatch.BatchID + 1,
-	// 	StateRoot: updatedRoot.String(),
-	// 	Committer: config.OperatorAddress.String(),
-	// 	Status:    BATCH_BROADCASTED,
-	// }
-
-	// b.log.Info("Broadcasting a new batch", "newBatch", newBatch)
-	// err = DBInstance.AddNewBatch(newBatch)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// tx, err := b.RollupContract.SubmitBatch(auth, compressedTxs, updatedRoot, uint8(txs[0].Type))
-	// if err != nil {
-	// 	return err
-	// }
-
-	err = DBInstance.LogBatch(0, txs[0].Type, updatedRoot.String(), compressedTxs)
+	data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitBatch", compressedTxs, updatedRoot, uint8(txs[0].Type))
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (b *Bazooka) SubmitPrePackagedBatches(compressedTxs []byte, updatedRootStr string, batchType uint8) (string, error) {
-	updatedRoot, err := HexToByteArray(updatedRootStr)
-	if err != nil {
-		fmt.Println("unable to convert updated root to byte array", err)
-		return "", err
-	}
-	data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitBatch", compressedTxs, updatedRoot, batchType)
-	if err != nil {
-		return "", err
 	}
 
 	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
 	stakeAmount := big.NewInt(0)
 	stakeAmount.SetString("32000000000000000000", 10)
+
 	// generate call msg
 	callMsg := ethereum.CallMsg{
 		To:    &rollupAddress,
@@ -925,14 +857,49 @@ func (b *Bazooka) SubmitPrePackagedBatches(compressedTxs []byte, updatedRootStr 
 
 	auth, err := b.GenerateAuthObj(b.EthClient, callMsg)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	tx, err := b.RollupContract.SubmitBatch(auth, compressedTxs, updatedRoot, batchType)
+	lastTxBroadcasted, err := DBInstance.GetLastTransaction()
 	if err != nil {
-		return "", err
+		return err
 	}
-	return tx.Hash().String(), nil
+
+	if lastTxBroadcasted.Nonce+1 != auth.Nonce.Uint64() {
+		b.log.Info("Replacing nonce", "nonceEstimated", auth.Nonce.String(), "replacedBy", lastTxBroadcasted.Nonce+1)
+		auth.Nonce = big.NewInt(int64(lastTxBroadcasted.Nonce + 1))
+	}
+
+	latestBatch, err := DBInstance.GetLatestBatch()
+	if err != nil {
+		return err
+	}
+
+	newBatch := Batch{
+		BatchID:   latestBatch.BatchID + 1,
+		StateRoot: updatedRoot.String(),
+		Committer: config.OperatorAddress.String(),
+		Status:    BATCH_BROADCASTED,
+	}
+
+	b.log.Info("Broadcasting a new batch", "newBatch", newBatch)
+	err = DBInstance.AddNewBatch(newBatch)
+	if err != nil {
+		return err
+	}
+
+	tx, err := b.RollupContract.SubmitBatch(auth, compressedTxs, updatedRoot, uint8(txs[0].Type))
+	if err != nil {
+		return err
+	}
+	b.log.Info("Sent a new batch!", "TxHash", tx.Hash().String())
+
+	err = DBInstance.LogBatch(0, txs[0].Type, updatedRoot.String(), compressedTxs)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func GetTxsFromInput(input map[string]interface{}) (txs [][]byte) {
