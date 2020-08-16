@@ -6,18 +6,36 @@ import (
 	blswallet "github.com/kilic/bn254/bls"
 )
 
+var gHasher blswallet.Hasher
+
+func init() {
+	gHasher = &blswallet.HasherKeccak256{}
+}
+
 type Wallet struct {
 	Account *blswallet.KeyPair
-	Hasher  blswallet.Hasher
 }
 
-type Signature struct {
-	Signature blswallet.Signature
+// type Signature struct {
+// 	Signature blswallet.Signature
+// }
+
+// func NewSignature(sig blswallet.Signature) Signature {
+// 	return Signature{Signature: sig}
+// }
+
+func BytesToSignature(b []byte) (blswallet.Signature, error) {
+	sig, err := blswallet.SignatureKeyFromBytes(b)
+	return *sig, err
 }
 
-func getBLSSignatures(sigs []Signature) (blsSigs []*blswallet.Signature) {
+// func (s *Signature) Bytes() []byte {
+// 	return s.Signature.ToBytes()
+// }
+
+func getBLSSignatures(sigs []blswallet.Signature) (blsSigs []*blswallet.Signature) {
 	for _, sig := range sigs {
-		blsSigs = append(blsSigs, &sig.Signature)
+		blsSigs = append(blsSigs, &sig)
 	}
 	return
 }
@@ -27,60 +45,51 @@ func NewWallet() (wallet Wallet, err error) {
 	if err != nil {
 		return
 	}
-	hasher := &blswallet.HasherKeccak256{}
-	return Wallet{Account: newAccount, Hasher: hasher}, nil
+	return Wallet{Account: newAccount}, nil
 }
 
-func SecretToPublicKey(secretKey []byte) {
-	// if len(secretKey) != 32 {
-	// 	// error invalid priv key
-	// }
-	// // var se [32]byte
-	// // copy(s[:], secretKey)
-	// s := big.NewInt(0)
-	// s.SetBytes(secretKey)
-	// g2 := bn254.NewG2()
-	// public := g2.New()
-	// g2.MulScalar(public, g2.One(), s)
-	// secret := &blswallet.SecretKey{}
-	// copy(secret[32-len(s.Bytes()):], s.Bytes()[:])
-	// keyPair := blswallet.KeyPair{secret: secret, Public: public}
-}
+// func SecretToPublicKey(secretKey []byte) {
+// 	if len(secretKey) != 32 {
+// 		// error invalid priv key
+// 	}
+// 	// var se [32]byte
+// 	// copy(s[:], secretKey)
+// 	s := big.NewInt(0)
+// 	s.SetBytes(secretKey)
+// 	g2 := bn254.NewG2()
+// 	public := g2.New()
+// 	g2.MulScalar(public, g2.One(), s)
+// 	secret := &blswallet.SecretKey{}
+// 	copy(secret[32-len(s.Bytes()):], s.Bytes()[:])
+// 	keyPair := blswallet.KeyPair{secret: secret, Public: public}
+// }
 
 func createMessage(data []byte) *blswallet.Message {
-	return &blswallet.Message{Message: data, Domain: []byte{}}
+	return &blswallet.Message{Message: data, Domain: []byte{0x00, 0x00, 0x00, 0x00}}
 }
 
-func (w *Wallet) Sign(data []byte) ([]byte, error) {
-	signer := blswallet.NewBLSSigner(w.Hasher, w.Account)
+func (w *Wallet) Sign(data []byte) (blswallet.Signature, error) {
+	signer := blswallet.NewBLSSigner(gHasher, w.Account)
 	signature, err := signer.Sign(createMessage(data))
 	if err != nil {
-		return []byte(""), err
+		return blswallet.Signature{}, err
 	}
-	return signature.ToBytes(), nil
+	return *signature, nil
 }
 
-func VerifySignature(data []byte, signature Signature, pubkey blswallet.PublicKey) (valid bool, err error) {
-	hasher := &blswallet.HasherSHA256{}
-	verifier := blswallet.NewBLSVerifier(hasher)
-	return verifier.Verify(createMessage(data), &signature.Signature, &pubkey)
+func (w *Wallet) VerifySignature(data []byte, signature blswallet.Signature, pubkey blswallet.PublicKey) (valid bool, err error) {
+	verifier := blswallet.NewBLSVerifier(gHasher)
+	return verifier.Verify(createMessage(data), &signature, w.Account.Public)
 }
 
-func VerifyAggregatedSignature(data [][]byte, aggregateSignature Signature, pubkeys []*blswallet.PublicKey) (valid bool, err error) {
-	hasher := &blswallet.HasherSHA256{}
-	verifier := blswallet.NewBLSVerifier(hasher)
-	var messages []*blswallet.Message
-	for _, txData := range data {
-		messages = append(messages, createMessage(txData))
-	}
-	return verifier.VerifyAggregate(messages, pubkeys, &aggregateSignature.Signature)
+func VerifyAggregatedSignature(data []*blswallet.Message, pubkeys []*blswallet.PublicKey, aggregateSignature blswallet.Signature) (valid bool, err error) {
+	verifier := blswallet.NewBLSVerifier(gHasher)
+	return verifier.VerifyAggregate(data, pubkeys, &aggregateSignature)
 }
 
 // NewAggregateSignature creates a new aggregated signature
-func NewAggregateSignature(signatures []Signature) (aggregatedSignature Signature) {
-	hasher := &blswallet.HasherSHA256{}
-	verifier := blswallet.NewBLSVerifier(hasher)
-	blsSigs := getBLSSignatures(signatures)
-	aggregatedSig := verifier.AggregateSignatures(blsSigs)
-	return Signature{Signature: *aggregatedSig}
+func NewAggregateSignature(signatures []*blswallet.Signature) (aggregatedSignature blswallet.Signature, err error) {
+	verifier := blswallet.NewBLSVerifier(gHasher)
+	aggregatedSig := verifier.AggregateSignatures(signatures)
+	return *aggregatedSig, nil
 }

@@ -18,6 +18,13 @@ type Batch struct {
 	Status               uint64
 }
 
+type Commitment struct {
+	Txs                 []Tx
+	UpdatedRoot         ByteArray
+	BatchType           uint64
+	AggregatedSignature []byte
+}
+
 func (db *DB) GetAllBatches() (batches []Batch, err error) {
 	errs := db.Instance.Find(&batches).GetErrors()
 	for _, err := range errs {

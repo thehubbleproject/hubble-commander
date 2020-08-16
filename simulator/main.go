@@ -182,7 +182,7 @@ func (s *Simulator) simulateCreateAccounts(startIndex, endIndex int64) {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
 		}
-		txCore := core.NewPendingTx(0, uint64(startIndex+i), core.TX_CREATE_ACCOUNT, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		txCore := core.NewPendingTx(0, uint64(startIndex+i), core.TX_CREATE_ACCOUNT, []byte{}, txBytes)
 
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
@@ -210,7 +210,7 @@ func (s *Simulator) simulateBurnConsent(startIndex, endIndex int64) {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
 		}
-		txCore := core.NewPendingTx(uint64(startIndex+i), 0, core.TX_BURN_CONSENT, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		txCore := core.NewPendingTx(uint64(startIndex+i), 0, core.TX_BURN_CONSENT, []byte{}, txBytes)
 		signBytes, err := s.LoadedBazooka.SignBytesForBurnConsent(int64(txCore.Type), int64(txCore.From), nonce.Int64()+1, BURN_AMOUNT)
 		if err != nil {
 			s.Logger.Error("unable to encode tx", "error", err)
@@ -248,7 +248,7 @@ func (s *Simulator) simulateTransfer(startIndex, endIndex int64) {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
 		}
-		txCore := core.NewPendingTx(uint64(startIndex+i), REDDIT_ACCOUNT, core.TX_TRANSFER_TYPE, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		txCore := core.NewPendingTx(uint64(startIndex+i), REDDIT_ACCOUNT, core.TX_TRANSFER_TYPE, []byte{}, txBytes)
 		signBytes, err := s.LoadedBazooka.SignBytesForTransfer(int64(txCore.Type), int64(txCore.From), int64(txCore.To), nonce.Int64()+1, TRANSFER_AMOUNT)
 		if err != nil {
 			s.Logger.Error("unable to encode tx", "error", err)
@@ -288,7 +288,7 @@ func (s *Simulator) simulateAirdrop(startIndex, endIndex int64) {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
 		}
-		txCore := core.NewPendingTx(REDDIT_ACCOUNT, uint64(startIndex+i), core.TX_AIRDROP_TYPE, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		txCore := core.NewPendingTx(REDDIT_ACCOUNT, uint64(startIndex+i), core.TX_AIRDROP_TYPE, []byte{}, txBytes)
 		signBytes, err := s.LoadedBazooka.SignBytesForAirdrop(int64(txCore.Type), int64(txCore.From), int64(txCore.To), redditNonce, TRANSFER_AMOUNT)
 		if err != nil {
 			s.Logger.Error("unable to encode tx", "error", err)
@@ -318,7 +318,7 @@ func (s *Simulator) simulateBurnExec(startIndex, endIndex int64) {
 			s.Logger.Error("unable to encode tx", "error", err)
 			return
 		}
-		txCore := core.NewPendingTx(uint64(startIndex+i), REDDIT_ACCOUNT, core.TX_BURN_EXEC, "1ad4773ace8ee65b8f1d94a3ca7adba51ee2ca0bdb550907715b3b65f1e3ad9f69e610383dc9ceb8a50c882da4b1b98b96500bdf308c1bdce2187cb23b7d736f1b", txBytes)
+		txCore := core.NewPendingTx(uint64(startIndex+i), REDDIT_ACCOUNT, core.TX_BURN_EXEC, []byte{}, txBytes)
 		err = s.DB.InsertTx(&txCore)
 		if err != nil {
 			s.Logger.Error("unable to insert tx", "error", err)

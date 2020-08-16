@@ -19,7 +19,7 @@ require (
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/jinzhu/gorm v1.9.12
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
-	github.com/kilic/bn254 v0.0.0-20200811153058-47f2247c2d1e
+	github.com/kilic/bn254 v0.0.0-20200815091300-20e90d5cc039
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/olekukonko/tablewriter v0.0.3 // indirect
 	github.com/pelletier/go-toml v1.6.0 // indirect

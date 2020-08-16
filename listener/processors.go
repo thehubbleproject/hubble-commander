@@ -154,7 +154,6 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		"⬜ New event found",
 		"event", eventName,
 		"BatchNumber", event.Index.String(),
-		"TxRoot", core.ByteArray(event.Txroot).String(),
 		"NewStateRoot", core.ByteArray(event.UpdatedRoot).String(),
 		"Committer", event.Committer.String(),
 	)

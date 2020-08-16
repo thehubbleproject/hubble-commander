@@ -15,7 +15,7 @@ type (
 		From      uint64 `json:"from"`
 		To        uint64 `json:"to"`
 		Message   []byte `json:"message"`
-		Signature string `json:"sig"`
+		Signature []byte `json:"sig"`
 	}
 
 	TransferTx struct {
