@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	"github.com/BOPR/config"
+	"github.com/BOPR/wallet"
 	ethCmn "github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"golang.org/x/crypto/sha3"
 )
@@ -20,14 +20,14 @@ type Tx struct {
 	To        uint64 `json:"to"`
 	From      uint64 `json:"from"`
 	Data      []byte `json:"data"`
-	Signature string `json:"sig" gorm:"null"`
+	Signature []byte `json:"sig" gorm:"null"`
 	TxHash    string `json:"hash" gorm:"not null"`
 	Status    uint64 `json:"status"`
 	Type      uint64 `json:"type" gorm:"not null"`
 }
 
 // NewTx creates a new transaction
-func NewTx(from, to, txType uint64, message []byte, sig string) Tx {
+func NewTx(from, to, txType uint64, sig, message []byte) Tx {
 	return Tx{
 		From:      from,
 		To:        to,
@@ -38,7 +38,7 @@ func NewTx(from, to, txType uint64, message []byte, sig string) Tx {
 }
 
 // NewPendingTx creates a new transaction
-func NewPendingTx(from, to, txType uint64, sig string, message []byte) Tx {
+func NewPendingTx(from, to, txType uint64, sig, message []byte) Tx {
 	tx := Tx{
 		To:        to,
 		From:      from,
@@ -57,18 +57,26 @@ func (tx Tx) GetSignBytes() (signBytes []byte) {
 }
 
 // SignTx returns the transaction data that has to be signed
-func (tx *Tx) SignTx(key string, txBytes [32]byte) (err error) {
+func (tx *Tx) SignTx(key string, pubkey string, txBytes [32]byte) (err error) {
 	privKeyBytes, err := hex.DecodeString(key)
 	if err != nil {
 		fmt.Println("unable to decode string", err)
 		return
 	}
-	privKey := crypto.ToECDSAUnsafe(privKeyBytes)
-	signBytes, err := crypto.Sign(txBytes[:], privKey)
+	pubkeyBytes, err := hex.DecodeString(pubkey)
 	if err != nil {
+		fmt.Println("unable to decode string", err)
 		return
 	}
-	tx.Signature = hex.EncodeToString(signBytes)
+	wallet, err := wallet.SecretToWallet(privKeyBytes, pubkeyBytes)
+	if err != nil {
+		return err
+	}
+	sig, err := wallet.Sign(txBytes[:])
+	if err != nil {
+		return err
+	}
+	tx.Signature = sig.ToBytes()
 	return nil
 }
 

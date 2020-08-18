@@ -58,25 +58,20 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 }
 func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
 	s.Logger.Info("New deposit found")
-
 	// unpack event
 	event := new(logger.LoggerDepositQueued)
-
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
 		// TODO do something with this error
 		fmt.Println("Unable to unpack log:", err)
 		panic(err)
 	}
-
 	s.Logger.Info(
 		"⬜ New event found",
 		"event", eventName,
 		"accountID", event.AccountID.String(),
 		"Amount", hex.EncodeToString(event.Data),
-		"pubkey", event.Pubkey,
 	)
-
 	// add new account in pending state to DB and
 	newAccount := core.NewPendingUserAccount(event.AccountID.Uint64(), event.Data)
 	if err := s.DBInstance.AddNewPendingAccount(*newAccount); err != nil {
@@ -154,7 +149,6 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		"⬜ New event found",
 		"event", eventName,
 		"BatchNumber", event.Index.String(),
-		"TxRoot", core.ByteArray(event.Txroot).String(),
 		"NewStateRoot", core.ByteArray(event.UpdatedRoot).String(),
 		"Committer", event.Committer.String(),
 	)
@@ -166,7 +160,7 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 
 	// if the batch has some txs, parse them
 	var txs [][]byte
-	if ZEROROOT != core.ByteArray(event.Txroot).String() {
+	if event.BatchType != core.TX_GENESIS || event.BatchType == core.TX_DEPOSIT {
 		// pick the calldata for the batch
 		txs, err = s.loadedBazooka.FetchBatchInputData(vLog.TxHash)
 		if err != nil {
@@ -187,7 +181,6 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		newBatch := core.Batch{
 			BatchID:              event.Index.Uint64(),
 			StateRoot:            core.ByteArray(event.UpdatedRoot).String(),
-			TxRoot:               core.ByteArray(event.Txroot).String(),
 			TransactionsIncluded: core.ConcatTxs(txs),
 			Committer:            event.Committer.String(),
 			StakeAmount:          params.StakeAmount,
@@ -218,7 +211,6 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		newBatch := core.Batch{
 			BatchID:              event.Index.Uint64(),
 			StateRoot:            core.ByteArray(event.UpdatedRoot).String(),
-			TxRoot:               core.ByteArray(event.Txroot).String(),
 			TransactionsIncluded: core.ConcatTxs(txs),
 			Committer:            event.Committer.String(),
 			StakeAmount:          params.StakeAmount,
@@ -352,7 +344,7 @@ func (s *Syncer) ApplyTxsFromBatch(txs [][]byte, txType uint64) error {
 			fmt.Println("TxType didnt match any options", txType)
 			return errors.New("Didn't match any options")
 		}
-		coreTx := core.NewTx(from, to, txType, txData, hex.EncodeToString(sig))
+		coreTx := core.NewTx(from, to, txType, txData, sig)
 		coreTxs = append(coreTxs, coreTx)
 		fromMP, toMP, _, _, err := coreTx.GetVerificationData()
 		if err != nil {

@@ -2,6 +2,7 @@ package aggregator
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -11,10 +12,13 @@ import (
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/core"
+	"github.com/BOPR/wallet"
+	"github.com/kilic/bn254/bls"
 )
 
 const (
 	AggregatingService = "aggregator"
+	COMMITMENT_SIZE    = 32
 )
 
 // Aggregator is the service which is supposed to create batches
@@ -102,23 +106,22 @@ func (a *Aggregator) pickBatch() {
 	if err != nil {
 		fmt.Println("Error while popping txs from mempool", "Error", err)
 	}
+	a.ProcessAndSubmitBatch(txs)
+}
+
+func (a *Aggregator) ProcessAndSubmitBatch(txs []core.Tx) {
 	a.Logger.Info("Processing new batch", "numberOfTxs", len(txs))
 
 	// Step-2
-	err = a.ProcessTx(txs)
+	commitments, err := a.ProcessTx(txs)
 	if err != nil {
 		fmt.Println("Error while processing tx", "error", err)
 		return
 	}
 
 	// Step-3
-	// Finally create a merkel root of all updated leafs and push batch on-chain
-	rootAcc, err := a.DB.GetRoot()
-	if err != nil {
-		fmt.Println("Error while getting root", "error", err)
-		return
-	}
-	go a.LoadedBazooka.SubmitBatch(rootAcc.HashToByteArray(), txs)
+	// Submit all commitments on-chain
+	a.LoadedBazooka.SubmitBatch(commitments)
 	if err != nil {
 		fmt.Println("Error while submitting batch", "error", err)
 		return
@@ -127,40 +130,41 @@ func (a *Aggregator) pickBatch() {
 
 // ProcessTx fetches all the data required to validate tx from smart contact
 // and calls the proccess tx function to return the updated balance root and accounts
-func (a *Aggregator) ProcessTx(txs []core.Tx) error {
+func (a *Aggregator) ProcessTx(txs []core.Tx) (commitments []core.Commitment, err error) {
 	if len(txs) == 0 {
-		return errors.New("no tx to process,aborting!")
+		return commitments, errors.New("no tx to process,aborting")
 	}
 
 	var redditPDAProof core.PDAMerkleProof
 	if (txs[0]).Type == core.TX_AIRDROP_TYPE {
 		core.VerifierWaitGroup.Add(1)
-		err := core.DBInstance.FetchPDAProofWithID(txs[0].From, &redditPDAProof)
+		err = core.DBInstance.FetchPDAProofWithID(txs[0].From, &redditPDAProof)
 		if err != nil {
-			return err
+			return
 		}
 	}
 
 	start := time.Now()
-	for _, tx := range txs {
+	for i, tx := range txs {
+		a.Logger.Info("Processing transaction", "txNumber", i, "of", len(txs))
 		rootAcc, err := a.DB.GetRoot()
 		if err != nil {
-			return err
+			return commitments, err
 		}
 		a.Logger.Debug("Latest root", "root", rootAcc.Hash)
 		currentRoot, err := core.HexToByteArray(rootAcc.Hash)
 		if err != nil {
-			return err
+			return commitments, err
 		}
 		pdaRoot, err := a.DB.GetPDARoot()
 		if err != nil {
-			return err
+			return commitments, err
 		}
 		currentAccountTreeRoot := pdaRoot.HashToByteArray()
 		fromAccProof, toAccProof, PDAproof, txDBConn, err := tx.GetVerificationData()
 		if err != nil {
 			a.Logger.Error("Unable to create verification data", "error", err)
-			return err
+			return commitments, err
 		}
 		if (txs[0]).Type == core.TX_AIRDROP_TYPE {
 			core.VerifierWaitGroup.Wait()
@@ -173,7 +177,7 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) error {
 				txDBConn.Instance.Rollback()
 				txDBConn.Close()
 			}
-			return err
+			return commitments, err
 		} else {
 			if txDBConn.Instance != nil {
 				txDBConn.Instance.Commit()
@@ -192,9 +196,34 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) error {
 		case core.TX_BURN_EXEC:
 			fmt.Println("burn exec")
 		}
+
+		if i%32 == 0 {
+			txInCommitment := txs[i : i+32]
+			a.Logger.Info("Preparing a commitment", "NumOfTxs", len(txInCommitment), "type", txs[0].Type, "totalCommitmentsYet", len(commitments))
+			aggregatedSig, err := aggregateSignatures(txInCommitment)
+			if err != nil {
+				return commitments, err
+			}
+			fmt.Println("Aggregated signature", hex.EncodeToString(aggregatedSig.ToBytes()))
+			commitment := core.Commitment{Txs: txInCommitment, UpdatedRoot: updatedRoot, BatchType: tx.Type, AggregatedSignature: aggregatedSig.ToBytes()}
+			commitments = append(commitments, commitment)
+		}
 		currentRoot = updatedRoot
 	}
 	elapsed := time.Since(start)
 	log.Printf("Process batch took %s", elapsed)
-	return nil
+	return commitments, nil
+}
+
+// generates aggregated signature for commitment
+func aggregateSignatures(txs []core.Tx) (aggregatedSig bls.Signature, err error) {
+	var signatures []*bls.Signature
+	for _, tx := range txs {
+		sig, err := wallet.BytesToSignature(tx.Signature)
+		if err != nil {
+			return aggregatedSig, err
+		}
+		signatures = append(signatures, &sig)
+	}
+	return wallet.NewAggregateSignature(signatures)
 }

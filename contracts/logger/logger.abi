@@ -1,4 +1,4 @@
- [
+[
     {
       "anonymous": false,
       "inputs": [
@@ -7,24 +7,6 @@
           "internalType": "uint256",
           "name": "batch_id",
           "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "committer",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "stateRoot",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "txRoot",
-          "type": "bytes32"
         }
       ],
       "name": "BatchRollback",
@@ -63,12 +45,6 @@
           "internalType": "uint256",
           "name": "AccountID",
           "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes",
-          "name": "pubkey",
-          "type": "bytes"
         },
         {
           "indexed": false,
@@ -124,12 +100,6 @@
         {
           "indexed": false,
           "internalType": "bytes32",
-          "name": "txroot",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32",
           "name": "updatedRoot",
           "type": "bytes32"
         },
@@ -166,6 +136,25 @@
         }
       ],
       "name": "NewPubkeyAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256[4]",
+          "name": "pubkey",
+          "type": "uint256[4]"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "accountID",
+          "type": "uint256"
+        }
+      ],
+      "name": "PubkeyRegistered",
       "type": "event"
     },
     {
@@ -236,14 +225,104 @@
       "constant": false,
       "inputs": [
         {
-          "internalType": "address",
-          "name": "committer",
-          "type": "address"
+          "internalType": "uint256",
+          "name": "batch_id",
+          "type": "uint256"
+        }
+      ],
+      "name": "logBatchRollback",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "depositSubTreeRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "pathToSubTree",
+          "type": "uint256"
+        }
+      ],
+      "name": "logDepositFinalised",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "left",
+          "type": "bytes32"
         },
         {
           "internalType": "bytes32",
-          "name": "txroot",
+          "name": "right",
           "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "newRoot",
+          "type": "bytes32"
+        }
+      ],
+      "name": "logDepositLeafMerged",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "accountID",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "logDepositQueued",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "root",
+          "type": "bytes32"
+        }
+      ],
+      "name": "logDepositSubTreeReady",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "committer",
+          "type": "address"
         },
         {
           "internalType": "bytes32",
@@ -271,17 +350,17 @@
       "constant": false,
       "inputs": [
         {
-          "internalType": "address",
-          "name": "committed",
-          "type": "address"
+          "internalType": "uint256",
+          "name": "accountID",
+          "type": "uint256"
         },
         {
-          "internalType": "uint256",
-          "name": "batch_id",
-          "type": "uint256"
+          "internalType": "bytes",
+          "name": "pubkey",
+          "type": "bytes"
         }
       ],
-      "name": "logStakeWithdraw",
+      "name": "logNewPubkeyAdded",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
@@ -291,42 +370,17 @@
       "constant": false,
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "batch_id",
-          "type": "uint256"
+          "internalType": "uint256[4]",
+          "name": "pubkey",
+          "type": "uint256[4]"
         },
-        {
-          "internalType": "address",
-          "name": "committer",
-          "type": "address"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "stateRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "txRoot",
-          "type": "bytes32"
-        }
-      ],
-      "name": "logBatchRollback",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
         {
           "internalType": "uint256",
-          "name": "totalBatchesSlashed",
+          "name": "accountID",
           "type": "uint256"
         }
       ],
-      "name": "logRollbackFinalisation",
+      "name": "logPubkeyRegistered",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
@@ -372,16 +426,11 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "accountID",
+          "name": "totalBatchesSlashed",
           "type": "uint256"
-        },
-        {
-          "internalType": "bytes",
-          "name": "pubkey",
-          "type": "bytes"
         }
       ],
-      "name": "logNewPubkeyAdded",
+      "name": "logRollbackFinalisation",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
@@ -391,82 +440,17 @@
       "constant": false,
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "accountID",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes",
-          "name": "pubkey",
-          "type": "bytes"
-        },
-        {
-          "internalType": "bytes",
-          "name": "data",
-          "type": "bytes"
-        }
-      ],
-      "name": "logDepositQueued",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "left",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "right",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "newRoot",
-          "type": "bytes32"
-        }
-      ],
-      "name": "logDepositLeafMerged",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "root",
-          "type": "bytes32"
-        }
-      ],
-      "name": "logDepositSubTreeReady",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "depositSubTreeRoot",
-          "type": "bytes32"
+          "internalType": "address",
+          "name": "committed",
+          "type": "address"
         },
         {
           "internalType": "uint256",
-          "name": "pathToSubTree",
+          "name": "batch_id",
           "type": "uint256"
         }
       ],
-      "name": "logDepositFinalised",
+      "name": "logStakeWithdraw",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",

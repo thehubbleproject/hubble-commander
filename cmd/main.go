@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/ecdsa"
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
@@ -17,8 +16,7 @@ import (
 	"github.com/BOPR/config"
 	"github.com/BOPR/core"
 	"github.com/BOPR/simulator"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/BOPR/wallet"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -96,7 +94,6 @@ type UserList struct {
 }
 
 type User struct {
-	Address   string `json:"address"`
 	PublicKey string `json:"pubkey"`
 	PrivKey   string `json:"privkey"`
 }
@@ -108,19 +105,15 @@ func CreateUsers() *cobra.Command {
 		Short: "Create users to be used in simulations",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var users []User
-			for i := 0; i < 100000; i++ {
-				privKey, err := crypto.GenerateKey()
+			for i := 0; i < 2; i++ {
+				newWallet, err := wallet.NewWallet()
 				if err != nil {
-					fmt.Println("Error generating private key", err)
 					return err
 				}
-				publicKey := privKey.Public()
-
-				ecsdaPubKey, ok := publicKey.(*ecdsa.PublicKey)
-				if !ok {
-					return errors.New("Unable to convert public key")
-				}
-				newUser := User{Address: crypto.PubkeyToAddress(*ecsdaPubKey).String(), PublicKey: "0x" + hexutil.Encode(crypto.FromECDSAPub(ecsdaPubKey))[4:], PrivKey: hex.EncodeToString(crypto.FromECDSA(privKey))}
+				secretBytes, publicKeyBytes := newWallet.Bytes()
+				publicKey := hex.EncodeToString(publicKeyBytes)
+				secretKey := hex.EncodeToString(secretBytes)
+				newUser := User{PublicKey: publicKey, PrivKey: secretKey}
 				users = append(users, newUser)
 			}
 			bz, err := json.MarshalIndent(UserList{Users: users}, "", " ")

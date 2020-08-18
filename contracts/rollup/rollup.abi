@@ -26,12 +26,42 @@
       "type": "function"
     },
     {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "batch_id",
+          "type": "uint256"
+        }
+      ],
+      "name": "WithdrawStake",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "constant": true,
       "inputs": [],
-      "name": "accountsTree",
+      "name": "ZERO_BYTES32",
       "outputs": [
         {
-          "internalType": "contract IncrementalTree",
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "accountRegistry",
+      "outputs": [
+        {
+          "internalType": "contract BLSAccountRegistry",
           "name": "",
           "type": "address"
         }
@@ -53,17 +83,7 @@
       "outputs": [
         {
           "internalType": "bytes32",
-          "name": "stateRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "accountRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "depositTree",
+          "name": "commitmentRoot",
           "type": "bytes32"
         },
         {
@@ -72,24 +92,19 @@
           "type": "address"
         },
         {
-          "internalType": "bytes32",
-          "name": "txRoot",
-          "type": "bytes32"
-        },
-        {
           "internalType": "uint256",
           "name": "finalisesOn",
           "type": "uint256"
         },
         {
+          "internalType": "bytes32",
+          "name": "depositRoot",
+          "type": "bytes32"
+        },
+        {
           "internalType": "bool",
           "name": "withdrawn",
           "type": "bool"
-        },
-        {
-          "internalType": "enum Types.Usage",
-          "name": "batchType",
-          "type": "uint8"
         }
       ],
       "payable": false,
@@ -112,234 +127,11 @@
       "type": "function"
     },
     {
-      "constant": true,
+      "constant": false,
       "inputs": [
         {
           "internalType": "uint256",
           "name": "_batch_id",
-          "type": "uint256"
-        }
-      ],
-      "name": "getBatch",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "bytes32",
-              "name": "stateRoot",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "accountRoot",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "depositTree",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "address",
-              "name": "committer",
-              "type": "address"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "txRoot",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "uint256",
-              "name": "finalisesOn",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bool",
-              "name": "withdrawn",
-              "type": "bool"
-            },
-            {
-              "internalType": "enum Types.Usage",
-              "name": "batchType",
-              "type": "uint8"
-            }
-          ],
-          "internalType": "struct Types.Batch",
-          "name": "batch",
-          "type": "tuple"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getLatestBalanceTreeRoot",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "governance",
-      "outputs": [
-        {
-          "internalType": "contract Governance",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "invalidBatchMarker",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "logger",
-      "outputs": [
-        {
-          "internalType": "contract Logger",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "merkleUtils",
-      "outputs": [
-        {
-          "internalType": "contract MerkleTreeUtils",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "nameRegistry",
-      "outputs": [
-        {
-          "internalType": "contract NameRegistry",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "numOfBatchesSubmitted",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "rollupReddit",
-      "outputs": [
-        {
-          "internalType": "contract IRollupReddit",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "tokenRegistry",
-      "outputs": [
-        {
-          "internalType": "contract ITokenRegistry",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bytes",
-          "name": "txs",
-          "type": "bytes"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_updatedRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "enum Types.Usage",
-          "name": "batchType",
-          "type": "uint8"
-        }
-      ],
-      "name": "submitBatch",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_subTreeDepth",
           "type": "uint256"
         },
         {
@@ -347,51 +139,34 @@
             {
               "components": [
                 {
-                  "internalType": "uint256",
-                  "name": "pathToAccount",
-                  "type": "uint256"
+                  "internalType": "bytes32",
+                  "name": "stateRoot",
+                  "type": "bytes32"
                 },
                 {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "ID",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "tokenType",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "balance",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "nonce",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "burn",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "lastBurn",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct Types.UserAccount",
-                  "name": "account",
-                  "type": "tuple"
+                  "internalType": "bytes32",
+                  "name": "accountRoot",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "txHashCommitment",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "enum Types.Usage",
+                  "name": "batchType",
+                  "type": "uint8"
                 }
               ],
-              "internalType": "struct Types.AccountInclusionProof",
-              "name": "accountIP",
+              "internalType": "struct Types.Commitment",
+              "name": "commitment",
               "type": "tuple"
+            },
+            {
+              "internalType": "uint256",
+              "name": "pathToCommitment",
+              "type": "uint256"
             },
             {
               "internalType": "bytes32[]",
@@ -399,24 +174,9 @@
               "type": "bytes32[]"
             }
           ],
-          "internalType": "struct Types.AccountMerkleProof",
-          "name": "_zero_account_mp",
+          "internalType": "struct Types.CommitmentInclusionProof",
+          "name": "commitmentMP",
           "type": "tuple"
-        }
-      ],
-      "name": "finaliseDepositsAndSubmitBatch",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_batch_id",
-          "type": "uint256"
         },
         {
           "internalType": "bytes",
@@ -566,9 +326,9 @@
                     {
                       "components": [
                         {
-                          "internalType": "bytes",
+                          "internalType": "uint256[4]",
                           "name": "pubkey",
-                          "type": "bytes"
+                          "type": "uint256[4]"
                         }
                       ],
                       "internalType": "struct Types.PDALeaf",
@@ -607,14 +367,288 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "batch_id",
+          "name": "_subTreeDepth",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "pathToAccount",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "ID",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "tokenType",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "balance",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "nonce",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "burn",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "lastBurn",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct Types.UserAccount",
+                  "name": "account",
+                  "type": "tuple"
+                }
+              ],
+              "internalType": "struct Types.AccountInclusionProof",
+              "name": "accountIP",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "siblings",
+              "type": "bytes32[]"
+            }
+          ],
+          "internalType": "struct Types.AccountMerkleProof",
+          "name": "_zero_account_mp",
+          "type": "tuple"
+        }
+      ],
+      "name": "finaliseDepositsAndSubmitBatch",
+      "outputs": [],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_batch_id",
           "type": "uint256"
         }
       ],
-      "name": "WithdrawStake",
-      "outputs": [],
+      "name": "getBatch",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "commitmentRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "committer",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "finalisesOn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "depositRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bool",
+              "name": "withdrawn",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct Types.Batch",
+          "name": "batch",
+          "type": "tuple"
+        }
+      ],
       "payable": false,
-      "stateMutability": "nonpayable",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getLatestBalanceTreeRoot",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "governance",
+      "outputs": [
+        {
+          "internalType": "contract Governance",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "invalidBatchMarker",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "logger",
+      "outputs": [
+        {
+          "internalType": "contract Logger",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "merkleUtils",
+      "outputs": [
+        {
+          "internalType": "contract MerkleTreeUtils",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "nameRegistry",
+      "outputs": [
+        {
+          "internalType": "contract NameRegistry",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "numOfBatchesSubmitted",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "rollupReddit",
+      "outputs": [
+        {
+          "internalType": "contract IRollupReddit",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "bytes[]",
+          "name": "txs",
+          "type": "bytes[]"
+        },
+        {
+          "internalType": "bytes32[]",
+          "name": "updatedRoots",
+          "type": "bytes32[]"
+        },
+        {
+          "internalType": "enum Types.Usage",
+          "name": "batchType",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint256[2][]",
+          "name": "aggregatedSignatures",
+          "type": "uint256[2][]"
+        }
+      ],
+      "name": "submitBatch",
+      "outputs": [],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "tokenRegistry",
+      "outputs": [
+        {
+          "internalType": "contract ITokenRegistry",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
       "type": "function"
     }
   ]

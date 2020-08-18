@@ -3,6 +3,7 @@ package listener
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"sync"
 	"time"
 
@@ -179,6 +180,7 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 		return
 	}
 	s.Logger.Info("Sync status", "LastLogIndexed", syncStatus.LastEthBlockBigInt().String(), "LastBatch", syncStatus.LastBatchRecorded)
+	fmt.Println("header", header.Number.Uint64())
 	if header.Number.Uint64() <= syncStatus.LastEthBlockBigInt().Uint64() {
 		s.Logger.Error("No need to sync more events", "currentEthBlock", header.Number.String(), "lastSyncedBlock", syncStatus.LastEthBlockBigInt().String())
 		return
@@ -192,7 +194,6 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 			ethCmn.HexToAddress(config.GlobalCfg.LoggerAddress),
 		},
 	}
-
 	// get all logs
 	logs, err := s.loadedBazooka.EthClient.FilterLogs(context.Background(), query)
 	if err != nil {

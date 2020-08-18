@@ -9,7 +9,6 @@ type Batch struct {
 	BatchID              uint64
 	StateRoot            string
 	Committer            string
-	TxRoot               string
 	StakeAmount          uint64
 	FinalisesOn          big.Int
 	SubmissionHash       string
@@ -18,14 +17,11 @@ type Batch struct {
 	Status               uint64
 }
 
-func (db *DB) GetAllBatches() (batches []Batch, err error) {
-	errs := db.Instance.Find(&batches).GetErrors()
-	for _, err := range errs {
-		if err != nil {
-			return batches, GenericError("got error while fetch all batches")
-		}
-	}
-	return
+type Commitment struct {
+	Txs                 []Tx
+	UpdatedRoot         ByteArray
+	BatchType           uint64
+	AggregatedSignature []byte
 }
 
 func (db *DB) GetLatestBatch() (batch Batch, err error) {
