@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	"github.com/BOPR/config"
+	"github.com/BOPR/wallet"
 	ethCmn "github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"golang.org/x/crypto/sha3"
 )
@@ -57,18 +57,26 @@ func (tx Tx) GetSignBytes() (signBytes []byte) {
 }
 
 // SignTx returns the transaction data that has to be signed
-func (tx *Tx) SignTx(key string, txBytes [32]byte) (err error) {
+func (tx *Tx) SignTx(key string, pubkey string, txBytes [32]byte) (err error) {
 	privKeyBytes, err := hex.DecodeString(key)
 	if err != nil {
 		fmt.Println("unable to decode string", err)
 		return
 	}
-	privKey := crypto.ToECDSAUnsafe(privKeyBytes)
-	signBytes, err := crypto.Sign(txBytes[:], privKey)
+	pubkeyBytes, err := hex.DecodeString(pubkey)
 	if err != nil {
+		fmt.Println("unable to decode string", err)
 		return
 	}
-	tx.Signature = signBytes
+	wallet, err := wallet.SecretToWallet(privKeyBytes, pubkeyBytes)
+	if err != nil {
+		return err
+	}
+	sig, err := wallet.Sign(txBytes[:])
+	if err != nil {
+		return err
+	}
+	tx.Signature = sig.ToBytes()
 	return nil
 }
 

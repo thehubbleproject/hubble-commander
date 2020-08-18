@@ -54,38 +54,3 @@ func TestVerifyAggregated(t *testing.T) {
 		t.Fatalf("signature is not verified")
 	}
 }
-
-// func TestVerifyAggregatedFail(t *testing.T) {
-// 	hasher := &blswallet.HasherSHA256{}
-// 	signBytes := []byte("0x123222")
-// 	signerSize := 2
-// 	publicKeys := make([]*blswallet.PublicKey, signerSize)
-// 	messages := make([]*blswallet.Message, signerSize)
-// 	signatures := make([]*blswallet.Signature, signerSize)
-// 	for i := 0; i < signerSize; i++ {
-// 		account, err := NewWallet()
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-// 		accountSignature, err := account.Sign(signBytes)
-// 		fmt.Println("signature", hex.EncodeToString(accountSignature.Bytes()))
-// 		signer := blswallet.NewBLSSigner(hasher, account.Account)
-// 		signature, err := signer.Sign(createMessage(signBytes))
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-// 		fmt.Println("signature", hex.EncodeToString(signature.ToBytes()))
-// 		messages[i] = createMessage(signBytes)
-// 		publicKeys[i] = account.Account.Public
-// 		signatures[i] = signature
-// 	}
-// 	verifier := blswallet.NewBLSVerifier(hasher)
-// 	aggregatedSignature := verifier.AggregateSignatures(signatures)
-// 	verified, err := verifier.VerifyAggregate(messages, publicKeys, aggregatedSignature)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	if !verified {
-// 		t.Fatalf("signature is not verified")
-// 	}
-// }

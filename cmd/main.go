@@ -105,13 +105,15 @@ func CreateUsers() *cobra.Command {
 		Short: "Create users to be used in simulations",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var users []User
-			for i := 0; i < 100000; i++ {
+			for i := 0; i < 2; i++ {
 				newWallet, err := wallet.NewWallet()
 				if err != nil {
 					return err
 				}
-				publicKey := hex.EncodeToString(newWallet.Account.Public.ToBytes())
-				newUser := User{PublicKey: publicKey, PrivKey: ""}
+				secretBytes, publicKeyBytes := newWallet.Bytes()
+				publicKey := hex.EncodeToString(publicKeyBytes)
+				secretKey := hex.EncodeToString(secretBytes)
+				newUser := User{PublicKey: publicKey, PrivKey: secretKey}
 				users = append(users, newUser)
 			}
 			bz, err := json.MarshalIndent(UserList{Users: users}, "", " ")

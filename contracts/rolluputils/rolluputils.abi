@@ -845,11 +845,6 @@
           "type": "bytes32"
         },
         {
-          "internalType": "bytes32",
-          "name": "txRoot",
-          "type": "bytes32"
-        },
-        {
           "internalType": "uint8",
           "name": "batchType",
           "type": "uint8"
@@ -2215,9 +2210,9 @@
         {
           "components": [
             {
-              "internalType": "bytes",
+              "internalType": "uint256[4]",
               "name": "pubkey",
-              "type": "bytes"
+              "type": "uint256[4]"
             }
           ],
           "internalType": "struct Types.PDALeaf",

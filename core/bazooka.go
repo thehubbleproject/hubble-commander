@@ -218,7 +218,7 @@ func (b *Bazooka) ProcessTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, f
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
 		fmt.Println("transfer")
-		return b.processTransferTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
+		return b.processAirdropTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
 	case TX_AIRDROP_TYPE:
 		fmt.Println("airdrop")
 		return b.processAirdropTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
@@ -240,7 +240,7 @@ func (b *Bazooka) ProcessTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, f
 func (b *Bazooka) ApplyTx(accountMP AccountMerkleProof, tx Tx) (updatedAccount []byte, updatedRoot ByteArray, err error) {
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
-		return b.applyTransferTx(accountMP, tx)
+		return b.applyAirdropTx(accountMP, tx)
 	case TX_AIRDROP_TYPE:
 		return b.applyAirdropTx(accountMP, tx)
 	case TX_CREATE_ACCOUNT:
@@ -309,7 +309,9 @@ func (b *Bazooka) processTransferTx(balanceTreeRoot, accountTreeRoot ByteArray, 
 	if err != nil {
 		return
 	}
+	fmt.Println("here")
 	typesAccountProofs := rollupcaller.TypesAccountProofs{From: fromMP, To: toMP}
+	fmt.Println("here")
 	updatedRoot, newFromAccount, newToAccount, errCode, IsValidTx, err := b.RollupCaller.ProcessTransferTx(&opts,
 		balanceTreeRoot,
 		accountTreeRoot,
@@ -318,6 +320,7 @@ func (b *Bazooka) processTransferTx(balanceTreeRoot, accountTreeRoot ByteArray, 
 		pdaProof.ToABIVersion(),
 		typesAccountProofs,
 	)
+	fmt.Println("here")
 	if err != nil {
 		return
 	}
@@ -389,31 +392,31 @@ func (b *Bazooka) processBurnExecTx(balanceTreeRoot, accountTreeRoot ByteArray, 
 }
 
 func (b *Bazooka) processBurnConsentTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof AccountMerkleProof, pdaProof PDAMerkleProof) (newBalanceRoot ByteArray, from, to []byte, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	fromMP, err := fromMerkleProof.ToABIVersion()
-	if err != nil {
-		return
-	}
-	updatedRoot, newFromAccount, errCode, IsValidTx, err := b.RollupCaller.ProcessBurnConsentTx(&opts,
-		balanceTreeRoot,
-		accountTreeRoot,
-		tx.Signature,
-		tx.Data,
-		pdaProof.ToABIVersion(),
-		fromMP,
-	)
-	if err != nil {
-		return
-	}
+	// opts := bind.CallOpts{From: config.OperatorAddress}
+	// fromMP, err := fromMerkleProof.ToABIVersion()
+	// if err != nil {
+	// 	return
+	// }
+	// updatedRoot, newFromAccount, errCode, IsValidTx, err := b.RollupCaller.ProcessBurnConsentTx(&opts,
+	// 	balanceTreeRoot,
+	// 	accountTreeRoot,
+	// 	tx.Signature,
+	// 	tx.Data,
+	// 	pdaProof.ToABIVersion(),
+	// 	fromMP,
+	// )
+	// if err != nil {
+	// 	return
+	// }
 
-	b.log.Info("Processed transaction", "IsSuccess", IsValidTx, "newRoot", updatedRoot)
+	// b.log.Info("Processed transaction", "IsSuccess", IsValidTx, "newRoot", updatedRoot)
 
-	if !IsValidTx {
-		b.log.Error("Invalid transaction", "error_code", errCode)
-		return newBalanceRoot, from, to, errors.New("Tx is invalid")
-	}
-	newBalanceRoot = BytesToByteArray(updatedRoot[:])
-	return newBalanceRoot, newFromAccount, toMerkleProof.Account.Data, nil
+	// if !IsValidTx {
+	// 	b.log.Error("Invalid transaction", "error_code", errCode)
+	// 	return newBalanceRoot, from, to, errors.New("Tx is invalid")
+	// }
+	// newBalanceRoot = BytesToByteArray(updatedRoot[:])
+	return newBalanceRoot, fromMerkleProof.Account.Data, toMerkleProof.Account.Data, nil
 }
 
 func (b *Bazooka) applyTransferTx(accountMP AccountMerkleProof, tx Tx) ([]byte, ByteArray, error) {
@@ -731,7 +734,7 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced UserAccount, siblings []Use
 	for _, sibling := range siblings {
 		data, err := HexToByteArray(sibling.Hash)
 		if err != nil {
-			fmt.Println("unable to convert HexToByteArray", err)
+			b.log.Error("unable to convert HexToByteArray", err)
 			return err
 		}
 		siblingData = append(siblingData, data)
@@ -741,7 +744,7 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced UserAccount, siblings []Use
 	accountProof.AccountIP.PathToAccount = StringToBigInt(TBreplaced.Path)
 	userAccount, err := TBreplaced.ToABIAccount()
 	if err != nil {
-		fmt.Println("unable to convert", "error", err)
+		b.log.Error("unable to convert", "error", err)
 		return
 	}
 	accountProof.AccountIP.Account = rollup.TypesUserAccount(userAccount)
@@ -824,18 +827,20 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 		sig2bigInt := big.NewInt(0)
 		sig2bigInt.SetBytes(sig2)
 		aggregatedSigBigInt := [2]*big.Int{sig1bigInt, sig2bigInt}
+		fmt.Println("creeated aggregated sig", aggregatedSigBigInt)
 		aggregatedSig = append(aggregatedSig, aggregatedSigBigInt)
 	}
 
 	b.log.Info("Batch prepared", "totalTransactions", totalTransactionsBeingCommitted)
 	data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitBatch", txs, updatedRoots, uint8(commitments[0].BatchType), aggregatedSig)
 	if err != nil {
+		b.log.Error("Error packing data for submitBatch", "err", err)
 		return err
 	}
 
 	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
 	stakeAmount := big.NewInt(0)
-	stakeAmount.SetString("32000000000000000000", 10)
+	stakeAmount.SetString("3200000000000000000", 10)
 
 	// generate call msg
 	callMsg := ethereum.CallMsg{
@@ -846,18 +851,19 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 
 	auth, err := b.GenerateAuthObj(b.EthClient, callMsg)
 	if err != nil {
+		b.log.Error("Error creating auth object", "error", err)
 		return err
 	}
 
-	lastTxBroadcasted, err := DBInstance.GetLastTransaction()
-	if err != nil {
-		return err
-	}
+	// lastTxBroadcasted, err := DBInstance.GetLastTransaction()
+	// if err != nil {
+	// 	return err
+	// }
 
-	if lastTxBroadcasted.Nonce+1 != auth.Nonce.Uint64() {
-		b.log.Info("Replacing nonce", "nonceEstimated", auth.Nonce.String(), "replacedBy", lastTxBroadcasted.Nonce+1)
-		auth.Nonce = big.NewInt(int64(lastTxBroadcasted.Nonce + 1))
-	}
+	// if lastTxBroadcasted.Nonce+1 != auth.Nonce.Uint64() {
+	// 	b.log.Info("Replacing nonce", "nonceEstimated", auth.Nonce.String(), "replacedBy", lastTxBroadcasted.Nonce+1)
+	// 	auth.Nonce = big.NewInt(int64(lastTxBroadcasted.Nonce + 1))
+	// }
 
 	// latestBatch, err := DBInstance.GetLatestBatch()
 	// if err != nil {
@@ -879,6 +885,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 
 	tx, err := b.RollupContract.SubmitBatch(auth, txs, updatedRoots, uint8(commitments[0].BatchType), aggregatedSig)
 	if err != nil {
+		b.log.Error("Error submitting batch", "err", err)
 		return err
 	}
 	b.log.Info("Sent a new batch!", "TxHash", tx.Hash().String())

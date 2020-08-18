@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/hex"
+	"math/big"
 
 	"github.com/BOPR/contracts/rollupcaller"
 )
@@ -58,10 +59,23 @@ func (m *PDAMerkleProof) ToABIVersion() rollupcaller.TypesPDAMerkleProof {
 	if err != nil {
 		panic(err)
 	}
+	pub1 := pubkey[0:32]
+	pub2 := pubkey[32:64]
+	pub3 := pubkey[64 : 64+32]
+	pub4 := pubkey[64+32 : 64+32+32]
+	sig1bigInt := big.NewInt(0)
+	sig1bigInt.SetBytes(pub1)
+	sig2bigInt := big.NewInt(0)
+	sig2bigInt.SetBytes(pub2)
+	sig3bigInt := big.NewInt(0)
+	sig3bigInt.SetBytes(pub3)
+	sig4bigInt := big.NewInt(0)
+	sig4bigInt.SetBytes(pub4)
+	aggregatedSigBigInt := [4]*big.Int{sig1bigInt, sig2bigInt, sig3bigInt, sig4bigInt}
 	return rollupcaller.TypesPDAMerkleProof{
 		Pda: rollupcaller.TypesPDAInclusionProof{
 			PathToPubkey: StringToBigInt(m.Path),
-			PubkeyLeaf:   rollupcaller.TypesPDALeaf{Pubkey: pubkey},
+			PubkeyLeaf:   rollupcaller.TypesPDALeaf{Pubkey: aggregatedSigBigInt},
 		},
 		Siblings: siblingNodes,
 	}

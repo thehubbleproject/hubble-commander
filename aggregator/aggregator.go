@@ -2,6 +2,7 @@ package aggregator
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -100,6 +101,7 @@ func (a *Aggregator) startAggregating(ctx context.Context, interval time.Duratio
 }
 
 func (a *Aggregator) pickBatch() {
+	defer a.wg.Done()
 	txs, err := a.DB.PopTxs()
 	if err != nil {
 		fmt.Println("Error while popping txs from mempool", "Error", err)
@@ -108,7 +110,6 @@ func (a *Aggregator) pickBatch() {
 }
 
 func (a *Aggregator) ProcessAndSubmitBatch(txs []core.Tx) {
-	defer a.wg.Done()
 	a.Logger.Info("Processing new batch", "numberOfTxs", len(txs))
 
 	// Step-2
@@ -145,6 +146,7 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) (commitments []core.Commitment, er
 
 	start := time.Now()
 	for i, tx := range txs {
+		a.Logger.Info("Processing transaction", "txNumber", i, "of", len(txs))
 		rootAcc, err := a.DB.GetRoot()
 		if err != nil {
 			return commitments, err
@@ -196,12 +198,13 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) (commitments []core.Commitment, er
 		}
 
 		if i%32 == 0 {
-			a.Logger.Info("Preparing a commitment", "NumOfTxs", len(txs), "type", txs[0].Type)
-			txInCommitment := txs[i : len(txs)-1]
+			txInCommitment := txs[i : i+32]
+			a.Logger.Info("Preparing a commitment", "NumOfTxs", len(txInCommitment), "type", txs[0].Type, "totalCommitmentsYet", len(commitments))
 			aggregatedSig, err := aggregateSignatures(txInCommitment)
 			if err != nil {
 				return commitments, err
 			}
+			fmt.Println("Aggregated signature", hex.EncodeToString(aggregatedSig.ToBytes()))
 			commitment := core.Commitment{Txs: txInCommitment, UpdatedRoot: updatedRoot, BatchType: tx.Type, AggregatedSignature: aggregatedSig.ToBytes()}
 			commitments = append(commitments, commitment)
 		}

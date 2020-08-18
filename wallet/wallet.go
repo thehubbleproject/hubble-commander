@@ -16,22 +16,10 @@ type Wallet struct {
 	Account *blswallet.KeyPair
 }
 
-// type Signature struct {
-// 	Signature blswallet.Signature
-// }
-
-// func NewSignature(sig blswallet.Signature) Signature {
-// 	return Signature{Signature: sig}
-// }
-
 func BytesToSignature(b []byte) (blswallet.Signature, error) {
 	sig, err := blswallet.SignatureKeyFromBytes(b)
 	return *sig, err
 }
-
-// func (s *Signature) Bytes() []byte {
-// 	return s.Signature.ToBytes()
-// }
 
 func getBLSSignatures(sigs []blswallet.Signature) (blsSigs []*blswallet.Signature) {
 	for _, sig := range sigs {
@@ -48,21 +36,21 @@ func NewWallet() (wallet Wallet, err error) {
 	return Wallet{Account: newAccount}, nil
 }
 
-// func SecretToPublicKey(secretKey []byte) {
-// 	if len(secretKey) != 32 {
-// 		// error invalid priv key
-// 	}
-// 	// var se [32]byte
-// 	// copy(s[:], secretKey)
-// 	s := big.NewInt(0)
-// 	s.SetBytes(secretKey)
-// 	g2 := bn254.NewG2()
-// 	public := g2.New()
-// 	g2.MulScalar(public, g2.One(), s)
-// 	secret := &blswallet.SecretKey{}
-// 	copy(secret[32-len(s.Bytes()):], s.Bytes()[:])
-// 	keyPair := blswallet.KeyPair{secret: secret, Public: public}
-// }
+func (w *Wallet) Bytes() (secretKey []byte, pubkey []byte) {
+	accountBytes := w.Account.ToBytes()
+	secretBytes := accountBytes[128:]
+	pubkeyBytes := accountBytes[:128]
+	return secretBytes, pubkeyBytes
+}
+
+func SecretToWallet(secretKey []byte, pubkey []byte) (wallet Wallet, err error) {
+	in := append(pubkey, secretKey...)
+	keyPair, err := blswallet.NewKeyPairFromBytes(in)
+	if err != nil {
+		return
+	}
+	return Wallet{Account: keyPair}, nil
+}
 
 func createMessage(data []byte) *blswallet.Message {
 	return &blswallet.Message{Message: data, Domain: []byte{0x00, 0x00, 0x00, 0x00}}

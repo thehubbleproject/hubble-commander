@@ -13,113 +13,258 @@
     },
     {
       "constant": true,
-      "inputs": [],
-      "name": "airdrop",
-      "outputs": [
-        {
-          "internalType": "contract IReddit",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "burnConsent",
-      "outputs": [
-        {
-          "internalType": "contract IReddit",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "burnExecution",
-      "outputs": [
-        {
-          "internalType": "contract IReddit",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "createAccount",
-      "outputs": [
-        {
-          "internalType": "contract IReddit",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "nameRegistry",
-      "outputs": [
-        {
-          "internalType": "contract NameRegistry",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "transfer",
-      "outputs": [
-        {
-          "internalType": "contract IReddit",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
       "inputs": [
         {
-          "internalType": "bytes[]",
-          "name": "publicKeys",
-          "type": "bytes[]"
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "pathToAccount",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "ID",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "tokenType",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "balance",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "nonce",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "burn",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "lastBurn",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct Types.UserAccount",
+                  "name": "account",
+                  "type": "tuple"
+                }
+              ],
+              "internalType": "struct Types.AccountInclusionProof",
+              "name": "accountIP",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "siblings",
+              "type": "bytes32[]"
+            }
+          ],
+          "internalType": "struct Types.AccountMerkleProof",
+          "name": "_merkle_proof",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
         }
       ],
-      "name": "createPublickeys",
+      "name": "ApplyAirdropTx",
       "outputs": [
         {
-          "internalType": "uint256[]",
+          "internalType": "bytes",
           "name": "",
-          "type": "uint256[]"
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "newRoot",
+          "type": "bytes32"
         }
       ],
       "payable": false,
-      "stateMutability": "nonpayable",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "pathToAccount",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "ID",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "tokenType",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "balance",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "nonce",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "burn",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "lastBurn",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct Types.UserAccount",
+                  "name": "account",
+                  "type": "tuple"
+                }
+              ],
+              "internalType": "struct Types.AccountInclusionProof",
+              "name": "accountIP",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "siblings",
+              "type": "bytes32[]"
+            }
+          ],
+          "internalType": "struct Types.AccountMerkleProof",
+          "name": "_merkle_proof",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+        }
+      ],
+      "name": "ApplyBurnConsentTx",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "updatedAccount",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "newRoot",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "pathToAccount",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "ID",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "tokenType",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "balance",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "nonce",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "burn",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "lastBurn",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct Types.UserAccount",
+                  "name": "account",
+                  "type": "tuple"
+                }
+              ],
+              "internalType": "struct Types.AccountInclusionProof",
+              "name": "accountIP",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "siblings",
+              "type": "bytes32[]"
+            }
+          ],
+          "internalType": "struct Types.AccountMerkleProof",
+          "name": "_merkle_proof",
+          "type": "tuple"
+        }
+      ],
+      "name": "ApplyBurnExecutionTx",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "updatedAccount",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "newRoot",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -213,149 +358,6 @@
       "constant": true,
       "inputs": [
         {
-          "internalType": "bytes32",
-          "name": "_balanceRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_accountsRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "txBytes",
-          "type": "bytes"
-        },
-        {
-          "components": [
-            {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "pathToPubkey",
-                  "type": "uint256"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "bytes",
-                      "name": "pubkey",
-                      "type": "bytes"
-                    }
-                  ],
-                  "internalType": "struct Types.PDALeaf",
-                  "name": "pubkey_leaf",
-                  "type": "tuple"
-                }
-              ],
-              "internalType": "struct Types.PDAInclusionProof",
-              "name": "_pda",
-              "type": "tuple"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "siblings",
-              "type": "bytes32[]"
-            }
-          ],
-          "internalType": "struct Types.PDAMerkleProof",
-          "name": "_to_pda_proof",
-          "type": "tuple"
-        },
-        {
-          "components": [
-            {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "pathToAccount",
-                  "type": "uint256"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "ID",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "tokenType",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "balance",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "nonce",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "burn",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "lastBurn",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct Types.UserAccount",
-                  "name": "account",
-                  "type": "tuple"
-                }
-              ],
-              "internalType": "struct Types.AccountInclusionProof",
-              "name": "accountIP",
-              "type": "tuple"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "siblings",
-              "type": "bytes32[]"
-            }
-          ],
-          "internalType": "struct Types.AccountMerkleProof",
-          "name": "to_account_proof",
-          "type": "tuple"
-        }
-      ],
-      "name": "processCreateAccountTx",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "newRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "createdAccountBytes",
-          "type": "bytes"
-        },
-        {
-          "internalType": "enum Types.ErrorCode",
-          "name": "",
-          "type": "uint8"
-        },
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
           "components": [
             {
               "components": [
@@ -422,7 +424,7 @@
           "type": "bytes"
         }
       ],
-      "name": "ApplyAirdropTx",
+      "name": "ApplyTransferTx",
       "outputs": [
         {
           "internalType": "bytes",
@@ -433,6 +435,102 @@
           "internalType": "bytes32",
           "name": "newRoot",
           "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "airdrop",
+      "outputs": [
+        {
+          "internalType": "contract IReddit",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "burnConsent",
+      "outputs": [
+        {
+          "internalType": "contract IReddit",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "burnExecution",
+      "outputs": [
+        {
+          "internalType": "contract IReddit",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "createAccount",
+      "outputs": [
+        {
+          "internalType": "contract IReddit",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "bytes[]",
+          "name": "publicKeys",
+          "type": "bytes[]"
+        }
+      ],
+      "name": "createPublickeys",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "nameRegistry",
+      "outputs": [
+        {
+          "internalType": "contract NameRegistry",
+          "name": "",
+          "type": "address"
         }
       ],
       "payable": false,
@@ -474,9 +572,9 @@
                 {
                   "components": [
                     {
-                      "internalType": "bytes",
+                      "internalType": "uint256[4]",
                       "name": "pubkey",
-                      "type": "bytes"
+                      "type": "uint256[4]"
                     }
                   ],
                   "internalType": "struct Types.PDALeaf",
@@ -664,6 +762,280 @@
       "constant": true,
       "inputs": [
         {
+          "internalType": "bytes32",
+          "name": "initialStateRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "accountsRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "txs",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "components": [
+                    {
+                      "components": [
+                        {
+                          "internalType": "uint256",
+                          "name": "pathToAccount",
+                          "type": "uint256"
+                        },
+                        {
+                          "components": [
+                            {
+                              "internalType": "uint256",
+                              "name": "ID",
+                              "type": "uint256"
+                            },
+                            {
+                              "internalType": "uint256",
+                              "name": "tokenType",
+                              "type": "uint256"
+                            },
+                            {
+                              "internalType": "uint256",
+                              "name": "balance",
+                              "type": "uint256"
+                            },
+                            {
+                              "internalType": "uint256",
+                              "name": "nonce",
+                              "type": "uint256"
+                            },
+                            {
+                              "internalType": "uint256",
+                              "name": "burn",
+                              "type": "uint256"
+                            },
+                            {
+                              "internalType": "uint256",
+                              "name": "lastBurn",
+                              "type": "uint256"
+                            }
+                          ],
+                          "internalType": "struct Types.UserAccount",
+                          "name": "account",
+                          "type": "tuple"
+                        }
+                      ],
+                      "internalType": "struct Types.AccountInclusionProof",
+                      "name": "accountIP",
+                      "type": "tuple"
+                    },
+                    {
+                      "internalType": "bytes32[]",
+                      "name": "siblings",
+                      "type": "bytes32[]"
+                    }
+                  ],
+                  "internalType": "struct Types.AccountMerkleProof",
+                  "name": "from",
+                  "type": "tuple"
+                },
+                {
+                  "components": [
+                    {
+                      "components": [
+                        {
+                          "internalType": "uint256",
+                          "name": "pathToAccount",
+                          "type": "uint256"
+                        },
+                        {
+                          "components": [
+                            {
+                              "internalType": "uint256",
+                              "name": "ID",
+                              "type": "uint256"
+                            },
+                            {
+                              "internalType": "uint256",
+                              "name": "tokenType",
+                              "type": "uint256"
+                            },
+                            {
+                              "internalType": "uint256",
+                              "name": "balance",
+                              "type": "uint256"
+                            },
+                            {
+                              "internalType": "uint256",
+                              "name": "nonce",
+                              "type": "uint256"
+                            },
+                            {
+                              "internalType": "uint256",
+                              "name": "burn",
+                              "type": "uint256"
+                            },
+                            {
+                              "internalType": "uint256",
+                              "name": "lastBurn",
+                              "type": "uint256"
+                            }
+                          ],
+                          "internalType": "struct Types.UserAccount",
+                          "name": "account",
+                          "type": "tuple"
+                        }
+                      ],
+                      "internalType": "struct Types.AccountInclusionProof",
+                      "name": "accountIP",
+                      "type": "tuple"
+                    },
+                    {
+                      "internalType": "bytes32[]",
+                      "name": "siblings",
+                      "type": "bytes32[]"
+                    }
+                  ],
+                  "internalType": "struct Types.AccountMerkleProof",
+                  "name": "to",
+                  "type": "tuple"
+                }
+              ],
+              "internalType": "struct Types.AccountProofs[]",
+              "name": "accountProofs",
+              "type": "tuple[]"
+            },
+            {
+              "components": [
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "pathToPubkey",
+                      "type": "uint256"
+                    },
+                    {
+                      "components": [
+                        {
+                          "internalType": "uint256[4]",
+                          "name": "pubkey",
+                          "type": "uint256[4]"
+                        }
+                      ],
+                      "internalType": "struct Types.PDALeaf",
+                      "name": "pubkey_leaf",
+                      "type": "tuple"
+                    }
+                  ],
+                  "internalType": "struct Types.PDAInclusionProof",
+                  "name": "_pda",
+                  "type": "tuple"
+                },
+                {
+                  "internalType": "bytes32[]",
+                  "name": "siblings",
+                  "type": "bytes32[]"
+                }
+              ],
+              "internalType": "struct Types.PDAMerkleProof[]",
+              "name": "pdaProof",
+              "type": "tuple[]"
+            }
+          ],
+          "internalType": "struct Types.BatchValidationProofs",
+          "name": "batchProofs",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "expectedTxHashCommitment",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "enum Types.Usage",
+          "name": "batchType",
+          "type": "uint8"
+        }
+      ],
+      "name": "processBatch",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_balanceRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_accountsRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "pathToPubkey",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256[4]",
+                      "name": "pubkey",
+                      "type": "uint256[4]"
+                    }
+                  ],
+                  "internalType": "struct Types.PDALeaf",
+                  "name": "pubkey_leaf",
+                  "type": "tuple"
+                }
+              ],
+              "internalType": "struct Types.PDAInclusionProof",
+              "name": "_pda",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "siblings",
+              "type": "bytes32[]"
+            }
+          ],
+          "internalType": "struct Types.PDAMerkleProof",
+          "name": "_from_pda_proof",
+          "type": "tuple"
+        },
+        {
           "components": [
             {
               "components": [
@@ -721,26 +1093,276 @@
             }
           ],
           "internalType": "struct Types.AccountMerkleProof",
-          "name": "_merkle_proof",
+          "name": "_fromAccountProof",
           "type": "tuple"
-        },
-        {
-          "internalType": "bytes",
-          "name": "txBytes",
-          "type": "bytes"
         }
       ],
-      "name": "ApplyTransferTx",
+      "name": "processBurnConsentTx",
       "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        },
         {
           "internalType": "bytes",
           "name": "",
           "type": "bytes"
         },
         {
+          "internalType": "enum Types.ErrorCode",
+          "name": "",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_balanceRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "pathToAccount",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "ID",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "tokenType",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "balance",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "nonce",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "burn",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "lastBurn",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct Types.UserAccount",
+                  "name": "account",
+                  "type": "tuple"
+                }
+              ],
+              "internalType": "struct Types.AccountInclusionProof",
+              "name": "accountIP",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "siblings",
+              "type": "bytes32[]"
+            }
+          ],
+          "internalType": "struct Types.AccountMerkleProof",
+          "name": "_fromAccountProof",
+          "type": "tuple"
+        }
+      ],
+      "name": "processBurnExecutionTx",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        },
+        {
+          "internalType": "enum Types.ErrorCode",
+          "name": "",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_balanceRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_accountsRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "txBytes",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "pathToPubkey",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256[4]",
+                      "name": "pubkey",
+                      "type": "uint256[4]"
+                    }
+                  ],
+                  "internalType": "struct Types.PDALeaf",
+                  "name": "pubkey_leaf",
+                  "type": "tuple"
+                }
+              ],
+              "internalType": "struct Types.PDAInclusionProof",
+              "name": "_pda",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "siblings",
+              "type": "bytes32[]"
+            }
+          ],
+          "internalType": "struct Types.PDAMerkleProof",
+          "name": "_to_pda_proof",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "pathToAccount",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "ID",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "tokenType",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "balance",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "nonce",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "burn",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "lastBurn",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct Types.UserAccount",
+                  "name": "account",
+                  "type": "tuple"
+                }
+              ],
+              "internalType": "struct Types.AccountInclusionProof",
+              "name": "accountIP",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "siblings",
+              "type": "bytes32[]"
+            }
+          ],
+          "internalType": "struct Types.AccountMerkleProof",
+          "name": "to_account_proof",
+          "type": "tuple"
+        }
+      ],
+      "name": "processCreateAccountTx",
+      "outputs": [
+        {
           "internalType": "bytes32",
           "name": "newRoot",
           "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "createdAccountBytes",
+          "type": "bytes"
+        },
+        {
+          "internalType": "enum Types.ErrorCode",
+          "name": "",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
         }
       ],
       "payable": false,
@@ -782,9 +1404,9 @@
                 {
                   "components": [
                     {
-                      "internalType": "bytes",
+                      "internalType": "uint256[4]",
                       "name": "pubkey",
-                      "type": "bytes"
+                      "type": "uint256[4]"
                     }
                   ],
                   "internalType": "struct Types.PDALeaf",
@@ -970,640 +1592,13 @@
     },
     {
       "constant": true,
-      "inputs": [
-        {
-          "components": [
-            {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "pathToAccount",
-                  "type": "uint256"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "ID",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "tokenType",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "balance",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "nonce",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "burn",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "lastBurn",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct Types.UserAccount",
-                  "name": "account",
-                  "type": "tuple"
-                }
-              ],
-              "internalType": "struct Types.AccountInclusionProof",
-              "name": "accountIP",
-              "type": "tuple"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "siblings",
-              "type": "bytes32[]"
-            }
-          ],
-          "internalType": "struct Types.AccountMerkleProof",
-          "name": "_merkle_proof",
-          "type": "tuple"
-        },
-        {
-          "internalType": "bytes",
-          "name": "txBytes",
-          "type": "bytes"
-        }
-      ],
-      "name": "ApplyBurnConsentTx",
+      "inputs": [],
+      "name": "transfer",
       "outputs": [
         {
-          "internalType": "bytes",
-          "name": "updatedAccount",
-          "type": "bytes"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "newRoot",
-          "type": "bytes32"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "_balanceRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_accountsRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "sig",
-          "type": "bytes"
-        },
-        {
-          "internalType": "bytes",
-          "name": "txBytes",
-          "type": "bytes"
-        },
-        {
-          "components": [
-            {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "pathToPubkey",
-                  "type": "uint256"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "bytes",
-                      "name": "pubkey",
-                      "type": "bytes"
-                    }
-                  ],
-                  "internalType": "struct Types.PDALeaf",
-                  "name": "pubkey_leaf",
-                  "type": "tuple"
-                }
-              ],
-              "internalType": "struct Types.PDAInclusionProof",
-              "name": "_pda",
-              "type": "tuple"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "siblings",
-              "type": "bytes32[]"
-            }
-          ],
-          "internalType": "struct Types.PDAMerkleProof",
-          "name": "_from_pda_proof",
-          "type": "tuple"
-        },
-        {
-          "components": [
-            {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "pathToAccount",
-                  "type": "uint256"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "ID",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "tokenType",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "balance",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "nonce",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "burn",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "lastBurn",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct Types.UserAccount",
-                  "name": "account",
-                  "type": "tuple"
-                }
-              ],
-              "internalType": "struct Types.AccountInclusionProof",
-              "name": "accountIP",
-              "type": "tuple"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "siblings",
-              "type": "bytes32[]"
-            }
-          ],
-          "internalType": "struct Types.AccountMerkleProof",
-          "name": "_fromAccountProof",
-          "type": "tuple"
-        }
-      ],
-      "name": "processBurnConsentTx",
-      "outputs": [
-        {
-          "internalType": "bytes32",
+          "internalType": "contract IReddit",
           "name": "",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        },
-        {
-          "internalType": "enum Types.ErrorCode",
-          "name": "",
-          "type": "uint8"
-        },
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "components": [
-            {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "pathToAccount",
-                  "type": "uint256"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "ID",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "tokenType",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "balance",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "nonce",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "burn",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "lastBurn",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct Types.UserAccount",
-                  "name": "account",
-                  "type": "tuple"
-                }
-              ],
-              "internalType": "struct Types.AccountInclusionProof",
-              "name": "accountIP",
-              "type": "tuple"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "siblings",
-              "type": "bytes32[]"
-            }
-          ],
-          "internalType": "struct Types.AccountMerkleProof",
-          "name": "_merkle_proof",
-          "type": "tuple"
-        }
-      ],
-      "name": "ApplyBurnExecutionTx",
-      "outputs": [
-        {
-          "internalType": "bytes",
-          "name": "updatedAccount",
-          "type": "bytes"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "newRoot",
-          "type": "bytes32"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "_balanceRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "txBytes",
-          "type": "bytes"
-        },
-        {
-          "components": [
-            {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "pathToAccount",
-                  "type": "uint256"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "ID",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "tokenType",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "balance",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "nonce",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "burn",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "lastBurn",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct Types.UserAccount",
-                  "name": "account",
-                  "type": "tuple"
-                }
-              ],
-              "internalType": "struct Types.AccountInclusionProof",
-              "name": "accountIP",
-              "type": "tuple"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "siblings",
-              "type": "bytes32[]"
-            }
-          ],
-          "internalType": "struct Types.AccountMerkleProof",
-          "name": "_fromAccountProof",
-          "type": "tuple"
-        }
-      ],
-      "name": "processBurnExecutionTx",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        },
-        {
-          "internalType": "enum Types.ErrorCode",
-          "name": "",
-          "type": "uint8"
-        },
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "initialStateRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "accountsRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "txs",
-          "type": "bytes"
-        },
-        {
-          "components": [
-            {
-              "components": [
-                {
-                  "components": [
-                    {
-                      "components": [
-                        {
-                          "internalType": "uint256",
-                          "name": "pathToAccount",
-                          "type": "uint256"
-                        },
-                        {
-                          "components": [
-                            {
-                              "internalType": "uint256",
-                              "name": "ID",
-                              "type": "uint256"
-                            },
-                            {
-                              "internalType": "uint256",
-                              "name": "tokenType",
-                              "type": "uint256"
-                            },
-                            {
-                              "internalType": "uint256",
-                              "name": "balance",
-                              "type": "uint256"
-                            },
-                            {
-                              "internalType": "uint256",
-                              "name": "nonce",
-                              "type": "uint256"
-                            },
-                            {
-                              "internalType": "uint256",
-                              "name": "burn",
-                              "type": "uint256"
-                            },
-                            {
-                              "internalType": "uint256",
-                              "name": "lastBurn",
-                              "type": "uint256"
-                            }
-                          ],
-                          "internalType": "struct Types.UserAccount",
-                          "name": "account",
-                          "type": "tuple"
-                        }
-                      ],
-                      "internalType": "struct Types.AccountInclusionProof",
-                      "name": "accountIP",
-                      "type": "tuple"
-                    },
-                    {
-                      "internalType": "bytes32[]",
-                      "name": "siblings",
-                      "type": "bytes32[]"
-                    }
-                  ],
-                  "internalType": "struct Types.AccountMerkleProof",
-                  "name": "from",
-                  "type": "tuple"
-                },
-                {
-                  "components": [
-                    {
-                      "components": [
-                        {
-                          "internalType": "uint256",
-                          "name": "pathToAccount",
-                          "type": "uint256"
-                        },
-                        {
-                          "components": [
-                            {
-                              "internalType": "uint256",
-                              "name": "ID",
-                              "type": "uint256"
-                            },
-                            {
-                              "internalType": "uint256",
-                              "name": "tokenType",
-                              "type": "uint256"
-                            },
-                            {
-                              "internalType": "uint256",
-                              "name": "balance",
-                              "type": "uint256"
-                            },
-                            {
-                              "internalType": "uint256",
-                              "name": "nonce",
-                              "type": "uint256"
-                            },
-                            {
-                              "internalType": "uint256",
-                              "name": "burn",
-                              "type": "uint256"
-                            },
-                            {
-                              "internalType": "uint256",
-                              "name": "lastBurn",
-                              "type": "uint256"
-                            }
-                          ],
-                          "internalType": "struct Types.UserAccount",
-                          "name": "account",
-                          "type": "tuple"
-                        }
-                      ],
-                      "internalType": "struct Types.AccountInclusionProof",
-                      "name": "accountIP",
-                      "type": "tuple"
-                    },
-                    {
-                      "internalType": "bytes32[]",
-                      "name": "siblings",
-                      "type": "bytes32[]"
-                    }
-                  ],
-                  "internalType": "struct Types.AccountMerkleProof",
-                  "name": "to",
-                  "type": "tuple"
-                }
-              ],
-              "internalType": "struct Types.AccountProofs[]",
-              "name": "accountProofs",
-              "type": "tuple[]"
-            },
-            {
-              "components": [
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "pathToPubkey",
-                      "type": "uint256"
-                    },
-                    {
-                      "components": [
-                        {
-                          "internalType": "bytes",
-                          "name": "pubkey",
-                          "type": "bytes"
-                        }
-                      ],
-                      "internalType": "struct Types.PDALeaf",
-                      "name": "pubkey_leaf",
-                      "type": "tuple"
-                    }
-                  ],
-                  "internalType": "struct Types.PDAInclusionProof",
-                  "name": "_pda",
-                  "type": "tuple"
-                },
-                {
-                  "internalType": "bytes32[]",
-                  "name": "siblings",
-                  "type": "bytes32[]"
-                }
-              ],
-              "internalType": "struct Types.PDAMerkleProof[]",
-              "name": "pdaProof",
-              "type": "tuple[]"
-            }
-          ],
-          "internalType": "struct Types.BatchValidationProofs",
-          "name": "batchProofs",
-          "type": "tuple"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "expectedTxRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "enum Types.Usage",
-          "name": "batchType",
-          "type": "uint8"
-        }
-      ],
-      "name": "processBatch",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
+          "type": "address"
         }
       ],
       "payable": false,

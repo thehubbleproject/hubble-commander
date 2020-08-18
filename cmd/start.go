@@ -2,19 +2,20 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
 	"os"
 	"os/signal"
 
+	agg "github.com/BOPR/aggregator"
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 
-	agg "github.com/BOPR/aggregator"
 	"github.com/BOPR/core"
-	"github.com/BOPR/listener"
 	"github.com/BOPR/rest"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -46,7 +47,7 @@ func StartCmd() *cobra.Command {
 			aggregator := agg.NewAggregator()
 
 			// create the syncer service
-			syncer := listener.NewSyncer()
+			// syncer := listener.NewSyncer()
 
 			// if no row is found then we are starting the node for the first time
 			syncStatus, err := core.DBInstance.GetSyncStatus()
@@ -73,7 +74,7 @@ func StartCmd() *cobra.Command {
 				// sig is a ^C, handle it
 				for range catchSignal {
 					aggregator.Stop()
-					syncer.Stop()
+					// syncer.Stop()
 					core.DBInstance.Close()
 
 					// exit
@@ -86,9 +87,9 @@ func StartCmd() *cobra.Command {
 			r.HandleFunc("/account", rest.GetAccountHandler).Methods("GET")
 			http.Handle("/", r)
 
-			if err := syncer.Start(); err != nil {
-				log.Fatalln("Unable to start syncer", "error")
-			}
+			// if err := syncer.Start(); err != nil {
+			// 	log.Fatalln("Unable to start syncer", "error")
+			// }
 
 			if err := aggregator.Start(); err != nil {
 				log.Fatalln("Unable to start aggregator", "error", err)
@@ -182,6 +183,8 @@ func LoadGenesisData(genesis config.Genesis) {
 		allPDALeaf = append(allPDALeaf, *newPDA)
 		diff--
 	}
+	allAccounts = AlterRedditAccounts(allAccounts)
+	allPDALeaf = AlterRedditPubkeys(allPDALeaf)
 
 	// load accounts
 	err = core.DBInstance.InitBalancesTree(genesis.MaxTreeDepth, allAccounts)
@@ -209,4 +212,82 @@ func LoadGenesisData(genesis config.Genesis) {
 		return
 	}
 	core.DBInstance.LogBatch(nonce-1, core.TX_GENESIS, "", []byte(""))
+}
+
+type userList struct {
+	Users []user `json:"users"`
+}
+
+type user struct {
+	Address   string `json:"address"`
+	PublicKey string `json:"pubkey"`
+	PrivKey   string `json:"privkey"`
+}
+
+func ReadUsers() (reddit []user, err error) {
+	var userListInstance userList
+	users, err := os.Open("users.json")
+	if err != nil {
+		return
+	}
+	defer users.Close()
+
+	genBytes, err := ioutil.ReadAll(users)
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(genBytes, &userListInstance)
+	if err != nil {
+		panic(err)
+	}
+	return userListInstance.Users, nil
+}
+
+func AlterRedditAccounts(allAccounts []core.UserAccount) (updatedAccounts []core.UserAccount) {
+	account2 := allAccounts[2]
+	account3 := allAccounts[3]
+	bazooka, err := core.NewPreLoadedBazooka()
+	if err != nil {
+		panic(err)
+	}
+
+	account2Data, err := bazooka.EncodeAccount(int64(account2.AccountID), 2000000, 0, 1, 0, 0)
+	if err != nil {
+		panic(err)
+	}
+	account2.Data = account2Data
+	account2.AccountID = 2
+	account2.CreateAccountHash()
+
+	account3Data, err := bazooka.EncodeAccount(int64(account3.AccountID), 1000000, 0, 1, 0, 0)
+	if err != nil {
+		panic(err)
+	}
+	account3.Data = account3Data
+	account3.AccountID = 3
+	account3.CreateAccountHash()
+
+	allAccounts[2] = account2
+	allAccounts[3] = account3
+
+	return allAccounts
+}
+
+func AlterRedditPubkeys(allAccounts []core.PDA) (updatedAccounts []core.PDA) {
+	users, err := ReadUsers()
+	if err != nil {
+		panic(err)
+	}
+	account2 := allAccounts[2]
+	account3 := allAccounts[3]
+	account2.PublicKey = users[0].PublicKey
+	account2.AccountID = 2
+	account2.PopulateHash()
+	account3.PublicKey = users[1].PublicKey
+	account3.AccountID = 3
+	account3.PopulateHash()
+	allAccounts[2] = account2
+	allAccounts[3] = account3
+	return allAccounts
 }
