@@ -2,7 +2,6 @@ package aggregator
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -12,6 +11,7 @@ import (
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/core"
+	"github.com/BOPR/router"
 	"github.com/BOPR/wallet"
 	"github.com/kilic/bn254/bls"
 )
@@ -36,6 +36,9 @@ type Aggregator struct {
 
 	// DB instance
 	DB core.DB
+
+	// Router for all transactions
+	router *router.Router
 
 	// header listener subscription
 	cancelAggregating context.CancelFunc
@@ -134,69 +137,21 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) (commitments []core.Commitment, er
 	if len(txs) == 0 {
 		return commitments, errors.New("no tx to process,aborting")
 	}
-
 	var redditPDAProof core.PDAMerkleProof
 	if (txs[0]).Type == core.TX_AIRDROP_TYPE {
 		core.VerifierWaitGroup.Add(1)
-		err = core.DBInstance.FetchPDAProofWithID(txs[0].From, &redditPDAProof)
+		err = core.DBInstance.FetchPDAProofWithID(txs[0].Accounts[0], &redditPDAProof)
 		if err != nil {
 			return
 		}
 	}
-
 	start := time.Now()
 	for i, tx := range txs {
 		a.Logger.Info("Processing transaction", "txNumber", i, "of", len(txs))
-		rootAcc, err := a.DB.GetRoot()
-		if err != nil {
-			return commitments, err
+		updatedRoot, _, errWhileProcessing := a.router.ProcessTx(tx)
+		if errWhileProcessing != nil {
+			return
 		}
-		a.Logger.Debug("Latest root", "root", rootAcc.Hash)
-		currentRoot, err := core.HexToByteArray(rootAcc.Hash)
-		if err != nil {
-			return commitments, err
-		}
-		pdaRoot, err := a.DB.GetPDARoot()
-		if err != nil {
-			return commitments, err
-		}
-		currentAccountTreeRoot := pdaRoot.HashToByteArray()
-		fromAccProof, toAccProof, PDAproof, txDBConn, err := tx.GetVerificationData()
-		if err != nil {
-			a.Logger.Error("Unable to create verification data", "error", err)
-			return commitments, err
-		}
-		if (txs[0]).Type == core.TX_AIRDROP_TYPE {
-			core.VerifierWaitGroup.Wait()
-			PDAproof = redditPDAProof
-		}
-		updatedRoot, _, updatedTo, err := a.LoadedBazooka.ProcessTx(currentRoot, currentAccountTreeRoot, tx, fromAccProof, toAccProof, PDAproof)
-		if err != nil {
-			a.Logger.Error("Error processing tx", "tx", tx.String(), "error", err)
-			if txDBConn.Instance != nil {
-				txDBConn.Instance.Rollback()
-				txDBConn.Close()
-			}
-			return commitments, err
-		} else {
-			if txDBConn.Instance != nil {
-				txDBConn.Instance.Commit()
-				txDBConn.Close()
-			}
-		}
-		switch txType := tx.Type; txType {
-		case core.TX_TRANSFER_TYPE:
-			tx.ApplySingleTx(toAccProof.Account, updatedTo)
-		case core.TX_AIRDROP_TYPE:
-			tx.ApplySingleTx(toAccProof.Account, updatedTo)
-		case core.TX_CREATE_ACCOUNT:
-			tx.ApplySingleTx(toAccProof.Account, updatedTo)
-		case core.TX_BURN_CONSENT:
-			fmt.Println("burnconsent")
-		case core.TX_BURN_EXEC:
-			fmt.Println("burn exec")
-		}
-
 		if i%32 == 0 {
 			txInCommitment := txs[i : i+32]
 			a.Logger.Info("Preparing a commitment", "NumOfTxs", len(txInCommitment), "type", txs[0].Type, "totalCommitmentsYet", len(commitments))
@@ -204,11 +159,10 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) (commitments []core.Commitment, er
 			if err != nil {
 				return commitments, err
 			}
-			fmt.Println("Aggregated signature", hex.EncodeToString(aggregatedSig.ToBytes()))
 			commitment := core.Commitment{Txs: txInCommitment, UpdatedRoot: updatedRoot, BatchType: tx.Type, AggregatedSignature: aggregatedSig.ToBytes()}
 			commitments = append(commitments, commitment)
 		}
-		currentRoot = updatedRoot
+		a.router.ApplyTx(tx)
 	}
 	elapsed := time.Since(start)
 	log.Printf("Process batch took %s", elapsed)

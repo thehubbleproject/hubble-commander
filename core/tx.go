@@ -17,20 +17,18 @@ var VerifierWaitGroup sync.WaitGroup
 // Tx represets the transaction on hubble
 type Tx struct {
 	DBModel
-	To        uint64 `json:"to"`
-	From      uint64 `json:"from"`
-	Data      []byte `json:"data"`
-	Signature []byte `json:"sig" gorm:"null"`
-	TxHash    string `json:"hash" gorm:"not null"`
-	Status    uint64 `json:"status"`
-	Type      uint64 `json:"type" gorm:"not null"`
+	Accounts  []uint64 `json:"accounts" gorm:"not null"`
+	Data      []byte   `json:"data"`
+	Signature []byte   `json:"sig" gorm:"null"`
+	TxHash    string   `json:"hash" gorm:"not null"`
+	Status    uint64   `json:"status"`
+	Type      uint64   `json:"type" gorm:"not null"`
 }
 
 // NewTx creates a new transaction
-func NewTx(from, to, txType uint64, sig, message []byte) Tx {
+func NewTx(accounts []uint64, txType uint64, sig, message []byte) Tx {
 	return Tx{
-		From:      from,
-		To:        to,
+		Accounts:  accounts,
 		Data:      message,
 		Signature: sig,
 		Type:      txType,
@@ -38,10 +36,9 @@ func NewTx(from, to, txType uint64, sig, message []byte) Tx {
 }
 
 // NewPendingTx creates a new transaction
-func NewPendingTx(from, to, txType uint64, sig, message []byte) Tx {
+func NewPendingTx(accounts []uint64, txType uint64, sig, message []byte) Tx {
 	tx := Tx{
-		To:        to,
-		From:      from,
+		Accounts:  accounts,
 		Data:      message,
 		Signature: sig,
 		Status:    TX_STATUS_PENDING,
