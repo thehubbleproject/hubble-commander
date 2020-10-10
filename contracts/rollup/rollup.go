@@ -26,24 +26,6 @@ var (
 	_ = event.NewSubscription
 )
 
-// TypesAccountInclusionProof is an auto generated low-level Go binding around an user-defined struct.
-type TypesAccountInclusionProof struct {
-	PathToAccount *big.Int
-	Account       TypesUserAccount
-}
-
-// TypesAccountMerkleProof is an auto generated low-level Go binding around an user-defined struct.
-type TypesAccountMerkleProof struct {
-	AccountIP TypesAccountInclusionProof
-	Siblings  [][32]byte
-}
-
-// TypesAccountProofs is an auto generated low-level Go binding around an user-defined struct.
-type TypesAccountProofs struct {
-	From TypesAccountMerkleProof
-	To   TypesAccountMerkleProof
-}
-
 // TypesBatch is an auto generated low-level Go binding around an user-defined struct.
 type TypesBatch struct {
 	CommitmentRoot [32]byte
@@ -53,56 +35,96 @@ type TypesBatch struct {
 	Withdrawn      bool
 }
 
-// TypesBatchValidationProofs is an auto generated low-level Go binding around an user-defined struct.
-type TypesBatchValidationProofs struct {
-	AccountProofs []TypesAccountProofs
-	PdaProof      []TypesPDAMerkleProof
-}
-
 // TypesCommitment is an auto generated low-level Go binding around an user-defined struct.
 type TypesCommitment struct {
-	StateRoot        [32]byte
-	AccountRoot      [32]byte
-	TxHashCommitment [32]byte
-	BatchType        uint8
+	StateRoot [32]byte
+	BodyRoot  [32]byte
 }
 
 // TypesCommitmentInclusionProof is an auto generated low-level Go binding around an user-defined struct.
 type TypesCommitmentInclusionProof struct {
 	Commitment       TypesCommitment
 	PathToCommitment *big.Int
-	Siblings         [][32]byte
+	Witness          [][32]byte
 }
 
-// TypesPDAInclusionProof is an auto generated low-level Go binding around an user-defined struct.
-type TypesPDAInclusionProof struct {
-	PathToPubkey *big.Int
-	PubkeyLeaf   TypesPDALeaf
+// TypesMMCommitmentInclusionProof is an auto generated low-level Go binding around an user-defined struct.
+type TypesMMCommitmentInclusionProof struct {
+	Commitment       TypesMassMigrationCommitment
+	PathToCommitment *big.Int
+	Witness          [][32]byte
 }
 
-// TypesPDALeaf is an auto generated low-level Go binding around an user-defined struct.
-type TypesPDALeaf struct {
-	Pubkey [4]*big.Int
+// TypesMassMigrationBody is an auto generated low-level Go binding around an user-defined struct.
+type TypesMassMigrationBody struct {
+	AccountRoot   [32]byte
+	Signature     [2]*big.Int
+	TargetSpokeID *big.Int
+	WithdrawRoot  [32]byte
+	TokenID       *big.Int
+	Amount        *big.Int
+	Txs           []byte
 }
 
-// TypesPDAMerkleProof is an auto generated low-level Go binding around an user-defined struct.
-type TypesPDAMerkleProof struct {
-	Pda      TypesPDAInclusionProof
-	Siblings [][32]byte
+// TypesMassMigrationCommitment is an auto generated low-level Go binding around an user-defined struct.
+type TypesMassMigrationCommitment struct {
+	StateRoot [32]byte
+	Body      TypesMassMigrationBody
 }
 
-// TypesUserAccount is an auto generated low-level Go binding around an user-defined struct.
-type TypesUserAccount struct {
-	ID        *big.Int
-	TokenType *big.Int
-	Balance   *big.Int
-	Nonce     *big.Int
-	Burn      *big.Int
-	LastBurn  *big.Int
+// TypesSignatureProof is an auto generated low-level Go binding around an user-defined struct.
+type TypesSignatureProof struct {
+	States          []TypesUserState
+	StateWitnesses  [][][32]byte
+	Pubkeys         [][4]*big.Int
+	PubkeyWitnesses [][][32]byte
+}
+
+// TypesStateMerkleProof is an auto generated low-level Go binding around an user-defined struct.
+type TypesStateMerkleProof struct {
+	State   TypesUserState
+	Witness [][32]byte
+}
+
+// TypesStateMerkleProofWithPath is an auto generated low-level Go binding around an user-defined struct.
+type TypesStateMerkleProofWithPath struct {
+	State   TypesUserState
+	Path    *big.Int
+	Witness [][32]byte
+}
+
+// TypesTransferBody is an auto generated low-level Go binding around an user-defined struct.
+type TypesTransferBody struct {
+	AccountRoot [32]byte
+	Signature   [2]*big.Int
+	TokenType   *big.Int
+	FeeReceiver *big.Int
+	Txs         []byte
+}
+
+// TypesTransferCommitment is an auto generated low-level Go binding around an user-defined struct.
+type TypesTransferCommitment struct {
+	StateRoot [32]byte
+	Body      TypesTransferBody
+}
+
+// TypesTransferCommitmentInclusionProof is an auto generated low-level Go binding around an user-defined struct.
+type TypesTransferCommitmentInclusionProof struct {
+	Commitment       TypesTransferCommitment
+	PathToCommitment *big.Int
+	Witness          [][32]byte
+}
+
+// TypesUserState is an auto generated low-level Go binding around an user-defined struct.
+type TypesUserState struct {
+	PubkeyIndex *big.Int
+	TokenType   *big.Int
+	Balance     *big.Int
+	Nonce       *big.Int
 }
 
 // RollupABI is the input ABI used to generate the binding from.
-const RollupABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_registryAddr\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"genesisStateRoot\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"constant\":false,\"inputs\":[],\"name\":\"SlashAndRollback\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"batch_id\",\"type\":\"uint256\"}],\"name\":\"WithdrawStake\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"ZERO_BYTES32\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"accountRegistry\",\"outputs\":[{\"internalType\":\"contractBLSAccountRegistry\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"batches\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"commitmentRoot\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"committer\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"finalisesOn\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"depositRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"withdrawn\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"depositManager\",\"outputs\":[{\"internalType\":\"contractDepositManager\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_batch_id\",\"type\":\"uint256\"},{\"components\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"accountRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"txHashCommitment\",\"type\":\"bytes32\"},{\"internalType\":\"enumTypes.Usage\",\"name\":\"batchType\",\"type\":\"uint8\"}],\"internalType\":\"structTypes.Commitment\",\"name\":\"commitment\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"pathToCommitment\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"siblings\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.CommitmentInclusionProof\",\"name\":\"commitmentMP\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"txs\",\"type\":\"bytes\"},{\"components\":[{\"components\":[{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pathToAccount\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"account\",\"type\":\"tuple\"}],\"internalType\":\"structTypes.AccountInclusionProof\",\"name\":\"accountIP\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[]\",\"name\":\"siblings\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.AccountMerkleProof\",\"name\":\"from\",\"type\":\"tuple\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pathToAccount\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"account\",\"type\":\"tuple\"}],\"internalType\":\"structTypes.AccountInclusionProof\",\"name\":\"accountIP\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[]\",\"name\":\"siblings\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.AccountMerkleProof\",\"name\":\"to\",\"type\":\"tuple\"}],\"internalType\":\"structTypes.AccountProofs[]\",\"name\":\"accountProofs\",\"type\":\"tuple[]\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pathToPubkey\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256[4]\",\"name\":\"pubkey\",\"type\":\"uint256[4]\"}],\"internalType\":\"structTypes.PDALeaf\",\"name\":\"pubkey_leaf\",\"type\":\"tuple\"}],\"internalType\":\"structTypes.PDAInclusionProof\",\"name\":\"_pda\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[]\",\"name\":\"siblings\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.PDAMerkleProof[]\",\"name\":\"pdaProof\",\"type\":\"tuple[]\"}],\"internalType\":\"structTypes.BatchValidationProofs\",\"name\":\"batchProofs\",\"type\":\"tuple\"}],\"name\":\"disputeBatch\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_subTreeDepth\",\"type\":\"uint256\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pathToAccount\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"ID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastBurn\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserAccount\",\"name\":\"account\",\"type\":\"tuple\"}],\"internalType\":\"structTypes.AccountInclusionProof\",\"name\":\"accountIP\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[]\",\"name\":\"siblings\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.AccountMerkleProof\",\"name\":\"_zero_account_mp\",\"type\":\"tuple\"}],\"name\":\"finaliseDepositsAndSubmitBatch\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_batch_id\",\"type\":\"uint256\"}],\"name\":\"getBatch\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"commitmentRoot\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"committer\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"finalisesOn\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"depositRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"withdrawn\",\"type\":\"bool\"}],\"internalType\":\"structTypes.Batch\",\"name\":\"batch\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getLatestBalanceTreeRoot\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"governance\",\"outputs\":[{\"internalType\":\"contractGovernance\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"invalidBatchMarker\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"logger\",\"outputs\":[{\"internalType\":\"contractLogger\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"merkleUtils\",\"outputs\":[{\"internalType\":\"contractMerkleTreeUtils\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"nameRegistry\",\"outputs\":[{\"internalType\":\"contractNameRegistry\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"numOfBatchesSubmitted\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"rollupReddit\",\"outputs\":[{\"internalType\":\"contractIRollupReddit\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"txs\",\"type\":\"bytes[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"updatedRoots\",\"type\":\"bytes32[]\"},{\"internalType\":\"enumTypes.Usage\",\"name\":\"batchType\",\"type\":\"uint8\"},{\"internalType\":\"uint256[2][]\",\"name\":\"aggregatedSignatures\",\"type\":\"uint256[2][]\"}],\"name\":\"submitBatch\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"tokenRegistry\",\"outputs\":[{\"internalType\":\"contractITokenRegistry\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
+const RollupABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_registryAddr\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"genesisStateRoot\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"constant\":true,\"inputs\":[],\"name\":\"APP_ID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"SlashAndRollback\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"batch_id\",\"type\":\"uint256\"}],\"name\":\"WithdrawStake\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"ZERO_BYTES32\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"accountRegistry\",\"outputs\":[{\"internalType\":\"contractBLSAccountRegistry\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"batches\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"commitmentRoot\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"committer\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"finalisesOn\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"depositRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"withdrawn\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"depositManager\",\"outputs\":[{\"internalType\":\"contractDepositManager\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_batch_id\",\"type\":\"uint256\"},{\"components\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"bodyRoot\",\"type\":\"bytes32\"}],\"internalType\":\"structTypes.Commitment\",\"name\":\"commitment\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"pathToCommitment\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.CommitmentInclusionProof\",\"name\":\"previous\",\"type\":\"tuple\"},{\"components\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"accountRoot\",\"type\":\"bytes32\"},{\"internalType\":\"uint256[2]\",\"name\":\"signature\",\"type\":\"uint256[2]\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"feeReceiver\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"txs\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.TransferBody\",\"name\":\"body\",\"type\":\"tuple\"}],\"internalType\":\"structTypes.TransferCommitment\",\"name\":\"commitment\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"pathToCommitment\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.TransferCommitmentInclusionProof\",\"name\":\"target\",\"type\":\"tuple\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.StateMerkleProof[]\",\"name\":\"proofs\",\"type\":\"tuple[]\"}],\"name\":\"disputeBatch\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_batch_id\",\"type\":\"uint256\"},{\"components\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"bodyRoot\",\"type\":\"bytes32\"}],\"internalType\":\"structTypes.Commitment\",\"name\":\"commitment\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"pathToCommitment\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.CommitmentInclusionProof\",\"name\":\"previous\",\"type\":\"tuple\"},{\"components\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"accountRoot\",\"type\":\"bytes32\"},{\"internalType\":\"uint256[2]\",\"name\":\"signature\",\"type\":\"uint256[2]\"},{\"internalType\":\"uint256\",\"name\":\"targetSpokeID\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"withdrawRoot\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"tokenID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"txs\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.MassMigrationBody\",\"name\":\"body\",\"type\":\"tuple\"}],\"internalType\":\"structTypes.MassMigrationCommitment\",\"name\":\"commitment\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"pathToCommitment\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.MMCommitmentInclusionProof\",\"name\":\"target\",\"type\":\"tuple\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.StateMerkleProof[]\",\"name\":\"proofs\",\"type\":\"tuple[]\"}],\"name\":\"disputeMMBatch\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"batchID\",\"type\":\"uint256\"},{\"components\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"accountRoot\",\"type\":\"bytes32\"},{\"internalType\":\"uint256[2]\",\"name\":\"signature\",\"type\":\"uint256[2]\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"feeReceiver\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"txs\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.TransferBody\",\"name\":\"body\",\"type\":\"tuple\"}],\"internalType\":\"structTypes.TransferCommitment\",\"name\":\"commitment\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"pathToCommitment\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.TransferCommitmentInclusionProof\",\"name\":\"target\",\"type\":\"tuple\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState[]\",\"name\":\"states\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"stateWitnesses\",\"type\":\"bytes32[][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"pubkeys\",\"type\":\"uint256[4][]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"pubkeyWitnesses\",\"type\":\"bytes32[][]\"}],\"internalType\":\"structTypes.SignatureProof\",\"name\":\"signatureProof\",\"type\":\"tuple\"}],\"name\":\"disputeSignature\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"batchID\",\"type\":\"uint256\"},{\"components\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"accountRoot\",\"type\":\"bytes32\"},{\"internalType\":\"uint256[2]\",\"name\":\"signature\",\"type\":\"uint256[2]\"},{\"internalType\":\"uint256\",\"name\":\"targetSpokeID\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"withdrawRoot\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"tokenID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"txs\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.MassMigrationBody\",\"name\":\"body\",\"type\":\"tuple\"}],\"internalType\":\"structTypes.MassMigrationCommitment\",\"name\":\"commitment\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"pathToCommitment\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.MMCommitmentInclusionProof\",\"name\":\"target\",\"type\":\"tuple\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState[]\",\"name\":\"states\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"stateWitnesses\",\"type\":\"bytes32[][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"pubkeys\",\"type\":\"uint256[4][]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"pubkeyWitnesses\",\"type\":\"bytes32[][]\"}],\"internalType\":\"structTypes.SignatureProof\",\"name\":\"signatureProof\",\"type\":\"tuple\"}],\"name\":\"disputeSignatureinMM\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_subTreeDepth\",\"type\":\"uint256\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"path\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.StateMerkleProofWithPath\",\"name\":\"zero\",\"type\":\"tuple\"}],\"name\":\"finaliseDepositsAndSubmitBatch\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_batch_id\",\"type\":\"uint256\"}],\"name\":\"getBatch\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"commitmentRoot\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"committer\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"finalisesOn\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"depositRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"withdrawn\",\"type\":\"bool\"}],\"internalType\":\"structTypes.Batch\",\"name\":\"batch\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getLatestBalanceTreeRoot\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"governance\",\"outputs\":[{\"internalType\":\"contractGovernance\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"invalidBatchMarker\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"logger\",\"outputs\":[{\"internalType\":\"contractLogger\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"massMigration\",\"outputs\":[{\"internalType\":\"contractMassMigration\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"merkleUtils\",\"outputs\":[{\"internalType\":\"contractMerkleTreeUtils\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"nameRegistry\",\"outputs\":[{\"internalType\":\"contractNameRegistry\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"numOfBatchesSubmitted\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"stateRoots\",\"type\":\"bytes32[]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[]\",\"name\":\"tokenTypes\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[]\",\"name\":\"feeReceivers\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes[]\",\"name\":\"txss\",\"type\":\"bytes[]\"}],\"name\":\"submitCreate2TransferBatch\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"stateRoots\",\"type\":\"bytes32[]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[3][]\",\"name\":\"meta\",\"type\":\"uint256[3][]\"},{\"internalType\":\"bytes32[]\",\"name\":\"withdrawRoots\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes[]\",\"name\":\"txss\",\"type\":\"bytes[]\"}],\"name\":\"submitMassMigrationBatch\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"stateRoots\",\"type\":\"bytes32[]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[]\",\"name\":\"tokenTypes\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[]\",\"name\":\"feeReceivers\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes[]\",\"name\":\"txss\",\"type\":\"bytes[]\"}],\"name\":\"submitTransferBatch\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"tokenRegistry\",\"outputs\":[{\"internalType\":\"contractITokenRegistry\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"contractTransfer\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Rollup is an auto generated Go binding around an Ethereum contract.
 type Rollup struct {
@@ -244,6 +266,32 @@ func (_Rollup *RollupTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Tr
 // Transact invokes the (paid) contract method with params as input values.
 func (_Rollup *RollupTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _Rollup.Contract.contract.Transact(opts, method, params...)
+}
+
+// APPID is a free data retrieval call binding the contract method 0xc187bbc1.
+//
+// Solidity: function APP_ID() view returns(bytes32)
+func (_Rollup *RollupCaller) APPID(opts *bind.CallOpts) ([32]byte, error) {
+	var (
+		ret0 = new([32]byte)
+	)
+	out := ret0
+	err := _Rollup.contract.Call(opts, out, "APP_ID")
+	return *ret0, err
+}
+
+// APPID is a free data retrieval call binding the contract method 0xc187bbc1.
+//
+// Solidity: function APP_ID() view returns(bytes32)
+func (_Rollup *RollupSession) APPID() ([32]byte, error) {
+	return _Rollup.Contract.APPID(&_Rollup.CallOpts)
+}
+
+// APPID is a free data retrieval call binding the contract method 0xc187bbc1.
+//
+// Solidity: function APP_ID() view returns(bytes32)
+func (_Rollup *RollupCallerSession) APPID() ([32]byte, error) {
+	return _Rollup.Contract.APPID(&_Rollup.CallOpts)
 }
 
 // ZEROBYTES32 is a free data retrieval call binding the contract method 0x069321b0.
@@ -502,6 +550,32 @@ func (_Rollup *RollupCallerSession) Logger() (common.Address, error) {
 	return _Rollup.Contract.Logger(&_Rollup.CallOpts)
 }
 
+// MassMigration is a free data retrieval call binding the contract method 0x0ed75b9c.
+//
+// Solidity: function massMigration() view returns(address)
+func (_Rollup *RollupCaller) MassMigration(opts *bind.CallOpts) (common.Address, error) {
+	var (
+		ret0 = new(common.Address)
+	)
+	out := ret0
+	err := _Rollup.contract.Call(opts, out, "massMigration")
+	return *ret0, err
+}
+
+// MassMigration is a free data retrieval call binding the contract method 0x0ed75b9c.
+//
+// Solidity: function massMigration() view returns(address)
+func (_Rollup *RollupSession) MassMigration() (common.Address, error) {
+	return _Rollup.Contract.MassMigration(&_Rollup.CallOpts)
+}
+
+// MassMigration is a free data retrieval call binding the contract method 0x0ed75b9c.
+//
+// Solidity: function massMigration() view returns(address)
+func (_Rollup *RollupCallerSession) MassMigration() (common.Address, error) {
+	return _Rollup.Contract.MassMigration(&_Rollup.CallOpts)
+}
+
 // MerkleUtils is a free data retrieval call binding the contract method 0x47b0f08e.
 //
 // Solidity: function merkleUtils() view returns(address)
@@ -580,32 +654,6 @@ func (_Rollup *RollupCallerSession) NumOfBatchesSubmitted() (*big.Int, error) {
 	return _Rollup.Contract.NumOfBatchesSubmitted(&_Rollup.CallOpts)
 }
 
-// RollupReddit is a free data retrieval call binding the contract method 0x49432a62.
-//
-// Solidity: function rollupReddit() view returns(address)
-func (_Rollup *RollupCaller) RollupReddit(opts *bind.CallOpts) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _Rollup.contract.Call(opts, out, "rollupReddit")
-	return *ret0, err
-}
-
-// RollupReddit is a free data retrieval call binding the contract method 0x49432a62.
-//
-// Solidity: function rollupReddit() view returns(address)
-func (_Rollup *RollupSession) RollupReddit() (common.Address, error) {
-	return _Rollup.Contract.RollupReddit(&_Rollup.CallOpts)
-}
-
-// RollupReddit is a free data retrieval call binding the contract method 0x49432a62.
-//
-// Solidity: function rollupReddit() view returns(address)
-func (_Rollup *RollupCallerSession) RollupReddit() (common.Address, error) {
-	return _Rollup.Contract.RollupReddit(&_Rollup.CallOpts)
-}
-
 // TokenRegistry is a free data retrieval call binding the contract method 0x9d23c4c7.
 //
 // Solidity: function tokenRegistry() view returns(address)
@@ -630,6 +678,32 @@ func (_Rollup *RollupSession) TokenRegistry() (common.Address, error) {
 // Solidity: function tokenRegistry() view returns(address)
 func (_Rollup *RollupCallerSession) TokenRegistry() (common.Address, error) {
 	return _Rollup.Contract.TokenRegistry(&_Rollup.CallOpts)
+}
+
+// Transfer is a free data retrieval call binding the contract method 0x8a4068dd.
+//
+// Solidity: function transfer() view returns(address)
+func (_Rollup *RollupCaller) Transfer(opts *bind.CallOpts) (common.Address, error) {
+	var (
+		ret0 = new(common.Address)
+	)
+	out := ret0
+	err := _Rollup.contract.Call(opts, out, "transfer")
+	return *ret0, err
+}
+
+// Transfer is a free data retrieval call binding the contract method 0x8a4068dd.
+//
+// Solidity: function transfer() view returns(address)
+func (_Rollup *RollupSession) Transfer() (common.Address, error) {
+	return _Rollup.Contract.Transfer(&_Rollup.CallOpts)
+}
+
+// Transfer is a free data retrieval call binding the contract method 0x8a4068dd.
+//
+// Solidity: function transfer() view returns(address)
+func (_Rollup *RollupCallerSession) Transfer() (common.Address, error) {
+	return _Rollup.Contract.Transfer(&_Rollup.CallOpts)
 }
 
 // SlashAndRollback is a paid mutator transaction binding the contract method 0xdf070983.
@@ -674,65 +748,170 @@ func (_Rollup *RollupTransactorSession) WithdrawStake(batch_id *big.Int) (*types
 	return _Rollup.Contract.WithdrawStake(&_Rollup.TransactOpts, batch_id)
 }
 
-// DisputeBatch is a paid mutator transaction binding the contract method 0xac5e7db9.
+// DisputeBatch is a paid mutator transaction binding the contract method 0xb5b95e78.
 //
-// Solidity: function disputeBatch(uint256 _batch_id, ((bytes32,bytes32,bytes32,uint8),uint256,bytes32[]) commitmentMP, bytes txs, ((((uint256,(uint256,uint256,uint256,uint256,uint256,uint256)),bytes32[]),((uint256,(uint256,uint256,uint256,uint256,uint256,uint256)),bytes32[]))[],((uint256,(uint256[4])),bytes32[])[]) batchProofs) returns()
-func (_Rollup *RollupTransactor) DisputeBatch(opts *bind.TransactOpts, _batch_id *big.Int, commitmentMP TypesCommitmentInclusionProof, txs []byte, batchProofs TypesBatchValidationProofs) (*types.Transaction, error) {
-	return _Rollup.contract.Transact(opts, "disputeBatch", _batch_id, commitmentMP, txs, batchProofs)
+// Solidity: function disputeBatch(uint256 _batch_id, ((bytes32,bytes32),uint256,bytes32[]) previous, ((bytes32,(bytes32,uint256[2],uint256,uint256,bytes)),uint256,bytes32[]) target, ((uint256,uint256,uint256,uint256),bytes32[])[] proofs) returns()
+func (_Rollup *RollupTransactor) DisputeBatch(opts *bind.TransactOpts, _batch_id *big.Int, previous TypesCommitmentInclusionProof, target TypesTransferCommitmentInclusionProof, proofs []TypesStateMerkleProof) (*types.Transaction, error) {
+	return _Rollup.contract.Transact(opts, "disputeBatch", _batch_id, previous, target, proofs)
 }
 
-// DisputeBatch is a paid mutator transaction binding the contract method 0xac5e7db9.
+// DisputeBatch is a paid mutator transaction binding the contract method 0xb5b95e78.
 //
-// Solidity: function disputeBatch(uint256 _batch_id, ((bytes32,bytes32,bytes32,uint8),uint256,bytes32[]) commitmentMP, bytes txs, ((((uint256,(uint256,uint256,uint256,uint256,uint256,uint256)),bytes32[]),((uint256,(uint256,uint256,uint256,uint256,uint256,uint256)),bytes32[]))[],((uint256,(uint256[4])),bytes32[])[]) batchProofs) returns()
-func (_Rollup *RollupSession) DisputeBatch(_batch_id *big.Int, commitmentMP TypesCommitmentInclusionProof, txs []byte, batchProofs TypesBatchValidationProofs) (*types.Transaction, error) {
-	return _Rollup.Contract.DisputeBatch(&_Rollup.TransactOpts, _batch_id, commitmentMP, txs, batchProofs)
+// Solidity: function disputeBatch(uint256 _batch_id, ((bytes32,bytes32),uint256,bytes32[]) previous, ((bytes32,(bytes32,uint256[2],uint256,uint256,bytes)),uint256,bytes32[]) target, ((uint256,uint256,uint256,uint256),bytes32[])[] proofs) returns()
+func (_Rollup *RollupSession) DisputeBatch(_batch_id *big.Int, previous TypesCommitmentInclusionProof, target TypesTransferCommitmentInclusionProof, proofs []TypesStateMerkleProof) (*types.Transaction, error) {
+	return _Rollup.Contract.DisputeBatch(&_Rollup.TransactOpts, _batch_id, previous, target, proofs)
 }
 
-// DisputeBatch is a paid mutator transaction binding the contract method 0xac5e7db9.
+// DisputeBatch is a paid mutator transaction binding the contract method 0xb5b95e78.
 //
-// Solidity: function disputeBatch(uint256 _batch_id, ((bytes32,bytes32,bytes32,uint8),uint256,bytes32[]) commitmentMP, bytes txs, ((((uint256,(uint256,uint256,uint256,uint256,uint256,uint256)),bytes32[]),((uint256,(uint256,uint256,uint256,uint256,uint256,uint256)),bytes32[]))[],((uint256,(uint256[4])),bytes32[])[]) batchProofs) returns()
-func (_Rollup *RollupTransactorSession) DisputeBatch(_batch_id *big.Int, commitmentMP TypesCommitmentInclusionProof, txs []byte, batchProofs TypesBatchValidationProofs) (*types.Transaction, error) {
-	return _Rollup.Contract.DisputeBatch(&_Rollup.TransactOpts, _batch_id, commitmentMP, txs, batchProofs)
+// Solidity: function disputeBatch(uint256 _batch_id, ((bytes32,bytes32),uint256,bytes32[]) previous, ((bytes32,(bytes32,uint256[2],uint256,uint256,bytes)),uint256,bytes32[]) target, ((uint256,uint256,uint256,uint256),bytes32[])[] proofs) returns()
+func (_Rollup *RollupTransactorSession) DisputeBatch(_batch_id *big.Int, previous TypesCommitmentInclusionProof, target TypesTransferCommitmentInclusionProof, proofs []TypesStateMerkleProof) (*types.Transaction, error) {
+	return _Rollup.Contract.DisputeBatch(&_Rollup.TransactOpts, _batch_id, previous, target, proofs)
 }
 
-// FinaliseDepositsAndSubmitBatch is a paid mutator transaction binding the contract method 0xcac30223.
+// DisputeMMBatch is a paid mutator transaction binding the contract method 0x9e7d83c6.
 //
-// Solidity: function finaliseDepositsAndSubmitBatch(uint256 _subTreeDepth, ((uint256,(uint256,uint256,uint256,uint256,uint256,uint256)),bytes32[]) _zero_account_mp) payable returns()
-func (_Rollup *RollupTransactor) FinaliseDepositsAndSubmitBatch(opts *bind.TransactOpts, _subTreeDepth *big.Int, _zero_account_mp TypesAccountMerkleProof) (*types.Transaction, error) {
-	return _Rollup.contract.Transact(opts, "finaliseDepositsAndSubmitBatch", _subTreeDepth, _zero_account_mp)
+// Solidity: function disputeMMBatch(uint256 _batch_id, ((bytes32,bytes32),uint256,bytes32[]) previous, ((bytes32,(bytes32,uint256[2],uint256,bytes32,uint256,uint256,bytes)),uint256,bytes32[]) target, ((uint256,uint256,uint256,uint256),bytes32[])[] proofs) returns()
+func (_Rollup *RollupTransactor) DisputeMMBatch(opts *bind.TransactOpts, _batch_id *big.Int, previous TypesCommitmentInclusionProof, target TypesMMCommitmentInclusionProof, proofs []TypesStateMerkleProof) (*types.Transaction, error) {
+	return _Rollup.contract.Transact(opts, "disputeMMBatch", _batch_id, previous, target, proofs)
 }
 
-// FinaliseDepositsAndSubmitBatch is a paid mutator transaction binding the contract method 0xcac30223.
+// DisputeMMBatch is a paid mutator transaction binding the contract method 0x9e7d83c6.
 //
-// Solidity: function finaliseDepositsAndSubmitBatch(uint256 _subTreeDepth, ((uint256,(uint256,uint256,uint256,uint256,uint256,uint256)),bytes32[]) _zero_account_mp) payable returns()
-func (_Rollup *RollupSession) FinaliseDepositsAndSubmitBatch(_subTreeDepth *big.Int, _zero_account_mp TypesAccountMerkleProof) (*types.Transaction, error) {
-	return _Rollup.Contract.FinaliseDepositsAndSubmitBatch(&_Rollup.TransactOpts, _subTreeDepth, _zero_account_mp)
+// Solidity: function disputeMMBatch(uint256 _batch_id, ((bytes32,bytes32),uint256,bytes32[]) previous, ((bytes32,(bytes32,uint256[2],uint256,bytes32,uint256,uint256,bytes)),uint256,bytes32[]) target, ((uint256,uint256,uint256,uint256),bytes32[])[] proofs) returns()
+func (_Rollup *RollupSession) DisputeMMBatch(_batch_id *big.Int, previous TypesCommitmentInclusionProof, target TypesMMCommitmentInclusionProof, proofs []TypesStateMerkleProof) (*types.Transaction, error) {
+	return _Rollup.Contract.DisputeMMBatch(&_Rollup.TransactOpts, _batch_id, previous, target, proofs)
 }
 
-// FinaliseDepositsAndSubmitBatch is a paid mutator transaction binding the contract method 0xcac30223.
+// DisputeMMBatch is a paid mutator transaction binding the contract method 0x9e7d83c6.
 //
-// Solidity: function finaliseDepositsAndSubmitBatch(uint256 _subTreeDepth, ((uint256,(uint256,uint256,uint256,uint256,uint256,uint256)),bytes32[]) _zero_account_mp) payable returns()
-func (_Rollup *RollupTransactorSession) FinaliseDepositsAndSubmitBatch(_subTreeDepth *big.Int, _zero_account_mp TypesAccountMerkleProof) (*types.Transaction, error) {
-	return _Rollup.Contract.FinaliseDepositsAndSubmitBatch(&_Rollup.TransactOpts, _subTreeDepth, _zero_account_mp)
+// Solidity: function disputeMMBatch(uint256 _batch_id, ((bytes32,bytes32),uint256,bytes32[]) previous, ((bytes32,(bytes32,uint256[2],uint256,bytes32,uint256,uint256,bytes)),uint256,bytes32[]) target, ((uint256,uint256,uint256,uint256),bytes32[])[] proofs) returns()
+func (_Rollup *RollupTransactorSession) DisputeMMBatch(_batch_id *big.Int, previous TypesCommitmentInclusionProof, target TypesMMCommitmentInclusionProof, proofs []TypesStateMerkleProof) (*types.Transaction, error) {
+	return _Rollup.Contract.DisputeMMBatch(&_Rollup.TransactOpts, _batch_id, previous, target, proofs)
 }
 
-// SubmitBatch is a paid mutator transaction binding the contract method 0x73c5bc36.
+// DisputeSignature is a paid mutator transaction binding the contract method 0xd53bcd11.
 //
-// Solidity: function submitBatch(bytes[] txs, bytes32[] updatedRoots, uint8 batchType, uint256[2][] aggregatedSignatures) payable returns()
-func (_Rollup *RollupTransactor) SubmitBatch(opts *bind.TransactOpts, txs [][]byte, updatedRoots [][32]byte, batchType uint8, aggregatedSignatures [][2]*big.Int) (*types.Transaction, error) {
-	return _Rollup.contract.Transact(opts, "submitBatch", txs, updatedRoots, batchType, aggregatedSignatures)
+// Solidity: function disputeSignature(uint256 batchID, ((bytes32,(bytes32,uint256[2],uint256,uint256,bytes)),uint256,bytes32[]) target, ((uint256,uint256,uint256,uint256)[],bytes32[][],uint256[4][],bytes32[][]) signatureProof) returns()
+func (_Rollup *RollupTransactor) DisputeSignature(opts *bind.TransactOpts, batchID *big.Int, target TypesTransferCommitmentInclusionProof, signatureProof TypesSignatureProof) (*types.Transaction, error) {
+	return _Rollup.contract.Transact(opts, "disputeSignature", batchID, target, signatureProof)
 }
 
-// SubmitBatch is a paid mutator transaction binding the contract method 0x73c5bc36.
+// DisputeSignature is a paid mutator transaction binding the contract method 0xd53bcd11.
 //
-// Solidity: function submitBatch(bytes[] txs, bytes32[] updatedRoots, uint8 batchType, uint256[2][] aggregatedSignatures) payable returns()
-func (_Rollup *RollupSession) SubmitBatch(txs [][]byte, updatedRoots [][32]byte, batchType uint8, aggregatedSignatures [][2]*big.Int) (*types.Transaction, error) {
-	return _Rollup.Contract.SubmitBatch(&_Rollup.TransactOpts, txs, updatedRoots, batchType, aggregatedSignatures)
+// Solidity: function disputeSignature(uint256 batchID, ((bytes32,(bytes32,uint256[2],uint256,uint256,bytes)),uint256,bytes32[]) target, ((uint256,uint256,uint256,uint256)[],bytes32[][],uint256[4][],bytes32[][]) signatureProof) returns()
+func (_Rollup *RollupSession) DisputeSignature(batchID *big.Int, target TypesTransferCommitmentInclusionProof, signatureProof TypesSignatureProof) (*types.Transaction, error) {
+	return _Rollup.Contract.DisputeSignature(&_Rollup.TransactOpts, batchID, target, signatureProof)
 }
 
-// SubmitBatch is a paid mutator transaction binding the contract method 0x73c5bc36.
+// DisputeSignature is a paid mutator transaction binding the contract method 0xd53bcd11.
 //
-// Solidity: function submitBatch(bytes[] txs, bytes32[] updatedRoots, uint8 batchType, uint256[2][] aggregatedSignatures) payable returns()
-func (_Rollup *RollupTransactorSession) SubmitBatch(txs [][]byte, updatedRoots [][32]byte, batchType uint8, aggregatedSignatures [][2]*big.Int) (*types.Transaction, error) {
-	return _Rollup.Contract.SubmitBatch(&_Rollup.TransactOpts, txs, updatedRoots, batchType, aggregatedSignatures)
+// Solidity: function disputeSignature(uint256 batchID, ((bytes32,(bytes32,uint256[2],uint256,uint256,bytes)),uint256,bytes32[]) target, ((uint256,uint256,uint256,uint256)[],bytes32[][],uint256[4][],bytes32[][]) signatureProof) returns()
+func (_Rollup *RollupTransactorSession) DisputeSignature(batchID *big.Int, target TypesTransferCommitmentInclusionProof, signatureProof TypesSignatureProof) (*types.Transaction, error) {
+	return _Rollup.Contract.DisputeSignature(&_Rollup.TransactOpts, batchID, target, signatureProof)
+}
+
+// DisputeSignatureinMM is a paid mutator transaction binding the contract method 0xebfdc7d4.
+//
+// Solidity: function disputeSignatureinMM(uint256 batchID, ((bytes32,(bytes32,uint256[2],uint256,bytes32,uint256,uint256,bytes)),uint256,bytes32[]) target, ((uint256,uint256,uint256,uint256)[],bytes32[][],uint256[4][],bytes32[][]) signatureProof) returns()
+func (_Rollup *RollupTransactor) DisputeSignatureinMM(opts *bind.TransactOpts, batchID *big.Int, target TypesMMCommitmentInclusionProof, signatureProof TypesSignatureProof) (*types.Transaction, error) {
+	return _Rollup.contract.Transact(opts, "disputeSignatureinMM", batchID, target, signatureProof)
+}
+
+// DisputeSignatureinMM is a paid mutator transaction binding the contract method 0xebfdc7d4.
+//
+// Solidity: function disputeSignatureinMM(uint256 batchID, ((bytes32,(bytes32,uint256[2],uint256,bytes32,uint256,uint256,bytes)),uint256,bytes32[]) target, ((uint256,uint256,uint256,uint256)[],bytes32[][],uint256[4][],bytes32[][]) signatureProof) returns()
+func (_Rollup *RollupSession) DisputeSignatureinMM(batchID *big.Int, target TypesMMCommitmentInclusionProof, signatureProof TypesSignatureProof) (*types.Transaction, error) {
+	return _Rollup.Contract.DisputeSignatureinMM(&_Rollup.TransactOpts, batchID, target, signatureProof)
+}
+
+// DisputeSignatureinMM is a paid mutator transaction binding the contract method 0xebfdc7d4.
+//
+// Solidity: function disputeSignatureinMM(uint256 batchID, ((bytes32,(bytes32,uint256[2],uint256,bytes32,uint256,uint256,bytes)),uint256,bytes32[]) target, ((uint256,uint256,uint256,uint256)[],bytes32[][],uint256[4][],bytes32[][]) signatureProof) returns()
+func (_Rollup *RollupTransactorSession) DisputeSignatureinMM(batchID *big.Int, target TypesMMCommitmentInclusionProof, signatureProof TypesSignatureProof) (*types.Transaction, error) {
+	return _Rollup.Contract.DisputeSignatureinMM(&_Rollup.TransactOpts, batchID, target, signatureProof)
+}
+
+// FinaliseDepositsAndSubmitBatch is a paid mutator transaction binding the contract method 0xd3f6c9c1.
+//
+// Solidity: function finaliseDepositsAndSubmitBatch(uint256 _subTreeDepth, ((uint256,uint256,uint256,uint256),uint256,bytes32[]) zero) payable returns()
+func (_Rollup *RollupTransactor) FinaliseDepositsAndSubmitBatch(opts *bind.TransactOpts, _subTreeDepth *big.Int, zero TypesStateMerkleProofWithPath) (*types.Transaction, error) {
+	return _Rollup.contract.Transact(opts, "finaliseDepositsAndSubmitBatch", _subTreeDepth, zero)
+}
+
+// FinaliseDepositsAndSubmitBatch is a paid mutator transaction binding the contract method 0xd3f6c9c1.
+//
+// Solidity: function finaliseDepositsAndSubmitBatch(uint256 _subTreeDepth, ((uint256,uint256,uint256,uint256),uint256,bytes32[]) zero) payable returns()
+func (_Rollup *RollupSession) FinaliseDepositsAndSubmitBatch(_subTreeDepth *big.Int, zero TypesStateMerkleProofWithPath) (*types.Transaction, error) {
+	return _Rollup.Contract.FinaliseDepositsAndSubmitBatch(&_Rollup.TransactOpts, _subTreeDepth, zero)
+}
+
+// FinaliseDepositsAndSubmitBatch is a paid mutator transaction binding the contract method 0xd3f6c9c1.
+//
+// Solidity: function finaliseDepositsAndSubmitBatch(uint256 _subTreeDepth, ((uint256,uint256,uint256,uint256),uint256,bytes32[]) zero) payable returns()
+func (_Rollup *RollupTransactorSession) FinaliseDepositsAndSubmitBatch(_subTreeDepth *big.Int, zero TypesStateMerkleProofWithPath) (*types.Transaction, error) {
+	return _Rollup.Contract.FinaliseDepositsAndSubmitBatch(&_Rollup.TransactOpts, _subTreeDepth, zero)
+}
+
+// SubmitCreate2TransferBatch is a paid mutator transaction binding the contract method 0xb3a5928c.
+//
+// Solidity: function submitCreate2TransferBatch(bytes32[] stateRoots, uint256[2][] signatures, uint256[] tokenTypes, uint256[] feeReceivers, bytes[] txss) payable returns()
+func (_Rollup *RollupTransactor) SubmitCreate2TransferBatch(opts *bind.TransactOpts, stateRoots [][32]byte, signatures [][2]*big.Int, tokenTypes []*big.Int, feeReceivers []*big.Int, txss [][]byte) (*types.Transaction, error) {
+	return _Rollup.contract.Transact(opts, "submitCreate2TransferBatch", stateRoots, signatures, tokenTypes, feeReceivers, txss)
+}
+
+// SubmitCreate2TransferBatch is a paid mutator transaction binding the contract method 0xb3a5928c.
+//
+// Solidity: function submitCreate2TransferBatch(bytes32[] stateRoots, uint256[2][] signatures, uint256[] tokenTypes, uint256[] feeReceivers, bytes[] txss) payable returns()
+func (_Rollup *RollupSession) SubmitCreate2TransferBatch(stateRoots [][32]byte, signatures [][2]*big.Int, tokenTypes []*big.Int, feeReceivers []*big.Int, txss [][]byte) (*types.Transaction, error) {
+	return _Rollup.Contract.SubmitCreate2TransferBatch(&_Rollup.TransactOpts, stateRoots, signatures, tokenTypes, feeReceivers, txss)
+}
+
+// SubmitCreate2TransferBatch is a paid mutator transaction binding the contract method 0xb3a5928c.
+//
+// Solidity: function submitCreate2TransferBatch(bytes32[] stateRoots, uint256[2][] signatures, uint256[] tokenTypes, uint256[] feeReceivers, bytes[] txss) payable returns()
+func (_Rollup *RollupTransactorSession) SubmitCreate2TransferBatch(stateRoots [][32]byte, signatures [][2]*big.Int, tokenTypes []*big.Int, feeReceivers []*big.Int, txss [][]byte) (*types.Transaction, error) {
+	return _Rollup.Contract.SubmitCreate2TransferBatch(&_Rollup.TransactOpts, stateRoots, signatures, tokenTypes, feeReceivers, txss)
+}
+
+// SubmitMassMigrationBatch is a paid mutator transaction binding the contract method 0x11295e35.
+//
+// Solidity: function submitMassMigrationBatch(bytes32[] stateRoots, uint256[2][] signatures, uint256[3][] meta, bytes32[] withdrawRoots, bytes[] txss) payable returns()
+func (_Rollup *RollupTransactor) SubmitMassMigrationBatch(opts *bind.TransactOpts, stateRoots [][32]byte, signatures [][2]*big.Int, meta [][3]*big.Int, withdrawRoots [][32]byte, txss [][]byte) (*types.Transaction, error) {
+	return _Rollup.contract.Transact(opts, "submitMassMigrationBatch", stateRoots, signatures, meta, withdrawRoots, txss)
+}
+
+// SubmitMassMigrationBatch is a paid mutator transaction binding the contract method 0x11295e35.
+//
+// Solidity: function submitMassMigrationBatch(bytes32[] stateRoots, uint256[2][] signatures, uint256[3][] meta, bytes32[] withdrawRoots, bytes[] txss) payable returns()
+func (_Rollup *RollupSession) SubmitMassMigrationBatch(stateRoots [][32]byte, signatures [][2]*big.Int, meta [][3]*big.Int, withdrawRoots [][32]byte, txss [][]byte) (*types.Transaction, error) {
+	return _Rollup.Contract.SubmitMassMigrationBatch(&_Rollup.TransactOpts, stateRoots, signatures, meta, withdrawRoots, txss)
+}
+
+// SubmitMassMigrationBatch is a paid mutator transaction binding the contract method 0x11295e35.
+//
+// Solidity: function submitMassMigrationBatch(bytes32[] stateRoots, uint256[2][] signatures, uint256[3][] meta, bytes32[] withdrawRoots, bytes[] txss) payable returns()
+func (_Rollup *RollupTransactorSession) SubmitMassMigrationBatch(stateRoots [][32]byte, signatures [][2]*big.Int, meta [][3]*big.Int, withdrawRoots [][32]byte, txss [][]byte) (*types.Transaction, error) {
+	return _Rollup.Contract.SubmitMassMigrationBatch(&_Rollup.TransactOpts, stateRoots, signatures, meta, withdrawRoots, txss)
+}
+
+// SubmitTransferBatch is a paid mutator transaction binding the contract method 0xdaf6ebbc.
+//
+// Solidity: function submitTransferBatch(bytes32[] stateRoots, uint256[2][] signatures, uint256[] tokenTypes, uint256[] feeReceivers, bytes[] txss) payable returns()
+func (_Rollup *RollupTransactor) SubmitTransferBatch(opts *bind.TransactOpts, stateRoots [][32]byte, signatures [][2]*big.Int, tokenTypes []*big.Int, feeReceivers []*big.Int, txss [][]byte) (*types.Transaction, error) {
+	return _Rollup.contract.Transact(opts, "submitTransferBatch", stateRoots, signatures, tokenTypes, feeReceivers, txss)
+}
+
+// SubmitTransferBatch is a paid mutator transaction binding the contract method 0xdaf6ebbc.
+//
+// Solidity: function submitTransferBatch(bytes32[] stateRoots, uint256[2][] signatures, uint256[] tokenTypes, uint256[] feeReceivers, bytes[] txss) payable returns()
+func (_Rollup *RollupSession) SubmitTransferBatch(stateRoots [][32]byte, signatures [][2]*big.Int, tokenTypes []*big.Int, feeReceivers []*big.Int, txss [][]byte) (*types.Transaction, error) {
+	return _Rollup.Contract.SubmitTransferBatch(&_Rollup.TransactOpts, stateRoots, signatures, tokenTypes, feeReceivers, txss)
+}
+
+// SubmitTransferBatch is a paid mutator transaction binding the contract method 0xdaf6ebbc.
+//
+// Solidity: function submitTransferBatch(bytes32[] stateRoots, uint256[2][] signatures, uint256[] tokenTypes, uint256[] feeReceivers, bytes[] txss) payable returns()
+func (_Rollup *RollupTransactorSession) SubmitTransferBatch(stateRoots [][32]byte, signatures [][2]*big.Int, tokenTypes []*big.Int, feeReceivers []*big.Int, txss [][]byte) (*types.Transaction, error) {
+	return _Rollup.Contract.SubmitTransferBatch(&_Rollup.TransactOpts, stateRoots, signatures, tokenTypes, feeReceivers, txss)
 }

@@ -17,31 +17,6 @@
       "inputs": [
         {
           "indexed": false,
-          "internalType": "bytes32",
-          "name": "left",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "right",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "newRoot",
-          "type": "bytes32"
-        }
-      ],
-      "name": "DepositLeafMerged",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
           "internalType": "uint256",
           "name": "AccountID",
           "type": "uint256"
@@ -251,31 +226,6 @@
         }
       ],
       "name": "logDepositFinalised",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "left",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "right",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "newRoot",
-          "type": "bytes32"
-        }
-      ],
-      "name": "logDepositLeafMerged",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",

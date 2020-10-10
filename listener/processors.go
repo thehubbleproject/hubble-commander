@@ -286,60 +286,6 @@ func (s *Syncer) ApplyTxsFromBatch(txs [][]byte, txType uint64) error {
 			if err != nil {
 				return err
 			}
-		case core.TX_CREATE_ACCOUNT:
-			toAccID, toStateID, token, err := s.loadedBazooka.DecompressCreateAccountTx(txs[i])
-			if err != nil {
-				return err
-			}
-			txData, err = s.loadedBazooka.EncodeCreateAccountTx(toAccID.Int64(), toStateID.Int64(), token.Int64())
-			if err != nil {
-				return err
-			}
-		case core.TX_BURN_EXEC:
-			from, err := s.loadedBazooka.DecompressBurnExecTx(txs[i])
-			if err != nil {
-				return err
-			}
-			txData, err = s.loadedBazooka.EncodeBurnExecTx(from.Int64(), int64(txType))
-			if err != nil {
-				return err
-			}
-		case core.TX_BURN_CONSENT:
-			from, amount, nonce, sig, err := s.loadedBazooka.DecompressBurnConsentTx(txs[i])
-			if err != nil {
-				return err
-			}
-			s.Logger.Debug("Fetched tx data", "from", from, "to", to, "amount", amount, "sig", sig)
-			fromAccount, err := s.DBInstance.GetAccountByIndex(from.Uint64())
-			if err != nil {
-				return err
-			}
-			_, _, nonce, _, _, _, err = s.loadedBazooka.DecodeAccount(fromAccount.Data)
-			if err != nil {
-				return err
-			}
-			txData, err = s.loadedBazooka.EncodeBurnConsentTx(from.Int64(), amount.Int64(), nonce.Int64(), int64(txType))
-			if err != nil {
-				return err
-			}
-		case core.TX_AIRDROP_TYPE:
-			from, to, amount, sig, err := s.loadedBazooka.DecompressAirdropTx(txs[i])
-			if err != nil {
-				return err
-			}
-			s.Logger.Debug("Fetched tx data", "from", from, "to", to, "amount", amount, "sig", sig)
-			fromAccount, err := s.DBInstance.GetAccountByIndex(from.Uint64())
-			if err != nil {
-				return err
-			}
-			_, _, nonce, token, _, _, err := s.loadedBazooka.DecodeAccount(fromAccount.Data)
-			if err != nil {
-				return err
-			}
-			txData, err = s.loadedBazooka.EncodeAirdropTx(from.Int64(), to.Int64(), token.Int64(), nonce.Int64(), amount.Int64(), int64(txType))
-			if err != nil {
-				return err
-			}
 		default:
 			fmt.Println("TxType didnt match any options", txType)
 			return errors.New("Didn't match any options")

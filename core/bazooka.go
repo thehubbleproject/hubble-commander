@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
@@ -25,52 +24,6 @@ import (
 	ethCmn "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
-
-// Broadcast details is stored to the DB with each broadcast
-// It is useful because now we can broadcast txs simulatneously without caring about confirmation times
-type BroadcastDetails struct {
-	DBModel
-	TxHash     string `json:"tx"`
-	Nonce      uint64 `json:"nonce"`
-	BatchType  uint64 `json:"batchType"`
-	UpdateRoot string `json:"updateRoot"`
-	Txs        string `gorm:"size:1000000"`
-	Status     uint64 `json:"status"`
-}
-
-func (db *DB) LogBatch(nonce uint64, batchType uint64, root string, txs []byte) error {
-	var details BroadcastDetails
-	// details.TxHash = txHash
-	details.Nonce = nonce
-	details.BatchType = batchType
-	details.UpdateRoot = root
-	details.Txs = hex.EncodeToString(txs)
-	details.Status = 0
-	return db.Instance.Create(&details).Error
-}
-
-func (db *DB) GetLastTransaction() (BroadcastDetails, error) {
-	var details BroadcastDetails
-	if err := db.Instance.Order("nonce desc").First(&details).Error; err != nil {
-		return details, err
-	}
-	return details, nil
-}
-
-// GetPendingBatches get the pending batches
-func (db *DB) GetPendingBatches() ([]BroadcastDetails, error) {
-	var details []BroadcastDetails
-	if err := db.Instance.Order("created_at").Find(&details).Error; err != nil {
-		db.Logger.Error("error while fetching pending batches", err)
-		return details, err
-	}
-	return details, nil
-}
-
-// MarkBroadcastDone updates the status of the broadcast
-func (db *DB) MarkBroadcastDone(id string, txHash string) error {
-	return db.Instance.Where("id = ? AND status = ?", id, 0).Updates(BroadcastDetails{TxHash: txHash, Status: 1}).Error
-}
 
 // IContractCaller is the common interface using which we will interact with the contracts
 // and the ethereum chain
@@ -99,12 +52,6 @@ type Bazooka struct {
 // NewContractCaller contract caller
 // NOTE: Reads configration from the config.toml file
 func NewPreLoadedBazooka() (bazooka Bazooka, err error) {
-	// TODO remove
-
-	// err = config.ParseAndInitGlobalConfig()
-	// if err != nil {
-	// 	return
-	// }
 	err = config.SetOperatorKeys(config.GlobalCfg.OperatorKey)
 	if err != nil {
 		return
@@ -217,20 +164,7 @@ func (b *Bazooka) ProcessTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, f
 	b.log.Info("Processing new tx", "type", tx.Type)
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
-		fmt.Println("transfer")
-		return b.processAirdropTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
-	case TX_AIRDROP_TYPE:
-		fmt.Println("airdrop")
-		return b.processAirdropTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
-	case TX_CREATE_ACCOUNT:
-		fmt.Println("create_account")
-		return b.processCreateAccountTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
-	case TX_BURN_CONSENT:
-		fmt.Println("burnconsent")
-		return b.processBurnConsentTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
-	case TX_BURN_EXEC:
-		fmt.Println("burn exec")
-		return b.processBurnExecTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
+		return b.processTransferTx(balanceTreeRoot, accountTreeRoot, tx, fromMerkleProof, toMerkleProof, pdaProof)
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return newBalanceRoot, from, to, errors.New("Did not match any options")
@@ -240,15 +174,7 @@ func (b *Bazooka) ProcessTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, f
 func (b *Bazooka) ApplyTx(accountMP AccountMerkleProof, tx Tx) (updatedAccount []byte, updatedRoot ByteArray, err error) {
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
-		return b.applyAirdropTx(accountMP, tx)
-	case TX_AIRDROP_TYPE:
-		return b.applyAirdropTx(accountMP, tx)
-	case TX_CREATE_ACCOUNT:
-		return b.applyCreateAccountTx(accountMP, tx)
-	case TX_BURN_CONSENT:
-		return b.applyBurnConsentTx(accountMP, tx)
-	case TX_BURN_EXEC:
-		return b.applyBurnExecTx(accountMP, tx)
+		return b.applyTransferTx(accountMP, tx)
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return updatedAccount, updatedRoot, errors.New("Didn't match any options")
@@ -259,44 +185,10 @@ func (b *Bazooka) CompressTxs(txs []Tx) ([]byte, error) {
 	switch txType := txs[0].Type; txType {
 	case TX_TRANSFER_TYPE:
 		return LoadedBazooka.compressTransferTxs(txs)
-	case TX_AIRDROP_TYPE:
-		return LoadedBazooka.compressAirdropTxs(txs)
-	case TX_CREATE_ACCOUNT:
-		return LoadedBazooka.compressCreateAccounts(txs)
-	case TX_BURN_CONSENT:
-		return LoadedBazooka.compressBurnConsents(txs)
-	case TX_BURN_EXEC:
-		return LoadedBazooka.compressBurnExecutions(txs)
 	default:
 		fmt.Println("TxType didnt match any options", txs[0].Type)
 		return []byte(""), errors.New("Did not match any options")
 	}
-}
-
-func (b *Bazooka) processCreateAccountTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof AccountMerkleProof, pdaProof PDAMerkleProof) (newBalanceRoot ByteArray, from, to []byte, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	toMP, err := toMerkleProof.ToABIVersion()
-	if err != nil {
-		return
-	}
-	toPDAProof := NewPDAProof(pdaProof.Path, pdaProof.PublicKey, pdaProof.Siblings)
-	updatedRoot, newToAccount, errCode, IsValidTx, err := b.RollupCaller.ProcessCreateAccountTx(&opts,
-		balanceTreeRoot,
-		accountTreeRoot,
-		tx.Data,
-		toPDAProof.ToABIVersion(),
-		toMP,
-	)
-	if err != nil {
-		return
-	}
-	b.log.Info("Processed transaction", "IsSuccess", IsValidTx, "newRoot", updatedRoot)
-	if !IsValidTx {
-		b.log.Error("Invalid transaction", "error_code", errCode)
-		return newBalanceRoot, from, to, errors.New("Tx is invalid")
-	}
-	newBalanceRoot = BytesToByteArray(updatedRoot[:])
-	return newBalanceRoot, fromMerkleProof.Account.Data, newToAccount, nil
 }
 
 func (b *Bazooka) processTransferTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof AccountMerkleProof, pdaProof PDAMerkleProof) (newBalanceRoot ByteArray, from, to []byte, err error) {
@@ -309,9 +201,7 @@ func (b *Bazooka) processTransferTx(balanceTreeRoot, accountTreeRoot ByteArray, 
 	if err != nil {
 		return
 	}
-	fmt.Println("here")
 	typesAccountProofs := rollupcaller.TypesAccountProofs{From: fromMP, To: toMP}
-	fmt.Println("here")
 	updatedRoot, newFromAccount, newToAccount, errCode, IsValidTx, err := b.RollupCaller.ProcessTransferTx(&opts,
 		balanceTreeRoot,
 		accountTreeRoot,
@@ -320,7 +210,6 @@ func (b *Bazooka) processTransferTx(balanceTreeRoot, accountTreeRoot ByteArray, 
 		pdaProof.ToABIVersion(),
 		typesAccountProofs,
 	)
-	fmt.Println("here")
 	if err != nil {
 		return
 	}
@@ -333,90 +222,6 @@ func (b *Bazooka) processTransferTx(balanceTreeRoot, accountTreeRoot ByteArray, 
 	}
 	newBalanceRoot = BytesToByteArray(updatedRoot[:])
 	return newBalanceRoot, newFromAccount, newToAccount, nil
-}
-
-func (b *Bazooka) processAirdropTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof AccountMerkleProof, pdaProof PDAMerkleProof) (newBalanceRoot ByteArray, from, to []byte, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	fromMP, err := fromMerkleProof.ToABIVersion()
-	if err != nil {
-		return
-	}
-	toMP, err := toMerkleProof.ToABIVersion()
-	if err != nil {
-		return
-	}
-	typesAccountProofs := rollupcaller.TypesAccountProofs{From: fromMP, To: toMP}
-	updatedRoot, newFromAccount, newToAccount, errCode, IsValidTx, err := b.RollupCaller.ProcessAirdropTx(&opts,
-		balanceTreeRoot,
-		accountTreeRoot,
-		tx.Signature,
-		tx.Data,
-		pdaProof.ToABIVersion(),
-		typesAccountProofs,
-	)
-	if err != nil {
-		return
-	}
-
-	b.log.Info("Processed transaction", "IsSuccess", IsValidTx, "newRoot", ByteArray(updatedRoot).String())
-
-	if !IsValidTx {
-		b.log.Error("Invalid transaction", "error_code", errCode)
-		return newBalanceRoot, from, to, errors.New("Tx is invalid")
-	}
-	newBalanceRoot = BytesToByteArray(updatedRoot[:])
-	return newBalanceRoot, newFromAccount, newToAccount, nil
-}
-
-func (b *Bazooka) processBurnExecTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof AccountMerkleProof, pdaProof PDAMerkleProof) (newBalanceRoot ByteArray, from, to []byte, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	fromMP, err := fromMerkleProof.ToABIVersion()
-	if err != nil {
-		return
-	}
-	updatedRoot, newFromAccount, errCode, IsValidTx, err := b.RollupCaller.ProcessBurnExecutionTx(&opts,
-		balanceTreeRoot,
-		tx.Data,
-		fromMP,
-	)
-	if err != nil {
-		return
-	}
-	b.log.Info("Processed transaction", "IsSuccess", IsValidTx, "newRoot", updatedRoot)
-	if !IsValidTx {
-		b.log.Error("Invalid transaction", "error_code", errCode)
-		return newBalanceRoot, from, to, errors.New("Tx is invalid")
-	}
-	newBalanceRoot = BytesToByteArray(updatedRoot[:])
-	return newBalanceRoot, newFromAccount, toMerkleProof.Account.Data, nil
-}
-
-func (b *Bazooka) processBurnConsentTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof AccountMerkleProof, pdaProof PDAMerkleProof) (newBalanceRoot ByteArray, from, to []byte, err error) {
-	// opts := bind.CallOpts{From: config.OperatorAddress}
-	// fromMP, err := fromMerkleProof.ToABIVersion()
-	// if err != nil {
-	// 	return
-	// }
-	// updatedRoot, newFromAccount, errCode, IsValidTx, err := b.RollupCaller.ProcessBurnConsentTx(&opts,
-	// 	balanceTreeRoot,
-	// 	accountTreeRoot,
-	// 	tx.Signature,
-	// 	tx.Data,
-	// 	pdaProof.ToABIVersion(),
-	// 	fromMP,
-	// )
-	// if err != nil {
-	// 	return
-	// }
-
-	// b.log.Info("Processed transaction", "IsSuccess", IsValidTx, "newRoot", updatedRoot)
-
-	// if !IsValidTx {
-	// 	b.log.Error("Invalid transaction", "error_code", errCode)
-	// 	return newBalanceRoot, from, to, errors.New("Tx is invalid")
-	// }
-	// newBalanceRoot = BytesToByteArray(updatedRoot[:])
-	return newBalanceRoot, fromMerkleProof.Account.Data, toMerkleProof.Account.Data, nil
 }
 
 func (b *Bazooka) applyTransferTx(accountMP AccountMerkleProof, tx Tx) ([]byte, ByteArray, error) {
@@ -432,66 +237,6 @@ func (b *Bazooka) applyTransferTx(accountMP AccountMerkleProof, tx Tx) ([]byte, 
 	return updatedAccountBytes, updatedRoot, nil
 }
 
-func (b *Bazooka) applyAirdropTx(accountMP AccountMerkleProof, tx Tx) ([]byte, ByteArray, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	accMP, err := accountMP.ToABIVersion()
-	if err != nil {
-		return nil, ByteArray{}, err
-	}
-	updatedAccountBytes, updatedRoot, err := b.RollupCaller.ApplyAirdropTx(&opts, accMP, tx.Data)
-	if err != nil {
-		return updatedAccountBytes, updatedRoot, err
-	}
-	return updatedAccountBytes, updatedRoot, nil
-}
-
-func (b *Bazooka) applyCreateAccountTx(accountMP AccountMerkleProof, tx Tx) ([]byte, ByteArray, error) {
-	// if the account is a from account, return without changes
-	if accountMP.Account.AccountID == tx.From {
-		return accountMP.Account.Data, ByteArray{}, nil
-	}
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	accMP, err := accountMP.ToABIVersion()
-	if err != nil {
-		return nil, ByteArray{}, err
-	}
-	updatedAccountBytes, updatedRoot, err := b.RollupCaller.ApplyCreateAccountTx(&opts, accMP, tx.Data)
-	if err != nil {
-		return updatedAccountBytes, updatedRoot, err
-	}
-	return updatedAccountBytes, updatedRoot, nil
-}
-
-func (b *Bazooka) applyBurnConsentTx(accountMP AccountMerkleProof, tx Tx) ([]byte, ByteArray, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	accMP, err := accountMP.ToABIVersion()
-	if err != nil {
-		return nil, ByteArray{}, err
-	}
-	postApplyState, err := b.RollupCaller.ApplyBurnConsentTx(&opts, accMP, tx.Data)
-	if err != nil {
-		return postApplyState.UpdatedAccount, postApplyState.NewRoot, err
-	}
-	return postApplyState.UpdatedAccount, postApplyState.NewRoot, nil
-}
-
-func (b *Bazooka) applyBurnExecTx(accountMP AccountMerkleProof, tx Tx) ([]byte, ByteArray, error) {
-	// if the account is a from account, return without changes
-	if accountMP.Account.AccountID == tx.To {
-		return accountMP.Account.Data, ByteArray{}, nil
-	}
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	accMP, err := accountMP.ToABIVersion()
-	if err != nil {
-		return nil, ByteArray{}, err
-	}
-	postApplyState, err := b.RollupCaller.ApplyBurnExecutionTx(&opts, accMP)
-	if err != nil {
-		return postApplyState.UpdatedAccount, postApplyState.NewRoot, err
-	}
-	return postApplyState.UpdatedAccount, postApplyState.NewRoot, nil
-}
-
 func (b *Bazooka) compressTransferTxs(txs []Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	var data [][]byte
@@ -499,102 +244,12 @@ func (b *Bazooka) compressTransferTxs(txs []Tx) ([]byte, error) {
 		data = append(data, tx.Data)
 	}
 	// TOOD remove and update the transfer
-	return b.RollupUtils.CompressManyAirdropFromEncoded(&opts, data)
-}
-
-func (b *Bazooka) compressAirdropTxs(txs []Tx) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	var data [][]byte
-	for _, tx := range txs {
-		data = append(data, tx.Data)
-	}
-	return b.RollupUtils.CompressManyAirdropFromEncoded(&opts, data)
-}
-
-func (b *Bazooka) compressCreateAccounts(txs []Tx) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	var data [][]byte
-	for _, tx := range txs {
-		data = append(data, tx.Data)
-	}
-	return b.RollupUtils.CompressManyCreateAccountFromEncoded(&opts, data)
-}
-
-func (b *Bazooka) compressBurnConsents(txs []Tx) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	var data [][]byte
-	for _, tx := range txs {
-		data = append(data, tx.Data)
-	}
-	return b.RollupUtils.CompressManyBurnConsentFromEncoded(&opts, data)
-}
-
-func (b *Bazooka) compressBurnExecutions(txs []Tx) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	var data [][]byte
-	for _, tx := range txs {
-		data = append(data, tx.Data)
-	}
-	return b.RollupUtils.CompressManyBurnExecutionFromEncoded(&opts, data)
-}
-
-func (b *Bazooka) DecompressTransferTx(compressedTx []byte) (from, to, amount *big.Int, sig []byte, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	decompressedTx, err := b.RollupUtils.DecompressTx(&opts, compressedTx)
-	if err != nil {
-		return from, to, amount, sig, err
-	}
-	return decompressedTx.From, decompressedTx.To, decompressedTx.Amount, sig, nil
-}
-
-func (b *Bazooka) DecompressCreateAccountTx(compressedTx []byte) (to, stateID, tokenType *big.Int, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	decompressedTx, err := b.RollupUtils.DecompressCreateAccount(&opts, compressedTx)
-	if err != nil {
-		return to, stateID, tokenType, err
-	}
-	return decompressedTx.AccountID, decompressedTx.StateID, decompressedTx.TokenType, nil
-}
-
-func (b *Bazooka) DecompressBurnConsentTx(compressedTx []byte) (from, amount, nonce *big.Int, sig []byte, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	decompressedTx, err := b.RollupUtils.DecompressBurnConsent(&opts, compressedTx)
-	if err != nil {
-		return from, amount, nonce, sig, err
-	}
-	return decompressedTx.FromIndex, decompressedTx.Amount, decompressedTx.Nonce, sig, nil
-}
-
-func (b *Bazooka) DecompressBurnExecTx(compressedTx []byte) (from *big.Int, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	decompressedTxFromIndex, err := b.RollupUtils.DecompressBurnExecution(&opts, compressedTx)
-	if err != nil {
-		return from, err
-	}
-	return decompressedTxFromIndex, nil
-}
-
-func (b *Bazooka) DecompressAirdropTx(compressedTx []byte) (from, to, amount *big.Int, sig []byte, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	decompressedTx, err := b.RollupUtils.DecompressAirdrop(&opts, compressedTx)
-	if err != nil {
-		return
-	}
-	return big.NewInt(1), decompressedTx.ToIndex, decompressedTx.Amount, decompressedTx.Signature, nil
+	return b.RollupUtils.CompressManyTransferFromEncoded(&opts, data)
 }
 
 func (b *Bazooka) SignBytesForTransfer(txType, fromIndex, toIndex, nonce, amount int64) ([32]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	return b.RollupUtils.GetTxSignBytes(&opts, big.NewInt(txType), big.NewInt(fromIndex), big.NewInt(toIndex), big.NewInt(nonce), big.NewInt(amount))
-}
-
-func (b *Bazooka) SignBytesForAirdrop(txType, fromIndex, toIndex, nonce, amount int64) ([32]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.AirdropSignBytes(&opts, big.NewInt(txType), big.NewInt(fromIndex), big.NewInt(toIndex), big.NewInt(nonce), big.NewInt(amount))
-}
-func (b *Bazooka) SignBytesForBurnConsent(txType, from, nonce, amount int64) ([32]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.BurnConsentSignBytes(&opts, big.NewInt(txType), big.NewInt(from), big.NewInt(nonce), big.NewInt(amount))
 }
 
 //
@@ -613,62 +268,6 @@ func (b *Bazooka) DecodeTransferTx(txBytes []byte) (from, to, token, nonce, txTy
 		return
 	}
 	return tx.From, tx.To, tx.TokenType, tx.Nonce, tx.TxType, tx.Amount, nil
-}
-
-func (b *Bazooka) EncodeAirdropTx(from, to, token, nonce, amount, txType int64) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.BytesFromAirdropNoStruct(&opts, big.NewInt(txType), big.NewInt(from), big.NewInt(to), big.NewInt(token), big.NewInt(nonce), big.NewInt(amount))
-}
-
-func (b *Bazooka) DecodeAirdropTx(txBytes []byte) (from, to, token, nonce, txType, amount *big.Int, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	tx, err := b.RollupUtils.AirdropFromBytesNoStruct(&opts, txBytes)
-	if err != nil {
-		return
-	}
-	return tx.From, tx.To, tx.TokenType, tx.Nonce, tx.TxType, tx.Amount, nil
-}
-
-func (b *Bazooka) EncodeCreateAccountTx(to, stateID, token int64) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.BytesFromCreateAccountNoStruct(&opts, big.NewInt(TX_CREATE_ACCOUNT), big.NewInt(to), big.NewInt(stateID), big.NewInt(token))
-}
-
-func (b *Bazooka) DecodeCreateAccountTx(txBytes []byte) (toAccID, toStateID, token *big.Int, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	tx, err := b.RollupUtils.CreateAccountFromBytes(&opts, txBytes)
-	if err != nil {
-		return
-	}
-	return tx.AccountID, tx.StateID, tx.TokenType, nil
-}
-
-func (b *Bazooka) EncodeBurnConsentTx(from, amount, nonce, txType int64) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.BytesFromBurnConsentNoStruct(&opts, big.NewInt(TX_BURN_CONSENT), big.NewInt(from), big.NewInt(amount), big.NewInt(nonce))
-}
-
-func (b *Bazooka) DecodeBurnConsentTx(txBytes []byte) (from, amount, nonce, txType *big.Int, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	tx, err := b.RollupUtils.BurnConsentFromBytes(&opts, txBytes)
-	if err != nil {
-		return
-	}
-	return tx.FromIndex, tx.Amount, tx.Nonce, big.NewInt(TX_BURN_CONSENT), nil
-}
-
-func (b *Bazooka) EncodeBurnExecTx(from, txType int64) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.BytesFromBurnExecutionNoStruct(&opts, big.NewInt(TX_BURN_EXEC), big.NewInt(from))
-}
-
-func (b *Bazooka) DecodeBurnExecTx(txBytes []byte) (from, txType *big.Int, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	tx, err := b.RollupUtils.BurnExecutionFromBytes(&opts, txBytes)
-	if err != nil {
-		return
-	}
-	return tx.FromIndex, big.NewInt(TX_BURN_EXEC), nil
 }
 
 //

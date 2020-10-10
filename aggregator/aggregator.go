@@ -134,16 +134,6 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) (commitments []core.Commitment, er
 	if len(txs) == 0 {
 		return commitments, errors.New("no tx to process,aborting")
 	}
-
-	var redditPDAProof core.PDAMerkleProof
-	if (txs[0]).Type == core.TX_AIRDROP_TYPE {
-		core.VerifierWaitGroup.Add(1)
-		err = core.DBInstance.FetchPDAProofWithID(txs[0].From, &redditPDAProof)
-		if err != nil {
-			return
-		}
-	}
-
 	start := time.Now()
 	for i, tx := range txs {
 		a.Logger.Info("Processing transaction", "txNumber", i, "of", len(txs))
@@ -166,10 +156,6 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) (commitments []core.Commitment, er
 			a.Logger.Error("Unable to create verification data", "error", err)
 			return commitments, err
 		}
-		if (txs[0]).Type == core.TX_AIRDROP_TYPE {
-			core.VerifierWaitGroup.Wait()
-			PDAproof = redditPDAProof
-		}
 		updatedRoot, _, updatedTo, err := a.LoadedBazooka.ProcessTx(currentRoot, currentAccountTreeRoot, tx, fromAccProof, toAccProof, PDAproof)
 		if err != nil {
 			a.Logger.Error("Error processing tx", "tx", tx.String(), "error", err)
@@ -187,14 +173,6 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) (commitments []core.Commitment, er
 		switch txType := tx.Type; txType {
 		case core.TX_TRANSFER_TYPE:
 			tx.ApplySingleTx(toAccProof.Account, updatedTo)
-		case core.TX_AIRDROP_TYPE:
-			tx.ApplySingleTx(toAccProof.Account, updatedTo)
-		case core.TX_CREATE_ACCOUNT:
-			tx.ApplySingleTx(toAccProof.Account, updatedTo)
-		case core.TX_BURN_CONSENT:
-			fmt.Println("burnconsent")
-		case core.TX_BURN_EXEC:
-			fmt.Println("burn exec")
 		}
 
 		if i%32 == 0 {

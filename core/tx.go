@@ -196,7 +196,7 @@ func (db *DB) FetchTxType() (txType uint64, err error) {
 	// find out which txType has the highest count
 	var maxTxType uint64
 	var maxCount uint64
-	txTypes := []uint64{TX_TRANSFER_TYPE, TX_AIRDROP_TYPE, TX_CREATE_ACCOUNT, TX_BURN_CONSENT, TX_BURN_CONSENT}
+	txTypes := []uint64{TX_TRANSFER_TYPE}
 	for _, txType := range txTypes {
 		count, err := db.GetCountPerTxType(txType)
 		if err != nil {
@@ -233,14 +233,6 @@ func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof AccountMerkl
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
 		return tx.CreateVerificationDataForTransfer()
-	case TX_AIRDROP_TYPE:
-		return tx.CreateVerificationDataForAirdrop()
-	case TX_CREATE_ACCOUNT:
-		return tx.CreateVerificationDataForCreateAccount()
-	case TX_BURN_CONSENT:
-		return tx.CreateVerificationDataForBurnConsent()
-	case TX_BURN_EXEC:
-		return tx.CreateVerificationDataForBurnExec()
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return
@@ -282,64 +274,6 @@ func (tx *Tx) CreateVerificationDataForTransfer() (fromMerkleProof, toMerkleProo
 	}
 	toMerkleProof = NewAccountMerkleProof(toAcc, toSiblings)
 	return fromMerkleProof, toMerkleProof, PDAProof, dbCopy, nil
-}
-
-func (tx *Tx) CreateVerificationDataForAirdrop() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn DB, err error) {
-	VerifierWaitGroup.Add(1)
-	go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
-	toAcc, err := DBInstance.GetAccountByIndex(tx.To)
-	if err != nil {
-		return
-	}
-	var toSiblings []UserAccount
-	dbCopy, _ := NewDB()
-	mysqlTx := dbCopy.Instance.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			mysqlTx.Rollback()
-		}
-	}()
-	dbCopy.Instance = mysqlTx
-	VerifierWaitGroup.Wait()
-	updatedFromAccountBytes, _, err := LoadedBazooka.ApplyTx(fromMerkleProof, *tx)
-	if err != nil {
-		return
-	}
-	err = tx.ApplySingleTx(fromMerkleProof.Account, updatedFromAccountBytes)
-	if err != nil {
-		return
-	}
-	// TODO add a check to ensure that DB copy of state matches the one returned by ApplyTransferTx
-	toSiblings, err = dbCopy.GetSiblings(toAcc.Path)
-	if err != nil {
-		return
-	}
-	toMerkleProof = NewAccountMerkleProof(toAcc, toSiblings)
-	return fromMerkleProof, toMerkleProof, PDAProof, dbCopy, nil
-}
-
-func (tx *Tx) CreateVerificationDataForCreateAccount() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn DB, err error) {
-	VerifierWaitGroup.Add(2)
-	go DBInstance.FetchPDAProofWithID(tx.To, &PDAProof)
-	go DBInstance.FetchMPWithID(tx.To, &toMerkleProof)
-	VerifierWaitGroup.Wait()
-	return fromMerkleProof, toMerkleProof, PDAProof, txDBConn, nil
-}
-
-func (tx *Tx) CreateVerificationDataForBurnConsent() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn DB, err error) {
-	VerifierWaitGroup.Add(2)
-	go DBInstance.FetchPDAProofWithID(tx.From, &PDAProof)
-	go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
-	VerifierWaitGroup.Wait()
-	return fromMerkleProof, toMerkleProof, PDAProof, txDBConn, nil
-}
-
-func (tx *Tx) CreateVerificationDataForBurnExec() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn DB, err error) {
-	VerifierWaitGroup.Add(2)
-	go DBInstance.FetchPDAProofWithID(tx.From, &PDAProof)
-	go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
-	VerifierWaitGroup.Wait()
-	return fromMerkleProof, toMerkleProof, PDAProof, txDBConn, nil
 }
 
 func rlpHash(x interface{}) (h ethCmn.Hash) {
