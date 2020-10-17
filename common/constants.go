@@ -24,8 +24,8 @@ const (
 	MERKLE_TREE_LIB_KEY      = "mktlibk"
 	TOKEN_REGISTRY_KEY       = "tkk"
 	LOGGER_KEY               = "logger"
-	ROLLUP_UTILS             = "rollup-utils"
-	ROLLUP_CALLER            = "rollup_caller"
+	ROLLUP_UTILS             = "rollup_utils"
+	ROLLUP_CLIENT            = "rollup_client"
 	DEPOSIT_MANAGER          = "depositmanager"
 	COORDINATOR_PROXY        = "coordinator"
 )

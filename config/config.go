@@ -47,10 +47,10 @@ type Configuration struct {
 	ServerPort         string        `mapstructure:"server_port"`
 	ConfirmationBlocks uint64        `mapstructure:"confirmation_blocks"` // Number of blocks for confirmation
 
-	RollupAddress       string `mapstructure:"rollup_address"`
-	LoggerAddress       string `mapstructure:"logger_address"`
-	RollupCallerAddress string `mapstructure:"rollup_caller_address"`
-	RollupUtilsAddress  string `mapstructure:"rollup_utils_address"`
+	RollupAddress      string `mapstructure:"rollup_address"`
+	LoggerAddress      string `mapstructure:"logger_address"`
+	RollupUtilsAddress string `mapstructure:"rollup_utils_address"`
+	FrontendAddress    string `mapstructure:"frontend_address"`
 
 	OperatorKey       string `mapstructure:"operator_key"`
 	OperatorAddress   string `mapstructure:"operator_address"`
@@ -60,22 +60,22 @@ type Configuration struct {
 // GetDefaultConfig returns the default configration options
 func GetDefaultConfig() Configuration {
 	return Configuration{
-		DB:                  DefaultDB,
-		DBURL:               GetDBURL(),
-		Trace:               false,
-		DBLogMode:           true,
-		EthRPC:              DefaultEthRPC,
-		TxsPerBatch:         2,
-		PollingInterval:     DefaultPollingInterval,
-		ServerPort:          DefaultSeverPort,
-		ConfirmationBlocks:  DefaultConfirmationBlocks,
-		RollupAddress:       ethCmn.Address{}.String(),
-		LoggerAddress:       ethCmn.Address{}.String(),
-		RollupCallerAddress: ethCmn.Address{}.String(),
-		RollupUtilsAddress:  ethCmn.Address{}.String(),
-		OperatorKey:         "",
-		OperatorAddress:     "",
-		LastRecordedBlock:   "0",
+		DB:                 DefaultDB,
+		DBURL:              GetDBURL(),
+		Trace:              false,
+		DBLogMode:          true,
+		EthRPC:             DefaultEthRPC,
+		TxsPerBatch:        2,
+		PollingInterval:    DefaultPollingInterval,
+		ServerPort:         DefaultSeverPort,
+		ConfirmationBlocks: DefaultConfirmationBlocks,
+		RollupAddress:      ethCmn.Address{}.String(),
+		LoggerAddress:      ethCmn.Address{}.String(),
+		RollupUtilsAddress: ethCmn.Address{}.String(),
+		FrontendAddress:    ethCmn.Address{}.String(),
+		OperatorKey:        "",
+		OperatorAddress:    "",
+		LastRecordedBlock:  "0",
 	}
 }
 

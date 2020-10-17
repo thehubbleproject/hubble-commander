@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
-	"github.com/BOPR/core"
 	"github.com/BOPR/wallet"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -54,7 +52,6 @@ func main() {
 	rootCmd.AddCommand(SendTransferTx())
 	rootCmd.AddCommand(CreateDatabase())
 	rootCmd.AddCommand(CreateUsers())
-	rootCmd.AddCommand(submitBatches())
 	rootCmd.AddCommand(migrationCmd)
 
 	executor := Executor{rootCmd, os.Exit}
@@ -170,56 +167,5 @@ func CreateDatabase() *cobra.Command {
 	}
 	cmd.Flags().StringP(FlagDatabaseName, "", "", "--dbname=<database-name>")
 	// cmd.MarkFlagRequired(FlagDatabaseName)
-	return cmd
-}
-
-type BatchList struct {
-	Batches []Batch `json:"users"`
-}
-
-type Batch struct {
-	Index       uint64 `json:"index"`
-	UpdatedRoot string `json:"root"`
-	Txs         string `json:"txs"`
-	BatchType   uint64 `json:"type"`
-}
-
-func submitBatches() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "submit-commitments",
-		Short: "Submit commitments stored as pending broadcasts",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			db, err := core.NewDB()
-			if err != nil {
-				panic(err)
-			}
-			defer db.Close()
-			pendingBatches, err := db.GetPendingBatches()
-			if err != nil {
-				fmt.Println("Error fetching pending batches", err)
-				panic(err)
-			}
-			if len(pendingBatches) == 0 {
-				fmt.Println("no batches found")
-				return errors.New("no batches found")
-			}
-			var batches []Batch
-
-			for i, batch := range pendingBatches {
-				newBatch := Batch{
-					UpdatedRoot: batch.UpdateRoot,
-					Txs:         batch.Txs,
-					BatchType:   batch.BatchType,
-					Index:       uint64(i),
-				}
-				batches = append(batches, newBatch)
-			}
-			bz, err := json.MarshalIndent(BatchList{Batches: batches}, "", " ")
-			if err != nil {
-				return err
-			}
-			return ioutil.WriteFile("batches.json", bz, 0644)
-		},
-	}
 	return cmd
 }

@@ -34,8 +34,8 @@ confirmation_blocks = "{{ .ConfirmationBlocks }}"
 ##### Contract Addresses #####
 rollup_address = "{{ .RollupAddress }}"
 logger_address = "{{ .LoggerAddress }}"
-rollup_caller_address = "{{ .RollupCallerAddress }}"
 rollup_utils_address = "{{ .RollupUtilsAddress }}"
+frontend_address = "{{ .FrontendAddress }}"
 `
 
 var configTemplate *template.Template

@@ -7,7 +7,7 @@ import (
 	"math/big"
 
 	"github.com/BOPR/common"
-	"github.com/BOPR/contracts/rollupcaller"
+
 	"github.com/jinzhu/gorm"
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
 )
@@ -44,6 +44,13 @@ type UserAccount struct {
 
 	// Add the deposit hash for the account
 	CreatedByDepositSubTree string
+}
+
+type UserAccountSol struct {
+	PubkeyIndex *big.Int
+	TokenType   *big.Int
+	Balance     *big.Int
+	Nonce       *big.Int
 }
 
 // NewUserAccount creates a new user account
@@ -99,21 +106,21 @@ func (acc *UserAccount) String() string {
 	return fmt.Sprintf("ID: %d Bal: %d Nonce: %d Token: %v Path: %v TokenType:%v NodeType: %v Burn: %v LastBurn: %v", acc.AccountID, balance, nonce, token, acc.Path, acc.Type, acc.Hash, burn, lastBurn)
 }
 
-func (acc *UserAccount) ToABIAccount() (rollupAcc rollupcaller.TypesUserAccount, err error) {
-	var ID, balance, nonce, token, burn, lastBurn *big.Int = big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0)
-	if acc.Type == TYPE_TERMINAL {
-		ID, balance, nonce, token, burn, lastBurn, err = LoadedBazooka.DecodeAccount(acc.Data)
-		if err != nil {
-			fmt.Println("unable to convert", err)
-			return
-		}
-	}
-	rollupAcc.ID = ID
-	rollupAcc.Balance = balance
-	rollupAcc.Nonce = nonce
-	rollupAcc.TokenType = token
-	rollupAcc.Burn = burn
-	rollupAcc.LastBurn = lastBurn
+func (acc *UserAccount) ToABIAccount() (rollupAcc UserAccountSol, err error) {
+	// var pubkeyIndex, balance, nonce, token *big.Int = big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0)
+	// if acc.Type == TYPE_TERMINAL {
+	// 	pubkeyIndex, balance, nonce, token, err = LoadedBazooka.DecodeAccount(acc.Data)
+	// 	if err != nil {
+	// 		fmt.Println("unable to convert", err)
+	// 		return
+	// 	}
+	// }
+
+	// // assign to sol struct
+	// rollupAcc.PubkeyIndex = ID
+	// rollupAcc.Balance = balance
+	// rollupAcc.Nonce = nonce
+	// rollupAcc.TokenType = token
 	return
 }
 
@@ -141,17 +148,17 @@ func (acc *UserAccount) IsCoordinator() bool {
 	return true
 }
 
-func (acc *UserAccount) AccountInclusionProof(path int64) (accInclusionProof rollupcaller.TypesAccountInclusionProof, err error) {
-	accABI, err := acc.ToABIAccount()
-	if err != nil {
-		return
-	}
-	accInclusionProof = rollupcaller.TypesAccountInclusionProof{
-		PathToAccount: big.NewInt(path),
-		Account:       accABI,
-	}
-	return accInclusionProof, nil
-}
+// func (acc *UserAccount) AccountInclusionProof(path int64) (accInclusionProof rollupclient.TypesAccountInclusionProof, err error) {
+// 	// accABI, err := acc.ToABIAccount()
+// 	// if err != nil {
+// 	// 	return
+// 	// }
+// 	// accInclusionProof = rollupcaller.TypesAccountInclusionProof{
+// 	// 	PathToAccount: big.NewInt(path),
+// 	// 	Account:       accABI,
+// 	// }
+// 	return accInclusionProof, nil
+// }
 
 func (acc *UserAccount) CreateAccountHash() {
 	accountHash := common.Keccak256(acc.Data)

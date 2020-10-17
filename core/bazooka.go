@@ -17,7 +17,7 @@ import (
 
 	"github.com/BOPR/contracts/logger"
 	"github.com/BOPR/contracts/rollup"
-	"github.com/BOPR/contracts/rollupcaller"
+	"github.com/BOPR/contracts/rollupclient"
 	"github.com/BOPR/contracts/rolluputils"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -42,11 +42,10 @@ type Bazooka struct {
 
 	ContractABI map[string]abi.ABI
 
-	// Rollup contract
 	RollupContract *rollup.Rollup
 	EventLogger    *logger.Logger
 	RollupUtils    *rolluputils.Rolluputils
-	RollupCaller   *rollupcaller.Rollupcaller
+	Frontend       *rollupclient.Rollupclient
 }
 
 // NewContractCaller contract caller
@@ -83,30 +82,18 @@ func NewPreLoadedBazooka() (bazooka Bazooka, err error) {
 		return bazooka, err
 	}
 
-	// initialise all variables for rollup utils contract
-	rollupUtilsAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupUtilsAddress)
-	if bazooka.RollupUtils, err = rolluputils.NewRolluputils(rollupUtilsAddress, bazooka.EthClient); err != nil {
+	clientAddr := ethCmn.HexToAddress(config.GlobalCfg.FrontendAddress)
+	if bazooka.Frontend, err = rollupclient.NewRollupclient(clientAddr, bazooka.EthClient); err != nil {
 		return bazooka, err
 	}
-	if bazooka.ContractABI[common.ROLLUP_UTILS], err = abi.JSON(strings.NewReader(rolluputils.RolluputilsABI)); err != nil {
-		return bazooka, err
-	}
-
-	// initialise all variables for event logger contract
-	rollupcallerAddr := ethCmn.HexToAddress(config.GlobalCfg.RollupCallerAddress)
-	if bazooka.RollupCaller, err = rollupcaller.NewRollupcaller(rollupcallerAddr, bazooka.EthClient); err != nil {
-		return bazooka, err
-	}
-	if bazooka.ContractABI[common.ROLLUP_CALLER], err = abi.JSON(strings.NewReader(rollupcaller.RollupcallerABI)); err != nil {
+	if bazooka.ContractABI[common.ROLLUP_CLIENT], err = abi.JSON(strings.NewReader(rollupclient.RollupclientABI)); err != nil {
 		return bazooka, err
 	}
 
 	bazooka.log = common.Logger.With("module", "bazooka")
-
 	return bazooka, nil
 }
 
-// get main chain block header
 func (b *Bazooka) GetMainChainBlock(blockNum *big.Int) (header *ethTypes.Header, err error) {
 	latestBlock, err := b.EthClient.HeaderByNumber(context.Background(), blockNum)
 	if err != nil {
@@ -192,64 +179,107 @@ func (b *Bazooka) CompressTxs(txs []Tx) ([]byte, error) {
 }
 
 func (b *Bazooka) processTransferTx(balanceTreeRoot, accountTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof AccountMerkleProof, pdaProof PDAMerkleProof) (newBalanceRoot ByteArray, from, to []byte, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	fromMP, err := fromMerkleProof.ToABIVersion()
-	if err != nil {
-		return
-	}
-	toMP, err := toMerkleProof.ToABIVersion()
-	if err != nil {
-		return
-	}
-	typesAccountProofs := rollupcaller.TypesAccountProofs{From: fromMP, To: toMP}
-	updatedRoot, newFromAccount, newToAccount, errCode, IsValidTx, err := b.RollupCaller.ProcessTransferTx(&opts,
-		balanceTreeRoot,
-		accountTreeRoot,
-		tx.Signature,
-		tx.Data,
-		pdaProof.ToABIVersion(),
-		typesAccountProofs,
-	)
-	if err != nil {
-		return
-	}
+	// opts := bind.CallOpts{From: config.OperatorAddress}
+	// fromMP, err := fromMerkleProof.ToABIVersion()
+	// if err != nil {
+	// 	return
+	// }
+	// toMP, err := toMerkleProof.ToABIVersion()
+	// if err != nil {
+	// 	return
+	// }
 
-	b.log.Info("Processed transaction", "IsSuccess", IsValidTx, "newRoot", updatedRoot)
+	// // TODO convert tx.Data to Tx.Transfer using encoded to compress function
+	// // from utils
 
-	if !IsValidTx {
-		b.log.Error("Invalid transaction", "error_code", errCode)
-		return newBalanceRoot, from, to, errors.New("Tx is invalid")
-	}
-	newBalanceRoot = BytesToByteArray(updatedRoot[:])
-	return newBalanceRoot, newFromAccount, newToAccount, nil
+	// updatedRoot, newFromAccount, newToAccount, errCode, IsValidTx, err := b.Transfer.ProcessTx(&opts,
+	// 	balanceTreeRoot,
+	// 	tx.Data,
+
+	// 	typesAccountProofs,
+	// )
+	// if err != nil {
+	// 	return
+	// }
+
+	// b.log.Info("Processed transaction", "IsSuccess", IsValidTx, "newRoot", updatedRoot)
+
+	// if !IsValidTx {
+	// 	b.log.Error("Invalid transaction", "error_code", errCode)
+	// 	return newBalanceRoot, from, to, errors.New("Tx is invalid")
+	// }
+	// newBalanceRoot = BytesToByteArray(updatedRoot[:])
+	//return newBalanceRoot, newFromAccount, newToAccount, nil
+	return
 }
 
-func (b *Bazooka) applyTransferTx(accountMP AccountMerkleProof, tx Tx) ([]byte, ByteArray, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	accMP, err := accountMP.ToABIVersion()
-	if err != nil {
-		return nil, ByteArray{}, err
-	}
-	updatedAccountBytes, updatedRoot, err := b.RollupCaller.ApplyTransferTx(&opts, accMP, tx.Data)
-	if err != nil {
-		return updatedAccountBytes, updatedRoot, err
-	}
+func (b *Bazooka) applyCreate2TransferTx(accountMP AccountMerkleProof, tx Tx) ([]byte, ByteArray, error) {
+	var updatedAccountBytes []byte
+	var updatedRoot ByteArray
+	// opts := bind.CallOpts{From: config.OperatorAddress}
+	// accMP, err := accountMP.ToABIVersion()
+	// if err != nil {
+	// 	return nil, ByteArray{}, err
+	// }
+
+	// updatedFromBytes, updatedRoot := b.Create2Transfer.ApplyCreate2TransferSender(&opts, accMP, tx.Data)
+	// if err != nil {
+	// 	return updatedAccountBytes, updatedRoot, err
+	// }
 	return updatedAccountBytes, updatedRoot, nil
 }
 
+func (b *Bazooka) applyTransferTx(accountMP AccountMerkleProof, tx Tx) (updatedState []byte, newRoot ByteArray, err error) {
+	// opts := bind.CallOpts{From: config.OperatorAddress}
+	// accMP, err := accountMP.ToABIVersion()
+	// if err != nil {
+	// 	return nil, ByteArray{}, err
+	// }
+
+	// updates := struct {
+	// 	NewState []byte
+	// 	NewRoot  [32]byte
+	// }{updatedState, newRoot}
+
+	// var mp transfer.TypesStateMerkleProof
+	// state, err := accountMP.Account.ToABIAccount()
+	// if err != nil {
+	// 	return nil, ByteArray{}, err
+	// }
+	// mp.State = state
+	// if tx.To == accountMP.Account.AccountID {
+	// 	updates, err = b.Transfer.ApplyTransferTxSender(&opts, transfer.TypesStateMerkleProof(accMP), tx.data)
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// }
+
+	// if tx.From == accountMP.Account.AccountID {
+	// 	updates, err = b.Transfer.ApplyTransferTxSender(&opts, accMP, tx.data)
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// }
+
+	// return updates.NewState, updates.NewRoot, nil
+	return
+}
+
 func (b *Bazooka) compressTransferTxs(txs []Tx) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	var data [][]byte
-	for _, tx := range txs {
-		data = append(data, tx.Data)
-	}
-	// TOOD remove and update the transfer
-	return b.RollupUtils.CompressManyTransferFromEncoded(&opts, data)
+	// opts := bind.CallOpts{From: config.OperatorAddress}
+	// var data [][]byte
+	// for _, tx := range txs {
+	// 	data = append(data, tx.Data)
+	// }
+	// // TOOD remove and update the transfer
+	// return b.RollupUtils.CompressManyTransferFromEncoded(&opts, data)
+	return []byte{}, nil
 }
 
 func (b *Bazooka) SignBytesForTransfer(txType, fromIndex, toIndex, nonce, amount int64) ([32]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.GetTxSignBytes(&opts, big.NewInt(txType), big.NewInt(fromIndex), big.NewInt(toIndex), big.NewInt(nonce), big.NewInt(amount))
+	// opts := bind.CallOpts{From: config.OperatorAddress}
+	// return b.RollupUtils.GetTxSignBytes(&opts, big.NewInt(txType), big.NewInt(fromIndex), big.NewInt(toIndex), big.NewInt(nonce), big.NewInt(amount))
+	return [32]byte{}, nil
 }
 
 //
@@ -257,17 +287,19 @@ func (b *Bazooka) SignBytesForTransfer(txType, fromIndex, toIndex, nonce, amount
 //
 
 func (b *Bazooka) EncodeTransferTx(from, to, token, nonce, amount, txType int64) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	return b.RollupUtils.BytesFromTxDeconstructed(&opts, big.NewInt(txType), big.NewInt(from), big.NewInt(to), big.NewInt(token), big.NewInt(nonce), big.NewInt(amount))
+	// opts := bind.CallOpts{From: config.OperatorAddress}
+	// return b.RollupUtils.BytesFromTxDeconstructed(&opts, big.NewInt(txType), big.NewInt(from), big.NewInt(to), big.NewInt(token), big.NewInt(nonce), big.NewInt(amount))
+	return []byte{}, nil
 }
 
 func (b *Bazooka) DecodeTransferTx(txBytes []byte) (from, to, token, nonce, txType, amount *big.Int, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	tx, err := b.RollupUtils.TxFromBytesDeconstructed(&opts, txBytes)
-	if err != nil {
-		return
-	}
-	return tx.From, tx.To, tx.TokenType, tx.Nonce, tx.TxType, tx.Amount, nil
+	// opts := bind.CallOpts{From: config.OperatorAddress}
+	// tx, err := b.RollupUtils.TxFromBytesDeconstructed(&opts, txBytes)
+	// if err != nil {
+	// 	return
+	// }
+	// return tx.From, tx.To, tx.TokenType, tx.Nonce, tx.TxType, tx.Amount, nil
+	return
 }
 
 //
@@ -275,39 +307,40 @@ func (b *Bazooka) DecodeTransferTx(txBytes []byte) (from, to, token, nonce, txTy
 //
 
 func (b *Bazooka) EncodeAccount(id, balance, nonce, token, burn, lastBurn int64) (accountBytes []byte, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	accountBytes, err = b.RollupUtils.BytesFromAccountDeconstructed(&opts, big.NewInt(id), big.NewInt(balance), big.NewInt(nonce), big.NewInt(token), big.NewInt(burn), big.NewInt(lastBurn))
-	if err != nil {
-		return
-	}
+	// opts := bind.CallOpts{From: config.OperatorAddress}
+	// accountBytes, err = b.RollupUtils.BytesFromAccountDeconstructed(&opts, big.NewInt(id), big.NewInt(balance), big.NewInt(nonce), big.NewInt(token), big.NewInt(burn), big.NewInt(lastBurn))
+	// if err != nil {
+	// 	return
+	// }
 	return accountBytes, nil
 }
 
 func (b *Bazooka) DecodeAccount(accountBytes []byte) (ID, balance, nonce, token, burn, lastBurn *big.Int, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	account, err := b.RollupUtils.AccountFromBytes(&opts, accountBytes)
-	if err != nil {
-		return
-	}
+	// opts := bind.CallOpts{From: config.OperatorAddress}
+	// account, err := b.RollupUtils.AccountFromBytes(&opts, accountBytes)
+	// if err != nil {
+	// 	return
+	// }
 
-	b.log.Debug("Decoded account", "ID", account.ID, "balance", account.Balance, "token", account.TokenType, "nonce", account.Nonce, "burn", account.Burn, "lastBurn", account.LastBurn)
-	return account.ID, account.Balance, account.Nonce, account.TokenType, account.Burn, account.LastBurn, nil
+	// b.log.Debug("Decoded account", "ID", account.ID, "balance", account.Balance, "token", account.TokenType, "nonce", account.Nonce, "burn", account.Burn, "lastBurn", account.LastBurn)
+	// return account.ID, account.Balance, account.Nonce, account.TokenType, account.Burn, account.LastBurn, nil
+	return
 }
 
 // ----------------------------------------------------------------
 
 func (b *Bazooka) GetGenesisAccounts() (genesisAccount []UserAccount, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	// get genesis accounts
-	accounts, err := b.RollupUtils.GetGenesisDataBlocks(&opts)
-	if err != nil {
-		return
-	}
+	// opts := bind.CallOpts{From: config.OperatorAddress}
+	// // get genesis accounts
+	// accounts, err := b.RollupUtils.GetGenesisDataBlocks(&opts)
+	// if err != nil {
+	// 	return
+	// }
 
-	for _, account := range accounts {
-		ID, _, _, _, _, _, _ := b.DecodeAccount(account)
-		genesisAccount = append(genesisAccount, *NewUserAccount(ID.Uint64(), STATUS_ACTIVE, UintToString(ID.Uint64()), account))
-	}
+	// for _, account := range accounts {
+	// 	ID, _, _, _, _, _, _ := b.DecodeAccount(account)
+	// 	genesisAccount = append(genesisAccount, *NewUserAccount(ID.Uint64(), STATUS_ACTIVE, UintToString(ID.Uint64()), account))
+	// }
 	return
 }
 
@@ -316,183 +349,184 @@ func (b *Bazooka) GetGenesisAccounts() (genesisAccount []UserAccount, err error)
 //
 
 func (b *Bazooka) FireDepositFinalisation(TBreplaced UserAccount, siblings []UserAccount, subTreeHeight uint64) (err error) {
-	b.log.Info(
-		"Attempting to finalise deposits",
-		"NodeToBeReplaced",
-		TBreplaced.String(),
-		"NumberOfSiblings",
-		len(siblings),
-		"atDepth",
-		subTreeHeight,
-	)
+	// b.log.Info(
+	// 	"Attempting to finalise deposits",
+	// 	"NodeToBeReplaced",
+	// 	TBreplaced.String(),
+	// 	"NumberOfSiblings",
+	// 	len(siblings),
+	// 	"atDepth",
+	// 	subTreeHeight,
+	// )
 
-	// TODO check latest batch on-chain nd if we need to push new batch
-	depositSubTreeHeight := big.NewInt(0)
-	depositSubTreeHeight.SetUint64(subTreeHeight)
-	var siblingData [][32]byte
-	for _, sibling := range siblings {
-		data, err := HexToByteArray(sibling.Hash)
-		if err != nil {
-			b.log.Error("unable to convert HexToByteArray", err)
-			return err
-		}
-		siblingData = append(siblingData, data)
-	}
+	// // TODO check latest batch on-chain nd if we need to push new batch
+	// depositSubTreeHeight := big.NewInt(0)
+	// depositSubTreeHeight.SetUint64(subTreeHeight)
+	// var siblingData [][32]byte
+	// for _, sibling := range siblings {
+	// 	data, err := HexToByteArray(sibling.Hash)
+	// 	if err != nil {
+	// 		b.log.Error("unable to convert HexToByteArray", err)
+	// 		return err
+	// 	}
+	// 	siblingData = append(siblingData, data)
+	// }
 
-	accountProof := rollup.TypesAccountMerkleProof{}
-	accountProof.AccountIP.PathToAccount = StringToBigInt(TBreplaced.Path)
-	userAccount, err := TBreplaced.ToABIAccount()
-	if err != nil {
-		b.log.Error("unable to convert", "error", err)
-		return
-	}
-	accountProof.AccountIP.Account = rollup.TypesUserAccount(userAccount)
+	// accountProof := rollup.TypesAccountMerkleProof{}
+	// accountProof.AccountIP.PathToAccount = StringToBigInt(TBreplaced.Path)
+	// userAccount, err := TBreplaced.ToABIAccount()
+	// if err != nil {
+	// 	b.log.Error("unable to convert", "error", err)
+	// 	return
+	// }
+	// accountProof.AccountIP.Account = rollup.TypesUserAccount(userAccount)
 
-	accountProof.Siblings = siblingData
-	data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("finaliseDepositsAndSubmitBatch", depositSubTreeHeight, accountProof)
-	if err != nil {
-		fmt.Println("Unable to craete data", err)
-		return
-	}
+	// accountProof.Siblings = siblingData
+	// data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("finaliseDepositsAndSubmitBatch", depositSubTreeHeight, accountProof)
+	// if err != nil {
+	// 	fmt.Println("Unable to craete data", err)
+	// 	return
+	// }
 
-	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
-	stakeAmount := big.NewInt(0)
-	stakeAmount.SetString("32000000000000000000", 10)
+	// rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
+	// stakeAmount := big.NewInt(0)
+	// stakeAmount.SetString("32000000000000000000", 10)
 
-	// generate call msg
-	callMsg := ethereum.CallMsg{
-		To:    &rollupAddress,
-		Data:  data,
-		Value: stakeAmount,
-	}
+	// // generate call msg
+	// callMsg := ethereum.CallMsg{
+	// 	To:    &rollupAddress,
+	// 	Data:  data,
+	// 	Value: stakeAmount,
+	// }
 
-	auth, err := b.GenerateAuthObj(b.EthClient, callMsg)
-	if err != nil {
-		return err
-	}
-	lastTxBroadcasted, err := DBInstance.GetLastTransaction()
-	if err != nil {
-		return err
-	}
-	if lastTxBroadcasted.Nonce+1 != auth.Nonce.Uint64() {
-		b.log.Info("Replacing nonce", "nonceEstimated", auth.Nonce.String(), "replacedBy", lastTxBroadcasted.Nonce+1)
-		auth.Nonce = big.NewInt(int64(lastTxBroadcasted.Nonce + 1))
-	}
-	b.log.Info("Broadcasting deposit finalisation transaction")
+	// auth, err := b.GenerateAuthObj(b.EthClient, callMsg)
+	// if err != nil {
+	// 	return err
+	// }
+	// lastTxBroadcasted, err := DBInstance.GetLastTransaction()
+	// if err != nil {
+	// 	return err
+	// }
+	// if lastTxBroadcasted.Nonce+1 != auth.Nonce.Uint64() {
+	// 	b.log.Info("Replacing nonce", "nonceEstimated", auth.Nonce.String(), "replacedBy", lastTxBroadcasted.Nonce+1)
+	// 	auth.Nonce = big.NewInt(int64(lastTxBroadcasted.Nonce + 1))
+	// }
+	// b.log.Info("Broadcasting deposit finalisation transaction")
 
-	tx, err := b.RollupContract.FinaliseDepositsAndSubmitBatch(auth, depositSubTreeHeight, accountProof)
-	if err != nil {
-		return err
-	}
-	// TODO change this to deposit type
-	err = DBInstance.LogBatch(auth.Nonce.Uint64(), 100, "", []byte(""))
-	if err != nil {
-		return err
-	}
-	b.log.Info("Deposits successfully finalized!", "TxHash", tx.Hash())
+	// tx, err := b.RollupContract.FinaliseDepositsAndSubmitBatch(auth, depositSubTreeHeight, accountProof)
+	// if err != nil {
+	// 	return err
+	// }
+	// // TODO change this to deposit type
+	// err = DBInstance.LogBatch(auth.Nonce.Uint64(), 100, "", []byte(""))
+	// if err != nil {
+	// 	return err
+	// }
+	// b.log.Info("Deposits successfully finalized!", "TxHash", tx.Hash())
+	// return nil
 	return nil
 }
 
 // SubmitBatch submits the batch on chain with updated root and compressed transactions
 func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
-	b.log.Info(
-		"Attempting to submit a new batch",
-		"NumOfCommitments",
-		len(commitments),
-	)
+	// b.log.Info(
+	// 	"Attempting to submit a new batch",
+	// 	"NumOfCommitments",
+	// 	len(commitments),
+	// )
 
-	if len(commitments) == 0 {
-		b.log.Info("No transactions to submit, waiting....")
-		return nil
-	}
+	// if len(commitments) == 0 {
+	// 	b.log.Info("No transactions to submit, waiting....")
+	// 	return nil
+	// }
 
-	var txs [][]byte
-	var updatedRoots [][32]byte
-	var aggregatedSig [][2]*big.Int
-	var totalTransactionsBeingCommitted int
-	for _, commitment := range commitments {
-		compressedTxs, err := b.CompressTxs(commitment.Txs)
-		if err != nil {
-			b.log.Error("Unable to compress txs", "error", err)
-			return err
-		}
-		txs = append(txs, compressedTxs)
-		updatedRoots = append(updatedRoots, commitment.UpdatedRoot)
-		totalTransactionsBeingCommitted += len(commitment.Txs)
-		sig1 := commitment.AggregatedSignature[0:32]
-		sig2 := commitment.AggregatedSignature[32:64]
-		sig1bigInt := big.NewInt(0)
-		sig1bigInt.SetBytes(sig1)
-		sig2bigInt := big.NewInt(0)
-		sig2bigInt.SetBytes(sig2)
-		aggregatedSigBigInt := [2]*big.Int{sig1bigInt, sig2bigInt}
-		fmt.Println("creeated aggregated sig", aggregatedSigBigInt)
-		aggregatedSig = append(aggregatedSig, aggregatedSigBigInt)
-	}
+	// var txs [][]byte
+	// var updatedRoots [][32]byte
+	// var aggregatedSig [][2]*big.Int
+	// var totalTransactionsBeingCommitted int
+	// for _, commitment := range commitments {
+	// 	compressedTxs, err := b.CompressTxs(commitment.Txs)
+	// 	if err != nil {
+	// 		b.log.Error("Unable to compress txs", "error", err)
+	// 		return err
+	// 	}
+	// 	txs = append(txs, compressedTxs)
+	// 	updatedRoots = append(updatedRoots, commitment.UpdatedRoot)
+	// 	totalTransactionsBeingCommitted += len(commitment.Txs)
+	// 	sig1 := commitment.AggregatedSignature[0:32]
+	// 	sig2 := commitment.AggregatedSignature[32:64]
+	// 	sig1bigInt := big.NewInt(0)
+	// 	sig1bigInt.SetBytes(sig1)
+	// 	sig2bigInt := big.NewInt(0)
+	// 	sig2bigInt.SetBytes(sig2)
+	// 	aggregatedSigBigInt := [2]*big.Int{sig1bigInt, sig2bigInt}
+	// 	fmt.Println("creeated aggregated sig", aggregatedSigBigInt)
+	// 	aggregatedSig = append(aggregatedSig, aggregatedSigBigInt)
+	// }
 
-	b.log.Info("Batch prepared", "totalTransactions", totalTransactionsBeingCommitted)
-	data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitBatch", txs, updatedRoots, uint8(commitments[0].BatchType), aggregatedSig)
-	if err != nil {
-		b.log.Error("Error packing data for submitBatch", "err", err)
-		return err
-	}
-
-	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
-	stakeAmount := big.NewInt(0)
-	stakeAmount.SetString("3200000000000000000", 10)
-
-	// generate call msg
-	callMsg := ethereum.CallMsg{
-		To:    &rollupAddress,
-		Data:  data,
-		Value: stakeAmount,
-	}
-
-	auth, err := b.GenerateAuthObj(b.EthClient, callMsg)
-	if err != nil {
-		b.log.Error("Error creating auth object", "error", err)
-		return err
-	}
-
-	// lastTxBroadcasted, err := DBInstance.GetLastTransaction()
+	// b.log.Info("Batch prepared", "totalTransactions", totalTransactionsBeingCommitted)
+	// data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitBatch", txs, updatedRoots, uint8(commitments[0].BatchType), aggregatedSig)
 	// if err != nil {
+	// 	b.log.Error("Error packing data for submitBatch", "err", err)
 	// 	return err
 	// }
 
-	// if lastTxBroadcasted.Nonce+1 != auth.Nonce.Uint64() {
-	// 	b.log.Info("Replacing nonce", "nonceEstimated", auth.Nonce.String(), "replacedBy", lastTxBroadcasted.Nonce+1)
-	// 	auth.Nonce = big.NewInt(int64(lastTxBroadcasted.Nonce + 1))
+	// rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
+	// stakeAmount := big.NewInt(0)
+	// stakeAmount.SetString("3200000000000000000", 10)
+
+	// // generate call msg
+	// callMsg := ethereum.CallMsg{
+	// 	To:    &rollupAddress,
+	// 	Data:  data,
+	// 	Value: stakeAmount,
 	// }
 
-	// latestBatch, err := DBInstance.GetLatestBatch()
+	// auth, err := b.GenerateAuthObj(b.EthClient, callMsg)
 	// if err != nil {
+	// 	b.log.Error("Error creating auth object", "error", err)
 	// 	return err
 	// }
 
-	// newBatch := Batch{
-	// 	BatchID:   latestBatch.BatchID + 1,
-	// 	StateRoot: updatedRoot.String(),
-	// 	Committer: config.OperatorAddress.String(),
-	// 	Status:    BATCH_BROADCASTED,
-	// }
+	// // lastTxBroadcasted, err := DBInstance.GetLastTransaction()
+	// // if err != nil {
+	// // 	return err
+	// // }
 
-	// b.log.Info("Broadcasting a new batch", "newBatch", newBatch)
-	// err = DBInstance.AddNewBatch(newBatch)
+	// // if lastTxBroadcasted.Nonce+1 != auth.Nonce.Uint64() {
+	// // 	b.log.Info("Replacing nonce", "nonceEstimated", auth.Nonce.String(), "replacedBy", lastTxBroadcasted.Nonce+1)
+	// // 	auth.Nonce = big.NewInt(int64(lastTxBroadcasted.Nonce + 1))
+	// // }
+
+	// // latestBatch, err := DBInstance.GetLatestBatch()
+	// // if err != nil {
+	// // 	return err
+	// // }
+
+	// // newBatch := Batch{
+	// // 	BatchID:   latestBatch.BatchID + 1,
+	// // 	StateRoot: updatedRoot.String(),
+	// // 	Committer: config.OperatorAddress.String(),
+	// // 	Status:    BATCH_BROADCASTED,
+	// // }
+
+	// // b.log.Info("Broadcasting a new batch", "newBatch", newBatch)
+	// // err = DBInstance.AddNewBatch(newBatch)
+	// // if err != nil {
+	// // 	return err
+	// // }
+
+	// tx, err := b.RollupContract.SubmitBatch(auth, txs, updatedRoots, uint8(commitments[0].BatchType), aggregatedSig)
 	// if err != nil {
+	// 	b.log.Error("Error submitting batch", "err", err)
 	// 	return err
 	// }
+	// b.log.Info("Sent a new batch!", "TxHash", tx.Hash().String())
 
-	tx, err := b.RollupContract.SubmitBatch(auth, txs, updatedRoots, uint8(commitments[0].BatchType), aggregatedSig)
-	if err != nil {
-		b.log.Error("Error submitting batch", "err", err)
-		return err
-	}
-	b.log.Info("Sent a new batch!", "TxHash", tx.Hash().String())
-
-	// err = DBInstance.LogBatch(0, txs[0].Type, updatedRoot.String(), compressedTxs)
-	// if err != nil {
-	// 	return err
-	// }
+	// // err = DBInstance.LogBatch(0, txs[0].Type, updatedRoot.String(), compressedTxs)
+	// // if err != nil {
+	// // 	return err
+	// // }
 
 	return nil
 }

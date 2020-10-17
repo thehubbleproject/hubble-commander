@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -205,13 +204,6 @@ func LoadGenesisData(genesis config.Genesis) {
 	if err != nil {
 		panic(err)
 	}
-
-	// load last nonce
-	nonce, err := core.LoadedBazooka.EthClient.PendingNonceAt(context.Background(), config.OperatorAddress)
-	if err != nil {
-		return
-	}
-	core.DBInstance.LogBatch(nonce-1, core.TX_GENESIS, "", []byte(""))
 }
 
 type userList struct {
