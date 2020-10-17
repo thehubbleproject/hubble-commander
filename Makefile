@@ -7,8 +7,8 @@ dep:
 contracts:
 	abigen --abi=contracts/rollup/rollup.abi --pkg=rollup --out=contracts/rollup/rollup.go
 	abigen --abi=contracts/logger/logger.abi --pkg=logger --out=contracts/logger/logger.go
+	abigen --abi=contracts/rollupclient/rollupclient.abi --pkg=rollupclient --out=contracts/rollupclient/rollupclient.go
 	abigen --abi=contracts/rolluputils/rolluputils.abi --pkg=rolluputils --out=contracts/rolluputils/rolluputils.go
-	abigen --abi=contracts/rollupcaller/rollupcaller.abi --pkg=rollupcaller --out=contracts/rollupcaller/rollupcaller.go
 
 clean:
 	rm -rf build
@@ -36,8 +36,4 @@ start:
 	mkdir -p logs &
 	./build/hubble start > ./logs/node.log & 
 
-start-simulator:
-	mkdir -p logs &
-	./build/hubble start-simulating > ./logs/simulator.log & 
-	 
 .PHONY: contracts dep start-simulator build clean start buidl
