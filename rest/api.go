@@ -65,7 +65,7 @@ func GetAccountHandler(w http.ResponseWriter, r *http.Request) {
 		WriteErrorResponse(w, http.StatusBadRequest, "Invalid ID")
 	}
 	fmt.Println(ID)
-	var account core.UserAccount
+	var account core.UserState
 	// account, err := core.DBInstance.GetAccount(ID)
 	// if err != nil {
 	// 	WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("Account with ID %v not found", ID))
@@ -87,7 +87,7 @@ func GetTxTemplateForTxType(w http.ResponseWriter, r *http.Request) {
 	// if err != nil {
 	// 	WriteErrorResponse(w, http.StatusBadRequest, "Invalid txType")
 	// }
-	var account core.UserAccount
+	var account core.UserState
 	// account, err := core.DBInstance.GetAccount(ID)
 	// if err != nil {
 	// 	WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("Account with ID %v not found", ID))

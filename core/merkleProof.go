@@ -4,16 +4,16 @@ import (
 	"github.com/BOPR/contracts/rollupclient"
 )
 
-type AccountMerkleProof struct {
-	Account  UserAccount
-	Siblings []UserAccount
+type UserStateMerkleProof struct {
+	Account  UserState
+	Siblings []UserState
 }
 
-func NewAccountMerkleProof(account UserAccount, siblings []UserAccount) AccountMerkleProof {
-	return AccountMerkleProof{Account: account, Siblings: siblings}
+func NewUserStateMerkleProof(account UserState, siblings []UserState) UserStateMerkleProof {
+	return UserStateMerkleProof{Account: account, Siblings: siblings}
 }
 
-func (m *AccountMerkleProof) ToABIVersion() (AccMP rollupclient.TypesStateMerkleProof, err error) {
+func (m *UserStateMerkleProof) ToABIVersion() (AccMP rollupclient.TypesStateMerkleProof, err error) {
 	// // create siblings
 	// var siblingNodes [][32]byte
 	// for _, s := range m.Siblings {
@@ -36,17 +36,17 @@ func (m *AccountMerkleProof) ToABIVersion() (AccMP rollupclient.TypesStateMerkle
 	return AccMP, nil
 }
 
-type PDAMerkleProof struct {
+type AccountMerkleProof struct {
 	Path      string
 	PublicKey string
-	Siblings  []PDA
+	Siblings  []Account
 }
 
-func NewPDAProof(path string, publicKey string, siblings []PDA) PDAMerkleProof {
-	return PDAMerkleProof{PublicKey: publicKey, Siblings: siblings, Path: path}
+func NewAccountMerkleProof(path string, publicKey string, siblings []Account) AccountMerkleProof {
+	return AccountMerkleProof{PublicKey: publicKey, Siblings: siblings, Path: path}
 }
 
-// func (m *PDAMerkleProof) ToABIVersion() rollupcaller.TypesPDAMerkleProof {
+// func (m *AccountMerkleProof) ToABIVersion() rollupcaller.TypesAccountMerkleProof {
 // create siblings
 // var siblingNodes [][32]byte
 // for _, s := range m.Siblings {
@@ -69,10 +69,10 @@ func NewPDAProof(path string, publicKey string, siblings []PDA) PDAMerkleProof {
 // sig4bigInt := big.NewInt(0)
 // sig4bigInt.SetBytes(pub4)
 // aggregatedSigBigInt := [4]*big.Int{sig1bigInt, sig2bigInt, sig3bigInt, sig4bigInt}
-// return rollupcaller.TypesPDAMerkleProof{
-// 	Pda: rollupcaller.TypesPDAInclusionProof{
+// return rollupcaller.TypesAccountMerkleProof{
+// 	Pda: rollupcaller.TypesAccountInclusionProof{
 // 		PathToPubkey: StringToBigInt(m.Path),
-// 		PubkeyLeaf:   rollupcaller.TypesPDALeaf{Pubkey: aggregatedSigBigInt},
+// 		PubkeyLeaf:   rollupcaller.TypesAccountLeaf{Pubkey: aggregatedSigBigInt},
 // 	},
 // 	Siblings: siblingNodes,
 // }
