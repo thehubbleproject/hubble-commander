@@ -1,219 +1,262 @@
 package core
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math"
-	"math/big"
 
 	"github.com/BOPR/common"
-
-	"github.com/jinzhu/gorm"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
 )
 
-// UserAccount is the user data stored on the node per user
-type UserAccount struct {
-	// ID is the path of the user account in the PDA Tree
+// Account is the copy of the accounts tree
+type Account struct {
+	// ID is the path of the user account in the Account Tree
 	// Cannot be changed once created
-	AccountID uint64 `gorm:"not null;index:AccountID"`
+	ID uint64 `gorm:"not null"`
 
-	Data []byte `gorm:"type:varbinary(255)" sql:"DEFAULT:0"`
+	// Public key for the user
+	// TODO fix varchar len
+	PublicKey string `gorm:"type:varchar(1000)"`
 
 	// Path from root to leaf
-	// NOTE: not a part of the leaf
 	// Path is a string to that we can run LIKE queries
 	Path string `gorm:"not null;index:Path"`
-
-	// Pending = 0 means has deposit but not merged to balance tree
-	// Active = 1
-	// InActive = 2 => non leaf node
-	// NonInitialised = 100
-	Status uint64 `gorm:"not null;index:Status"`
 
 	// Type of nodes
 	// 1 => terminal
 	// 0 => root
 	// 2 => non terminal
-	Type uint64 `gorm:"not null;index:Type"`
+	Type uint64 `gorm:"not null"`
 
 	// keccak hash of the node
-	Hash string `gorm:"not null;index:Hash"`
+	Hash string `gorm:"not null"`
 
-	Level uint64 `gorm:"not null;index:Level"`
-
-	// Add the deposit hash for the account
-	CreatedByDepositSubTree string
+	Level uint64 `gorm:"not null"`
 }
 
-type UserAccountSol struct {
-	PubkeyIndex *big.Int
-	TokenType   *big.Int
-	Balance     *big.Int
-	Nonce       *big.Int
-}
-
-// NewUserAccount creates a new user account
-func NewUserAccount(id, status uint64, path string, data []byte) *UserAccount {
-	newAcccount := &UserAccount{
-		AccountID: id,
+// NewAccount creates a new account
+func NewAccount(id uint64, pubkey, path string) (*Account, error) {
+	newAccount := &Account{
+		ID:        id,
+		PublicKey: pubkey,
 		Path:      path,
-		Status:    status,
 		Type:      TYPE_TERMINAL,
-		Data:      data,
 	}
-	newAcccount.UpdatePath(newAcccount.Path)
-	newAcccount.CreateAccountHash()
-	return newAcccount
-}
-
-// NewAccountNode creates a new non-terminal user account, the only this useful in this is
-// Path, Status, Hash, PubkeyHash
-func NewAccountNode(path, hash string) *UserAccount {
-	newAcccount := &UserAccount{
-		AccountID: ZERO,
-		Path:      path,
-		Status:    STATUS_ACTIVE,
-		Type:      TYPE_NON_TERMINAL,
+	err := newAccount.PopulateHash()
+	if err != nil {
+		return nil, err
 	}
-	newAcccount.UpdatePath(newAcccount.Path)
-	newAcccount.Hash = hash
-	return newAcccount
+	return newAccount, nil
 }
 
-// NewAccountNode creates a new terminal user account but in pending state
-// It is to be used while adding new deposits while they are not finalised
-func NewPendingUserAccount(id uint64, data []byte) *UserAccount {
-	newAcccount := &UserAccount{
-		AccountID: id,
-		Path:      UNINITIALIZED_PATH,
-		Status:    STATUS_PENDING,
-		Type:      TYPE_TERMINAL,
-		Data:      data,
+func newAccountNode(path, hash string) *Account {
+	newAccount := &Account{
+		ID:   ZERO,
+		Path: path,
+		Type: TYPE_NON_TERMINAL,
 	}
-	newAcccount.UpdatePath(newAcccount.Path)
-	newAcccount.CreateAccountHash()
-	return newAcccount
+	newAccount.UpdatePath(path)
+	newAccount.Hash = hash
+	return newAccount
 }
 
-func (acc *UserAccount) UpdatePath(path string) {
-	acc.Path = path
-	acc.Level = uint64(len(path))
+// NewEmptyAccount creates new empty account which generates zero hash
+func NewEmptyAccount() *Account {
+	return &Account{ID: ZERO, PublicKey: "", Type: TYPE_TERMINAL}
 }
 
-func (acc *UserAccount) String() string {
-	_, balance, nonce, token, burn, lastBurn, _ := LoadedBazooka.DecodeAccount(acc.Data)
-	return fmt.Sprintf("ID: %d Bal: %d Nonce: %d Token: %v Path: %v TokenType:%v NodeType: %v Burn: %v LastBurn: %v", acc.AccountID, balance, nonce, token, acc.Path, acc.Type, acc.Hash, burn, lastBurn)
+func (p *Account) UpdatePath(path string) {
+	p.Path = path
+	p.Level = uint64(len(path))
 }
 
-func (acc *UserAccount) ToABIAccount() (rollupAcc UserAccountSol, err error) {
-	// var pubkeyIndex, balance, nonce, token *big.Int = big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0)
-	// if acc.Type == TYPE_TERMINAL {
-	// 	pubkeyIndex, balance, nonce, token, err = LoadedBazooka.DecodeAccount(acc.Data)
-	// 	if err != nil {
-	// 		fmt.Println("unable to convert", err)
-	// 		return
-	// 	}
-	// }
-
-	// // assign to sol struct
-	// rollupAcc.PubkeyIndex = ID
-	// rollupAcc.Balance = balance
-	// rollupAcc.Nonce = nonce
-	// rollupAcc.TokenType = token
-	return
-}
-
-func (acc *UserAccount) HashToByteArray() ByteArray {
-	ba, err := HexToByteArray(acc.Hash)
+func (p *Account) HashToByteArray() ByteArray {
+	ba, err := HexToByteArray(p.Hash)
 	if err != nil {
 		panic(err)
 	}
 	return ba
 }
 
-func (acc *UserAccount) IsCoordinator() bool {
-	if acc.Path != "" {
-		return false
+func (p *Account) PopulateHash() error {
+	if p.PublicKey == "" {
+		p.Hash = ZERO_VALUE_LEAF.String()
+		return nil
 	}
-
-	if acc.Status != 1 {
-		return false
+	bz, err := encodePubkey(p.PublicKey)
+	if err != nil {
+		return err
 	}
-
-	if acc.Type != 0 {
-		return false
-	}
-
-	return true
+	p.Hash = common.Keccak256(bz).String()
+	return nil
 }
 
-// func (acc *UserAccount) AccountInclusionProof(path int64) (accInclusionProof rollupclient.TypesAccountInclusionProof, err error) {
-// 	// accABI, err := acc.ToABIAccount()
-// 	// if err != nil {
-// 	// 	return
-// 	// }
-// 	// accInclusionProof = rollupcaller.TypesAccountInclusionProof{
-// 	// 	PathToAccount: big.NewInt(path),
-// 	// 	Account:       accABI,
-// 	// }
-// 	return accInclusionProof, nil
-// }
+// ------------------------------------------------------------------------------------- DB -------------------------------------------------------------------------------------
 
-func (acc *UserAccount) CreateAccountHash() {
-	accountHash := common.Keccak256(acc.Data)
-	acc.Hash = accountHash.String()
+// GetAccount gets the account of the given path from the DB
+func (db *DB) GetAccountLeafByPath(path string) (Account, error) {
+	var pdaLeaf Account
+	err := db.Instance.Where("path = ?", path).Find(&pdaLeaf).GetErrors()
+	if len(err) != 0 {
+		return pdaLeaf, ErrRecordNotFound(fmt.Sprintf("unable to find record for path: %v err:%v", path, err))
+	}
+	return pdaLeaf, nil
 }
 
-//
-// Utils
-//
-
-// EmptyAcccount creates a new account which has the same hash as ZERO_VALUE_LEAF
-func EmptyAccount() UserAccount {
-	return *NewUserAccount(ZERO, STATUS_INACTIVE, "", []byte(""))
+func (db *DB) GetAccountLeafByID(ID uint64) (Account, error) {
+	var account Account
+	if err := db.Instance.Where("account_id = ?", ID).Find(&account).Error; err != nil {
+		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record for ID: %v in Account tree", ID))
+	}
+	return account, nil
 }
 
-//
-// DB interactions for account
-//
+func (db *DB) GetAccountRoot() (Account, error) {
+	var account Account
+	err := db.Instance.Where("level = ?", 0).Find(&account).GetErrors()
+	if len(err) != 0 {
+		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v in Account tree", err))
+	}
+	return account, nil
+}
 
-// InitBalancesTree initialises the balances tree
-func (db *DB) InitBalancesTree(depth uint64, genesisAccounts []UserAccount) error {
+// GetAccountByDepth fetches all accounts at a level
+func (db *DB) GetAccountByDepth(depth uint64) ([]Account, error) {
+	var accs []Account
+	err := db.Instance.Where("level = ?", depth).Find(&accs).Error
+	if err != nil {
+		return accs, err
+	}
+	return accs, nil
+}
+
+// UpdateAccountLeaf updates the account
+func (db *DB) UpdateAccountLeaf(leaf Account) error {
+	db.Logger.Info("Updated account pubkey", "ID", leaf.ID)
+	leaf.PopulateHash()
+	siblings, err := db.GetAccountSiblings(leaf.Path)
+	if err != nil {
+		return err
+	}
+
+	db.Logger.Debug("Updating account", "Hash", leaf.Hash, "Path", leaf.Path, "countOfSiblings", len(siblings))
+	return db.storeAccountLeaf(leaf, leaf.Path, siblings)
+}
+
+// GetAccountSiblings fetches siblings for a node
+func (db *DB) GetAccountSiblings(path string) ([]Account, error) {
+	var relativePath = path
+	var siblings []Account
+	for i := len(path); i > 0; i-- {
+		otherChild := GetOtherChild(relativePath)
+		otherNode, err := db.GetAccountLeafByPath(otherChild)
+		if err != nil {
+			return siblings, err
+		}
+		siblings = append(siblings, otherNode)
+		relativePath = GetParentPath(relativePath)
+	}
+	return siblings, nil
+}
+
+func (db *DB) storeAccountLeaf(pdaLeaf Account, path string, siblings []Account) error {
+	var err error
+	computedNode := pdaLeaf
+	for i := 0; i < len(siblings); i++ {
+		var parentHash ByteArray
+		sibling := siblings[i]
+		isComputedRightSibling := GetNthBitFromRight(
+			path,
+			i,
+		)
+		if isComputedRightSibling == 0 {
+			parentHash, err = GetParent(computedNode.HashToByteArray(), sibling.HashToByteArray())
+			if err != nil {
+				return err
+			}
+
+			err = db.storeAccountNode(parentHash, computedNode, sibling)
+			if err != nil {
+				return err
+			}
+
+		} else {
+
+			parentHash, err = GetParent(sibling.HashToByteArray(), computedNode.HashToByteArray())
+			if err != nil {
+				return err
+			}
+
+			err = db.storeAccountNode(parentHash, sibling, computedNode)
+			if err != nil {
+				return err
+			}
+
+		}
+
+		parentAccount, err := db.GetAccountLeafByPath(GetParentPath(computedNode.Path))
+		if err != nil {
+			return err
+		}
+
+		computedNode = parentAccount
+	}
+
+	// Store the new root
+	err = db.updateAccountRootNodes(computedNode.HashToByteArray())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// InsertCoordinatorPubkeyAccounts inserts the coordinator accounts
+func (db *DB) InsertCoordinatorPubkeyAccounts(coordinatorAccount *Account, depth uint64) error {
+	coordinatorAccount.UpdatePath(GenCoordinatorPath(depth))
+	coordinatorAccount.PopulateHash()
+	coordinatorAccount.Type = TYPE_TERMINAL
+	return db.Instance.Create(&coordinatorAccount).Error
+}
+
+func (db *DB) InitAccountTree(depth uint64, genesisAccount []Account) error {
 	// calculate total number of leaves
 	totalLeaves := math.Exp2(float64(depth))
-	if int(totalLeaves) != len(genesisAccounts) {
+	if int(totalLeaves) != len(genesisAccount) {
 		return errors.New("Depth and number of leaves do not match")
 	}
-	db.Logger.Debug("Attempting to init balance tree", "totalAccounts", totalLeaves)
 
+	db.Logger.Debug("Attempting to init Account tree", "totalAccounts", totalLeaves)
 	var err error
 
 	// insert coodinator leaf
-	err = db.InsertCoordinatorAccounts(&genesisAccounts[0], depth)
+	err = db.InsertCoordinatorPubkeyAccounts(&genesisAccount[0], depth)
 	if err != nil {
 		db.Logger.Error("Unable to insert coodinator account", "err", err)
 		return err
 	}
 
 	var insertRecords []interface{}
-	prevNodePath := genesisAccounts[0].Path
-
-	for i := 1; i < len(genesisAccounts); i++ {
+	prevNodePath := genesisAccount[0].Path
+	for i := 1; i < len(genesisAccount); i++ {
 		pathToAdjacentNode, err := GetAdjacentNodePath(prevNodePath)
 		if err != nil {
 			return err
 		}
-		genesisAccounts[i].UpdatePath(pathToAdjacentNode)
-		insertRecords = append(insertRecords, genesisAccounts[i])
-		prevNodePath = genesisAccounts[i].Path
+		genesisAccount[i].UpdatePath(pathToAdjacentNode)
+		insertRecords = append(insertRecords, genesisAccount[i])
+		prevNodePath = genesisAccount[i].Path
 	}
 
-	db.Logger.Info("Creating user accounts, might take a minute or two, sit back.....", "count", len(insertRecords))
+	db.Logger.Info("Creating Account tree, might take a minute or two, sit back.....", "count", len(insertRecords))
+
 	err = gormbulk.BulkInsert(db.Instance, insertRecords, CHUNK_SIZE)
 	if err != nil {
-		db.Logger.Error("Unable to insert accounts to DB", "err", err)
-		return errors.New("Unable to insert accounts")
+		db.Logger.Error("Unable to insert leaves to DB", "err", err)
+		return errors.New("Unable to insert leaves")
 	}
 
 	// merkelise
@@ -221,9 +264,9 @@ func (db *DB) InitBalancesTree(depth uint64, genesisAccounts []UserAccount) erro
 	// 2. Iterate 2 of them and create parents and store
 	// 3. Persist all parents to database
 	// 4. Start with next round
-	for i := depth; i > 0; i-- {
+	for j := depth; j > 0; j-- {
 		// get all leaves at depth N
-		accs, err := db.GetAccountsAtDepth(i)
+		accs, err := db.GetAccountByDepth(j)
 		if err != nil {
 			return err
 		}
@@ -244,246 +287,77 @@ func (db *DB) InitBalancesTree(depth uint64, genesisAccounts []UserAccount) erro
 				return err
 			}
 			parentPath := GetParentPath(accs[i].Path)
-			newAccNode := *NewAccountNode(parentPath, parentHash.String())
+			newAccNode := newAccountNode(parentPath, parentHash.String())
 			nextLevelAccounts = append(nextLevelAccounts, newAccNode)
 		}
 		err = gormbulk.BulkInsert(db.Instance, nextLevelAccounts, CHUNK_SIZE)
 		if err != nil {
-			db.Logger.Error("Unable to insert accounts to DB", "err", err)
-			return errors.New("Unable to insert accounts")
+			db.Logger.Error("Unable to insert Account leaves to DB", "err", err)
+			return errors.New("Unable to insert Account leaves")
 		}
 	}
-
 	// mark the root node type correctly
 	return nil
 }
 
-func (db *DB) GetAccountsAtDepth(depth uint64) ([]UserAccount, error) {
-	var accs []UserAccount
-	err := db.Instance.Where("level = ?", depth).Find(&accs).Error
-	if err != nil {
-		return accs, err
-	}
-	return accs, nil
-}
-
-func (db *DB) UpdateAccount(account UserAccount) error {
-	db.Logger.Info("Updated account", "PATH", account.Path)
-	account.CreateAccountHash()
-	siblings, err := db.GetSiblings(account.Path)
+// storeAccountNode updates the nodes given the parent hash
+func (db *DB) storeAccountNode(parentHash ByteArray, leftNode, rightNode Account) (err error) {
+	// update left account
+	err = db.updateAccountLeaf(leftNode, leftNode.Path)
 	if err != nil {
 		return err
 	}
-
-	db.Logger.Debug("Updating account", "Hash", account.Hash, "Path", account.Path, "countOfSiblings", len(siblings))
-	return db.StoreLeaf(account, account.Path, siblings)
-}
-
-func (db *DB) StoreLeaf(account UserAccount, path string, siblings []UserAccount) error {
-	var err error
-	var isLeft bool
-	computedNode := account
-	for i := 0; i < len(siblings); i++ {
-		var parentHash ByteArray
-		sibling := siblings[i]
-		isComputedRightSibling := GetNthBitFromRight(
-			path,
-			i,
-		)
-		if isComputedRightSibling == 0 {
-			parentHash, err = GetParent(computedNode.HashToByteArray(), sibling.HashToByteArray())
-			if err != nil {
-				return err
-			}
-			isLeft = true
-			// Store the node!
-			err = db.StoreNode(parentHash, computedNode, sibling, isLeft)
-			if err != nil {
-				return err
-			}
-		} else {
-			parentHash, err = GetParent(sibling.HashToByteArray(), computedNode.HashToByteArray())
-			if err != nil {
-				return err
-			}
-			isLeft = false
-			// Store the node!
-			err = db.StoreNode(parentHash, sibling, computedNode, isLeft)
-			if err != nil {
-				return err
-			}
-		}
-		parentAccount, err := db.GetAccountByPath(GetParentPath(computedNode.Path))
-		if err != nil {
-			return err
-		}
-		computedNode = parentAccount
-	}
-	// Store the new root
-	err = db.UpdateRootNodeHashes(computedNode.HashToByteArray())
+	// update right account
+	err = db.updateAccountLeaf(rightNode, rightNode.Path)
 	if err != nil {
 		return err
-	}
-	return nil
-}
-
-// StoreNode updates the nodes given the parent hash
-func (db *DB) StoreNode(parentHash ByteArray, leftNode UserAccount, rightNode UserAccount, isLeft bool) (err error) {
-	if isLeft {
-		// update left account
-		err = db.updateAccount(leftNode, leftNode.Path)
-		if err != nil {
-			return err
-		}
-	} else {
-		// update right account
-		err = db.updateAccount(rightNode, rightNode.Path)
-		if err != nil {
-			return err
-		}
 	}
 	// update the parent with the new hashes
-	return db.UpdateParentWithHash(GetParentPath(leftNode.Path), parentHash)
-}
-
-func (db *DB) UpdateParentWithHash(pathToParent string, newHash ByteArray) error {
-	// Update the root hash
-	var tempAccount UserAccount
-	tempAccount.Path = pathToParent
-	tempAccount.Hash = newHash.String()
-	return db.updateAccount(tempAccount, pathToParent)
-}
-
-func (db *DB) UpdateRootNodeHashes(newRoot ByteArray) error {
-	var tempAccount UserAccount
-	tempAccount.Path = ""
-	tempAccount.Hash = newRoot.String()
-	return db.updateAccount(tempAccount, tempAccount.Path)
-}
-
-func (db *DB) AddNewPendingAccount(acc UserAccount) error {
-	return db.Instance.Create(&acc).Error
-}
-
-func (db *DB) GetSiblings(path string) ([]UserAccount, error) {
-	var relativePath = path
-	var siblings []UserAccount
-	for i := len(path); i > 0; i-- {
-		otherChild := GetOtherChild(relativePath)
-		otherNode, err := db.GetAccountByPath(otherChild)
-		if err != nil {
-			return siblings, err
-		}
-		siblings = append(siblings, otherNode)
-		relativePath = GetParentPath(relativePath)
-	}
-	return siblings, nil
-}
-
-// GetAccount gets the account of the given path from the DB
-func (db *DB) GetAccountByPath(path string) (UserAccount, error) {
-	var account UserAccount
-	err := db.Instance.Where("path = ?", path).Find(&account).GetErrors()
-	if len(err) != 0 {
-		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record for path: %v err:%v", path, err))
-	}
-	return account, nil
-}
-
-func (db *DB) GetAccountByIndex(index uint64) (acc UserAccount, err error) {
-	params, err := db.GetParams()
-	if err != nil {
-		return
-	}
-	path, err := SolidityPathToNodePath(index, params.MaxDepth)
-	if err != nil {
-		return
-	}
-	return db.GetAccountByPath(path)
-}
-
-func (db *DB) GetAccountByHash(hash string) (UserAccount, error) {
-	var account UserAccount
-	if db.Instance.First(&account, hash).RecordNotFound() {
-		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record for hash: %v", hash))
-	}
-	return account, nil
-}
-
-func (db *DB) GetDepositSubTreeRoot(hash string, level uint64) (UserAccount, error) {
-	var account UserAccount
-	err := db.Instance.Where("level = ? AND hash = ?", level, hash).First(&account).Error
-	if gorm.IsRecordNotFoundError(err) {
-		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record for hash: %v", hash))
-	}
-	return account, nil
-}
-
-func (db *DB) GetRoot() (UserAccount, error) {
-	var account UserAccount
-	err := db.Instance.Where("level = ?", 0).Find(&account).GetErrors()
-	if len(err) != 0 {
-		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v", err))
-	}
-	return account, nil
-}
-
-func (db *DB) InsertCoordinatorAccounts(acc *UserAccount, depth uint64) error {
-	acc.UpdatePath(GenCoordinatorPath(depth))
-	acc.CreateAccountHash()
-	acc.Type = TYPE_TERMINAL
-	return db.Instance.Create(&acc).Error
+	return db.updateParentAccountWithHash(GetParentPath(leftNode.Path), parentHash)
 }
 
 // updateAccount will simply replace all the changed fields
-func (db *DB) updateAccount(newAcc UserAccount, path string) error {
-	return db.Instance.Model(&newAcc).Where("path = ?", path).Updates(UserAccount{Data: newAcc.Data, Hash: newAcc.Hash}).Error
+func (db *DB) updateAccountLeaf(newAccount Account, path string) error {
+	return db.Instance.Model(&newAccount).Where("path = ?", path).Update(newAccount).Error
 }
 
-func (db *DB) GetAccountCount() (int, error) {
-	var count int
-	db.Instance.Table("user_accounts").Count(&count)
-	return count, nil
+func (db *DB) updateParentAccountWithHash(pathToParent string, newHash ByteArray) error {
+	// Update the root hash
+	var tempAccount Account
+	tempAccount.Path = pathToParent
+	tempAccount.Hash = newHash.String()
+	return db.updateAccountLeaf(tempAccount, pathToParent)
 }
 
-// GetFirstEmptyAccount fetches the first empty account
-func (db *DB) GetFirstEmptyAccount() (acc UserAccount, err error) {
-	params, err := db.GetParams()
+func (db *DB) updateAccountRootNodes(newRoot ByteArray) error {
+	var tempAccountLeaf Account
+	tempAccountLeaf.Path = ""
+	tempAccountLeaf.Hash = newRoot.String()
+	return db.updateAccountLeaf(tempAccountLeaf, tempAccountLeaf.Path)
+}
+func encodePubkey(pubkey string) ([]byte, error) {
+	pubkeyBytes, err := hex.DecodeString(pubkey)
 	if err != nil {
-		return acc, err
+		panic(err)
 	}
-	expectedHash := defaultHashes[params.MaxDepositSubTreeHeight]
-	return db.GetAccountByHash(expectedHash.String())
-}
-
-func (db *DB) DeletePendingAccount(ID uint64) error {
-	var account UserAccount
-	if err := db.Instance.Where("account_id = ? AND status = ?", ID, STATUS_PENDING).Delete(&account).Error; err != nil {
-		return ErrRecordNotFound(fmt.Sprintf("unable to delete record for ID: %v", ID))
-	}
-	return nil
-}
-
-//
-// Deposit Account Handling
-//
-
-func (db *DB) AttachDepositInfo(root ByteArray) error {
-	// find all pending accounts
-	var account UserAccount
-	account.CreatedByDepositSubTree = root.String()
-	if err := db.Instance.Model(&account).Where("status = ?", STATUS_PENDING).Update(&account).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (db *DB) GetPendingAccByDepositRoot(root ByteArray) ([]UserAccount, error) {
-	// find all accounts with CreatedByDepositSubTree as `root`
-	var pendingAccounts []UserAccount
-	if err := db.Instance.Where("created_by_deposit_sub_tree = ? AND status = ?", root.String(), STATUS_PENDING).Find(&pendingAccounts).Error; err != nil {
-		return pendingAccounts, err
+	uint256Ty, err := abi.NewType("bytes", "bytes", nil)
+	if err != nil {
+		return []byte(""), err
 	}
 
-	return pendingAccounts, nil
+	arguments := abi.Arguments{
+		{
+			Type: uint256Ty,
+		},
+	}
+
+	bytes, err := arguments.Pack(
+		pubkeyBytes,
+	)
+
+	if err != nil {
+		return []byte(""), err
+	}
+
+	return bytes, nil
 }

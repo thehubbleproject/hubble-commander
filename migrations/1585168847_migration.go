@@ -25,11 +25,11 @@ func init() {
 			if !db.HasTable(&types.Token{}) {
 				db.CreateTable(&types.Token{})
 			}
-			if !db.HasTable(&types.PDA{}) {
-				db.CreateTable(&types.PDA{})
+			if !db.HasTable(&types.Account{}) {
+				db.CreateTable(&types.Account{})
 			}
-			if !db.HasTable(&types.UserAccount{}) {
-				db.CreateTable(&types.UserAccount{})
+			if !db.HasTable(&types.UserState{}) {
+				db.CreateTable(&types.UserState{})
 			}
 			return nil
 		},
@@ -39,8 +39,8 @@ func init() {
 			db.DropTableIfExists(&types.Params{})
 			db.DropTableIfExists(&types.SyncStatus{})
 			db.DropTableIfExists(&types.Token{})
-			db.DropTableIfExists(&types.PDA{})
-			db.DropTableIfExists(&types.UserAccount{})
+			db.DropTableIfExists(&types.Account{})
+			db.DropTableIfExists(&types.UserState{})
 			return nil
 		},
 	}

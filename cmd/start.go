@@ -158,13 +158,13 @@ func LoadGenesisData(genesis config.Genesis) {
 	common.PanicIfError(err)
 	zeroAccount := genesisAccounts[0]
 	diff := int(math.Exp2(float64(genesis.MaxTreeDepth))) - len(genesisAccounts)
-	var allAccounts []core.UserAccount
-	var allPDALeaf []core.PDA
+	var allAccounts []core.UserState
+	var allAccountLeaf []core.Account
 
 	// convert genesis accounts to user accounts
 	for _, account := range genesisAccounts {
 		pubkeyHash := core.ZERO_VALUE_LEAF.String()
-		allPDALeaf = append(allPDALeaf, core.PDA{Hash: pubkeyHash})
+		allAccountLeaf = append(allAccountLeaf, core.Account{Hash: pubkeyHash})
 		allAccounts = append(
 			allAccounts,
 			account,
@@ -177,19 +177,19 @@ func LoadGenesisData(genesis config.Genesis) {
 		newAcc.Data = zeroAccount.Data
 		newAcc.Hash = core.ZERO_VALUE_LEAF.String()
 		allAccounts = append(allAccounts, newAcc)
-		newPDA := core.NewEmptyPDA()
-		newPDA.Hash = core.ZERO_VALUE_LEAF.String()
-		allPDALeaf = append(allPDALeaf, *newPDA)
+		newAccount := core.NewEmptyAccount()
+		newAccount.Hash = core.ZERO_VALUE_LEAF.String()
+		allAccountLeaf = append(allAccountLeaf, *newAccount)
 		diff--
 	}
 	allAccounts = AlterRedditAccounts(allAccounts)
-	allPDALeaf = AlterRedditPubkeys(allPDALeaf)
+	allAccountLeaf = AlterRedditPubkeys(allAccountLeaf)
 
 	// load accounts
 	err = core.DBInstance.InitBalancesTree(genesis.MaxTreeDepth, allAccounts)
 	common.PanicIfError(err)
 
-	err = core.DBInstance.InitPDATree(genesis.MaxTreeDepth, allPDALeaf)
+	err = core.DBInstance.InitAccountTree(genesis.MaxTreeDepth, allAccountLeaf)
 	common.PanicIfError(err)
 
 	// load params
@@ -236,7 +236,7 @@ func ReadUsers() (reddit []user, err error) {
 	return userListInstance.Users, nil
 }
 
-func AlterRedditAccounts(allAccounts []core.UserAccount) (updatedAccounts []core.UserAccount) {
+func AlterRedditAccounts(allAccounts []core.UserState) (updatedAccounts []core.UserState) {
 	account2 := allAccounts[2]
 	account3 := allAccounts[3]
 	bazooka, err := core.NewPreLoadedBazooka()
@@ -266,7 +266,7 @@ func AlterRedditAccounts(allAccounts []core.UserAccount) (updatedAccounts []core
 	return allAccounts
 }
 
-func AlterRedditPubkeys(allAccounts []core.PDA) (updatedAccounts []core.PDA) {
+func AlterRedditPubkeys(allAccounts []core.Account) (updatedAccounts []core.Account) {
 	users, err := ReadUsers()
 	if err != nil {
 		panic(err)
@@ -274,10 +274,10 @@ func AlterRedditPubkeys(allAccounts []core.PDA) (updatedAccounts []core.PDA) {
 	account2 := allAccounts[2]
 	account3 := allAccounts[3]
 	account2.PublicKey = users[0].PublicKey
-	account2.AccountID = 2
+	account2.ID = 2
 	account2.PopulateHash()
 	account3.PublicKey = users[1].PublicKey
-	account3.AccountID = 3
+	account3.ID = 3
 	account3.PopulateHash()
 	allAccounts[2] = account2
 	allAccounts[3] = account3

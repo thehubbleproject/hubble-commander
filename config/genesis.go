@@ -34,9 +34,9 @@ func (g Genesis) Validate() error {
 	return nil
 }
 
-// GenUserAccount exists to allow remove circular dependency with types
-// and to allow storing more data about the account than the data in UserAccount
-type GenUserAccount struct {
+// GenUserState exists to allow remove circular dependency with types
+// and to allow storing more data about the account than the data in UserState
+type GenUserState struct {
 	ID        uint64 `json:"ID"`
 	Balance   uint64
 	TokenType uint64
@@ -45,15 +45,15 @@ type GenUserAccount struct {
 	PublicKey string
 }
 
-func (acc *GenUserAccount) IsCoordinator() bool {
+func (acc *GenUserState) IsCoordinator() bool {
 	if acc.ID != 0 || acc.Balance != 0 || acc.TokenType != 0 || acc.Nonce != 0 || acc.Status != 1 {
 		return false
 	}
 	return true
 }
 
-func NewGenUserAccount(id, balance, tokenType, nonce, status uint64, publicKey string) GenUserAccount {
-	return GenUserAccount{
+func NewGenUserState(id, balance, tokenType, nonce, status uint64, publicKey string) GenUserState {
+	return GenUserState{
 		ID:        id,
 		Balance:   balance,
 		TokenType: tokenType,
@@ -64,22 +64,22 @@ func NewGenUserAccount(id, balance, tokenType, nonce, status uint64, publicKey s
 }
 
 type GenesisAccounts struct {
-	Accounts []GenUserAccount `json:"gen_accounts"`
+	Accounts []GenUserState `json:"gen_accounts"`
 }
 
-func NewGenesisAccounts(accounts []GenUserAccount) GenesisAccounts {
+func NewGenesisAccounts(accounts []GenUserState) GenesisAccounts {
 	return GenesisAccounts{Accounts: accounts}
 }
 
-func EmptyGenesisAccount() GenUserAccount {
-	return NewGenUserAccount(0, 0, 0, 0, 100, "")
+func EmptyGenesisAccount() GenUserState {
+	return NewGenUserState(0, 0, 0, 0, 100, "")
 }
 
 func DefaultGenesisAccounts() GenesisAccounts {
-	var accounts []GenUserAccount
+	var accounts []GenUserState
 
 	// add coordinator account
-	acc := NewGenUserAccount(common.COORDINATOR, common.COORDINATOR, common.COORDINATOR, common.COORDINATOR, 1, "0")
+	acc := NewGenUserState(common.COORDINATOR, common.COORDINATOR, common.COORDINATOR, common.COORDINATOR, 1, "0")
 	accounts = append(accounts, acc)
 
 	return NewGenesisAccounts(accounts)

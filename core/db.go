@@ -12,11 +12,11 @@ import (
 
 type IDB interface {
 	// Account related DB functions
-	// FetchSiblings(accID uint64) (accs []UserAccount, err error)
-	GetAllAccounts() (accs []UserAccount, err error)
-	GetAccount(accID uint64) (UserAccount, error)
-	InsertBulkAccounts(accounts []UserAccount) error
-	InsertGenAccounts(genAccs []config.GenUserAccount) error
+	// FetchSiblings(accID uint64) (accs []UserState, err error)
+	GetAllAccounts() (accs []UserState, err error)
+	GetAccount(accID uint64) (UserState, error)
+	InsertBulkAccounts(accounts []UserState) error
+	InsertGenAccounts(genAccs []config.GenUserState) error
 	GetAccountCount() (int, error)
 
 	// Tx related functions

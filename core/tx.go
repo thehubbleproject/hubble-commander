@@ -143,7 +143,7 @@ func (tx *Tx) Apply(updatedFrom, updatedTo []byte) error {
 	return nil
 }
 
-func (tx *Tx) ApplySingleTx(account UserAccount, updatedData []byte) error {
+func (tx *Tx) ApplySingleTx(account UserState, updatedData []byte) error {
 	account.Data = updatedData
 	err := DBInstance.UpdateAccount(account)
 	if err != nil {
@@ -229,7 +229,7 @@ func (tx *Tx) UpdateStatus(status uint64) error {
 }
 
 // GetVerificationData fetches all the data required to prove validity fo transaction
-func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn DB, err error) {
+func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof UserStateMerkleProof, AccountProof AccountMerkleProof, txDBConn DB, err error) {
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
 		return tx.CreateVerificationDataForTransfer()
@@ -239,41 +239,41 @@ func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof AccountMerkl
 	}
 }
 
-func (tx *Tx) CreateVerificationDataForTransfer() (fromMerkleProof, toMerkleProof AccountMerkleProof, PDAProof PDAMerkleProof, txDBConn DB, err error) {
-	VerifierWaitGroup.Add(2)
-	go DBInstance.FetchPDAProofWithID(tx.From, &PDAProof)
-	go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
-	toAcc, err := DBInstance.GetAccountByIndex(tx.To)
-	if err != nil {
-		return
-	}
-	var toSiblings []UserAccount
+func (tx *Tx) CreateVerificationDataForTransfer() (fromMerkleProof, toMerkleProof UserStateMerkleProof, AccountProof AccountMerkleProof, txDBConn DB, err error) {
+	// VerifierWaitGroup.Add(2)
+	// go DBInstance.FetchAccountProofWithID(tx.From, &AccountProof)
+	// go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
+	// toAcc, err := DBInstance.GetAccountByIndex(tx.To)
+	// if err != nil {
+	// 	return
+	// }
+	// var toSiblings []UserState
 	dbCopy, _ := NewDB()
-	mysqlTx := dbCopy.Instance.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			mysqlTx.Rollback()
-		}
-	}()
-	dbCopy.Instance = mysqlTx
-	VerifierWaitGroup.Wait()
-	updatedFromAccountBytes, _, err := LoadedBazooka.ApplyTx(fromMerkleProof, *tx)
-	if err != nil {
-		return
-	}
+	// mysqlTx := dbCopy.Instance.Begin()
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		mysqlTx.Rollback()
+	// 	}
+	// }()
+	// dbCopy.Instance = mysqlTx
+	// VerifierWaitGroup.Wait()
+	// updatedFromAccountBytes, _, err := LoadedBazooka.ApplyTx(fromMerkleProof, *tx)
+	// if err != nil {
+	// 	return
+	// }
 
-	fromMerkleProof.Account.Data = updatedFromAccountBytes
-	err = dbCopy.UpdateAccount(fromMerkleProof.Account)
-	if err != nil {
-		return
-	}
-	// TODO add a check to ensure that DB copy of state matches the one returned by ApplyTransferTx
-	toSiblings, err = dbCopy.GetSiblings(toAcc.Path)
-	if err != nil {
-		return
-	}
-	toMerkleProof = NewAccountMerkleProof(toAcc, toSiblings)
-	return fromMerkleProof, toMerkleProof, PDAProof, dbCopy, nil
+	// fromMerkleProof.Account.Data = updatedFromAccountBytes
+	// err = dbCopy.UpdateAccount(fromMerkleProof.Account)
+	// if err != nil {
+	// 	return
+	// }
+	// // TODO add a check to ensure that DB copy of state matches the one returned by ApplyTransferTx
+	// toSiblings, err = dbCopy.GetSiblings(toAcc.Path)
+	// if err != nil {
+	// 	return
+	// }
+	// toMerkleProof = NewAccountMerkleProof(toAcc, toSiblings)
+	return fromMerkleProof, toMerkleProof, AccountProof, dbCopy, nil
 }
 
 func rlpHash(x interface{}) (h ethCmn.Hash) {
@@ -291,24 +291,24 @@ func ConcatTxs(txs [][]byte) []byte {
 	return concatenatedTxs
 }
 
-func (db *DB) FetchPDAProofWithID(id uint64, pdaProof *PDAMerkleProof) (err error) {
-	leaf, err := DBInstance.GetPDALeafByID(id)
+func (db *DB) FetchAccountProofWithID(id uint64, pdaProof *AccountMerkleProof) (err error) {
+	leaf, err := DBInstance.GetAccountLeafByID(id)
 	if err != nil {
 		fmt.Println("error while getting pda leaf", err)
 		return
 	}
-	siblings, err := DBInstance.GetPDASiblings(leaf.Path)
+	siblings, err := DBInstance.GetAccountSiblings(leaf.Path)
 	if err != nil {
 		fmt.Println("error while getting pda siblings", err)
 		return
 	}
-	pdaMP := NewPDAProof(leaf.Path, leaf.PublicKey, siblings)
+	pdaMP := NewAccountMerkleProof(leaf.Path, leaf.PublicKey, siblings)
 	*pdaProof = pdaMP
 	VerifierWaitGroup.Done()
 	return nil
 }
 
-func (db *DB) FetchMPWithID(id uint64, accountMP *AccountMerkleProof) (err error) {
+func (db *DB) FetchMPWithID(id uint64, accountMP *UserStateMerkleProof) (err error) {
 	leaf, err := DBInstance.GetAccountByIndex(id)
 	if err != nil {
 		fmt.Println("error while getting leaf", err)
@@ -319,7 +319,7 @@ func (db *DB) FetchMPWithID(id uint64, accountMP *AccountMerkleProof) (err error
 		fmt.Println("error while getting siblings", err)
 		return
 	}
-	accMP := NewAccountMerkleProof(leaf, siblings)
+	accMP := NewUserStateMerkleProof(leaf, siblings)
 	*accountMP = accMP
 	VerifierWaitGroup.Done()
 	return nil
