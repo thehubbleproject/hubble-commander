@@ -152,6 +152,7 @@ func padNumberWithZero(value string, depth uint64) string {
 	return fmt.Sprintf("%03v", value)
 }
 
+// goes from 3 to 000000000011
 func SolidityPathToNodePath(path uint64, depth uint64) (string, error) {
 	pathWithoutPrefix := UintToString(path)
 	// pad path with 0's to make it fit depth
