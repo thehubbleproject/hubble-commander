@@ -11,8 +11,7 @@ const (
 	DEFAULT_BALANCE = 0
 	DEFAULT_NONCE   = 0
 
-	COORDINATOR        = 0
-	COORDINATOR_PUBKEY = "0"
+	ZERO_UINT = 0
 
 	PrivKeyPath = "./privKey.json"
 

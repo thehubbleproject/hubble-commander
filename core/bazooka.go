@@ -298,7 +298,7 @@ func (b *Bazooka) DecodeTransferTx(txBytes []byte) (from, to, token, nonce, txTy
 // Encoders and Decoders for accounts
 //
 
-func (b *Bazooka) EncodeAccount(id, balance, nonce, token, burn, lastBurn int64) (accountBytes []byte, err error) {
+func (b *Bazooka) EncodeAccount(id, balance, nonce, token uint64) (accountBytes []byte, err error) {
 	// opts := bind.CallOpts{From: config.OperatorAddress}
 	// accountBytes, err = b.RollupUtils.BytesFromAccountDeconstructed(&opts, big.NewInt(id), big.NewInt(balance), big.NewInt(nonce), big.NewInt(token), big.NewInt(burn), big.NewInt(lastBurn))
 	// if err != nil {
@@ -320,21 +320,6 @@ func (b *Bazooka) DecodeAccount(accountBytes []byte) (ID, balance, nonce, token,
 }
 
 // ----------------------------------------------------------------
-
-func (b *Bazooka) GetGenesisAccounts() (genesisAccount []UserState, err error) {
-	// opts := bind.CallOpts{From: config.OperatorAddress}
-	// // get genesis accounts
-	// accounts, err := b.RollupUtils.GetGenesisDataBlocks(&opts)
-	// if err != nil {
-	// 	return
-	// }
-
-	// for _, account := range accounts {
-	// 	ID, _, _, _, _, _, _ := b.DecodeAccount(account)
-	// 	genesisAccount = append(genesisAccount, *NewUserState(ID.Uint64(), STATUS_ACTIVE, UintToString(ID.Uint64()), account))
-	// }
-	return
-}
 
 //
 // Transactions

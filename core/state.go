@@ -168,8 +168,8 @@ func (acc *UserState) CreateAccountHash() {
 // Utils
 //
 
-// EmptyAcccount creates a new account which has the same hash as ZERO_VALUE_LEAF
-func EmptyAccount() UserState {
+// EmptyUserState creates a new account which has the same hash as ZERO_VALUE_LEAF
+func EmptyUserState() UserState {
 	return *NewUserState(ZERO, STATUS_INACTIVE, "", []byte(""))
 }
 
@@ -177,8 +177,8 @@ func EmptyAccount() UserState {
 // DB interactions for user state
 //
 
-// InitBalancesTree initialises the balances tree
-func (db *DB) InitBalancesTree(depth uint64, genesisAccounts []UserState) error {
+// InitStateTree initialises the states tree
+func (db *DB) InitStateTree(depth uint64, genesisAccounts []UserState) error {
 	// calculate total number of leaves
 	totalLeaves := math.Exp2(float64(depth))
 	if int(totalLeaves) != len(genesisAccounts) {
