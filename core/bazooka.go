@@ -94,6 +94,7 @@ func NewPreLoadedBazooka() (bazooka Bazooka, err error) {
 	return bazooka, nil
 }
 
+// GetMainChainBlock fetches the eth chain block for a block num
 func (b *Bazooka) GetMainChainBlock(blockNum *big.Int) (header *ethTypes.Header, err error) {
 	latestBlock, err := b.EthClient.HeaderByNumber(context.Background(), blockNum)
 	if err != nil {
@@ -111,6 +112,7 @@ func (b *Bazooka) TotalBatches() (uint64, error) {
 	return totalBatches.Uint64(), nil
 }
 
+// FetchBatchInputData parses the calldata for transactions
 func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash) (txs [][]byte, err error) {
 	tx, isPending, err := b.EthClient.TransactionByHash(context.Background(), txHash)
 	if err != nil {
@@ -295,28 +297,28 @@ func (b *Bazooka) DecodeTransferTx(txBytes []byte) (from, to, token, nonce, txTy
 }
 
 //
-// Encoders and Decoders for accounts
+// Encoders and Decoders for state
 //
 
-func (b *Bazooka) EncodeAccount(id, balance, nonce, token uint64) (accountBytes []byte, err error) {
-	// opts := bind.CallOpts{From: config.OperatorAddress}
-	// accountBytes, err = b.RollupUtils.BytesFromAccountDeconstructed(&opts, big.NewInt(id), big.NewInt(balance), big.NewInt(nonce), big.NewInt(token), big.NewInt(burn), big.NewInt(lastBurn))
-	// if err != nil {
-	// 	return
-	// }
+func (b *Bazooka) EncodeState(id, balance, nonce, token uint64) (accountBytes []byte, err error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	accountBytes, err = b.Frontend.Encode(&opts, rollupclient.TypesUserState{big.NewInt(int64(id)), big.NewInt(int64(token)), big.NewInt(int64(balance)), big.NewInt(int64(nonce))})
+	if err != nil {
+		return
+	}
 	return accountBytes, nil
 }
 
-func (b *Bazooka) DecodeAccount(accountBytes []byte) (ID, balance, nonce, token, burn, lastBurn *big.Int, err error) {
-	// opts := bind.CallOpts{From: config.OperatorAddress}
-	// account, err := b.RollupUtils.AccountFromBytes(&opts, accountBytes)
-	// if err != nil {
-	// 	return
-	// }
+func (b *Bazooka) DecodeState(stateBytes []byte) (ID, balance, nonce, token *big.Int, err error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
 
-	// b.log.Debug("Decoded account", "ID", account.ID, "balance", account.Balance, "token", account.TokenType, "nonce", account.Nonce, "burn", account.Burn, "lastBurn", account.LastBurn)
-	// return account.ID, account.Balance, account.Nonce, account.TokenType, account.Burn, account.LastBurn, nil
-	return
+	state, err := b.Frontend.DecodeState(&opts, stateBytes)
+	if err != nil {
+		return
+	}
+
+	b.log.Debug("Decoded state", "ID", state.PubkeyIndex, "balance", state.Balance, "token", state.TokenType, "nonce", state.Nonce)
+	return state.PubkeyIndex, state.Balance, state.Nonce, state.TokenType, nil
 }
 
 // ----------------------------------------------------------------
