@@ -3,99 +3,159 @@
       "constant": true,
       "inputs": [
         {
-          "internalType": "bytes",
-          "name": "txBytes",
-          "type": "bytes"
-        },
-        {
           "components": [
             {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "pubkeyIndex",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "tokenType",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "balance",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "nonce",
-                  "type": "uint256"
-                }
-              ],
-              "internalType": "struct Types.UserState",
-              "name": "state",
-              "type": "tuple"
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
             },
             {
-              "internalType": "bytes32[]",
-              "name": "witness",
-              "type": "bytes32[]"
-            }
-          ],
-          "internalType": "struct Types.StateMerkleProof",
-          "name": "from",
-          "type": "tuple"
-        },
-        {
-          "components": [
-            {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "pubkeyIndex",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "tokenType",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "balance",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "nonce",
-                  "type": "uint256"
-                }
-              ],
-              "internalType": "struct Types.UserState",
-              "name": "state",
-              "type": "tuple"
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
             },
             {
-              "internalType": "bytes32[]",
-              "name": "witness",
-              "type": "bytes32[]"
+              "internalType": "uint256",
+              "name": "toIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "toAccID",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
             }
           ],
-          "internalType": "struct Types.StateMerkleProof",
-          "name": "to",
-          "type": "tuple"
+          "internalType": "struct Offchain.Create2Transfer[]",
+          "name": "txs",
+          "type": "tuple[]"
         }
       ],
-      "name": "applyTransferTx",
+      "name": "compressCreate2Transfer",
       "outputs": [
         {
           "internalType": "bytes",
-          "name": "senderState",
+          "name": "",
           "type": "bytes"
-        },
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "spokeID",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Offchain.MassMigration[]",
+          "name": "txs",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "compressMassMigration",
+      "outputs": [
         {
           "internalType": "bytes",
-          "name": "receiverState",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "toIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Offchain.Transfer[]",
+          "name": "txs",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "compressTransfer",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
           "type": "bytes"
         }
       ],
@@ -271,109 +331,400 @@
       "constant": true,
       "inputs": [
         {
-          "internalType": "bytes32",
-          "name": "stateRoot",
-          "type": "bytes32"
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "toIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "toAccID",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Offchain.Create2Transfer",
+          "name": "_tx",
+          "type": "tuple"
         },
         {
+          "internalType": "uint256[2]",
+          "name": "signature",
+          "type": "uint256[2]"
+        },
+        {
+          "internalType": "uint256[4]",
+          "name": "fromPubkey",
+          "type": "uint256[4]"
+        },
+        {
+          "internalType": "uint256[4]",
+          "name": "toPubkey",
+          "type": "uint256[4]"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "domain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "valiateCreate2Transfer",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "spokeID",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Offchain.MassMigration",
+          "name": "_tx",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256[2]",
+          "name": "signature",
+          "type": "uint256[2]"
+        },
+        {
+          "internalType": "uint256[4]",
+          "name": "pubkey",
+          "type": "uint256[4]"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "domain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "valiateMassMigration",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "toIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Offchain.Transfer",
+          "name": "_tx",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256[2]",
+          "name": "signature",
+          "type": "uint256[2]"
+        },
+        {
+          "internalType": "uint256[4]",
+          "name": "pubkey",
+          "type": "uint256[4]"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "domain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "valiateTransfer",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
           "internalType": "bytes",
-          "name": "txBytes",
+          "name": "senderEncoded",
           "type": "bytes"
         },
         {
           "components": [
             {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "pubkeyIndex",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "tokenType",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "balance",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "nonce",
-                  "type": "uint256"
-                }
-              ],
-              "internalType": "struct Types.UserState",
-              "name": "state",
-              "type": "tuple"
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
             },
             {
-              "internalType": "bytes32[]",
-              "name": "witness",
-              "type": "bytes32[]"
-            }
-          ],
-          "internalType": "struct Types.StateMerkleProof",
-          "name": "from",
-          "type": "tuple"
-        },
-        {
-          "components": [
-            {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "pubkeyIndex",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "tokenType",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "balance",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "nonce",
-                  "type": "uint256"
-                }
-              ],
-              "internalType": "struct Types.UserState",
-              "name": "state",
-              "type": "tuple"
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
             },
             {
-              "internalType": "bytes32[]",
-              "name": "witness",
-              "type": "bytes32[]"
+              "internalType": "uint256",
+              "name": "toIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "toAccID",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
             }
           ],
-          "internalType": "struct Types.StateMerkleProof",
-          "name": "to",
+          "internalType": "struct Offchain.Create2Transfer",
+          "name": "_tx",
           "type": "tuple"
         }
       ],
-      "name": "processTransferTx",
+      "name": "validateAndApplyCreate2Transfer",
       "outputs": [
         {
-          "internalType": "bytes32",
-          "name": "newRoot",
-          "type": "bytes32"
-        },
-        {
           "internalType": "bytes",
-          "name": "senderState",
+          "name": "newSender",
           "type": "bytes"
         },
         {
           "internalType": "bytes",
-          "name": "receiverState",
+          "name": "newReceiver",
+          "type": "bytes"
+        },
+        {
+          "internalType": "enum Types.Result",
+          "name": "result",
+          "type": "uint8"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "senderEncoded",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "spokeID",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Offchain.MassMigration",
+          "name": "_tx",
+          "type": "tuple"
+        }
+      ],
+      "name": "validateAndApplyMassMigration",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "newSender",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "withdrawState",
+          "type": "bytes"
+        },
+        {
+          "internalType": "enum Types.Result",
+          "name": "result",
+          "type": "uint8"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "senderEncoded",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "receiverEncoded",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "txType",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fromIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "toIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Offchain.Transfer",
+          "name": "_tx",
+          "type": "tuple"
+        }
+      ],
+      "name": "validateAndApplyTransfer",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "newSender",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "newReceiver",
           "type": "bytes"
         },
         {

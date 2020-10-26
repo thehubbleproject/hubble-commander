@@ -111,14 +111,6 @@ func (b *Bazooka) TotalBatches() (uint64, error) {
 	return totalBatches.Uint64(), nil
 }
 
-func (b *Bazooka) FetchBalanceTreeRoot() (ByteArray, error) {
-	root, err := b.RollupContract.GetLatestBalanceTreeRoot(nil)
-	if err != nil {
-		return ByteArray{}, err
-	}
-	return root, nil
-}
-
 func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash) (txs [][]byte, err error) {
 	tx, isPending, err := b.EthClient.TransactionByHash(context.Background(), txHash)
 	if err != nil {
