@@ -12,10 +12,9 @@ import (
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/listener"
+	"github.com/BOPR/rest"
 
 	"github.com/BOPR/core"
-	"github.com/BOPR/rest"
-	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -69,11 +68,6 @@ func StartCmd() *cobra.Command {
 				}
 			}()
 
-			r := mux.NewRouter()
-			r.HandleFunc("/tx", rest.TxReceiverHandler).Methods("POST")
-			r.HandleFunc("/account", rest.GetAccountHandler).Methods("GET")
-			http.Handle("/", r)
-
 			if err := syncer.Start(); err != nil {
 				log.Fatalln("Unable to start syncer", "error")
 			}
@@ -81,8 +75,11 @@ func StartCmd() *cobra.Command {
 			if err := aggregator.Start(); err != nil {
 				log.Fatalln("Unable to start aggregator", "error", err)
 			}
+			r := rest.LoadRouters()
+			http.Handle("/", &r)
+
 			// TODO replace this with port from config
-			err = http.ListenAndServe(":3000", r)
+			err = http.ListenAndServe(":3000", &r)
 			if err != nil {
 				panic(err)
 			}
