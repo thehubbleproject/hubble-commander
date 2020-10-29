@@ -2,6 +2,7 @@ package aggregator
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -128,67 +129,54 @@ func (a *Aggregator) ProcessAndSubmitBatch(txs []core.Tx) {
 // ProcessTx fetches all the data required to validate tx from smart contact
 // and calls the proccess tx function to return the updated balance root and accounts
 func (a *Aggregator) ProcessTx(txs []core.Tx) (commitments []core.Commitment, err error) {
-	return
-	// if len(txs) == 0 {
-	// 	return commitments, errors.New("no tx to process,aborting")
-	// }
-	// start := time.Now()
-	// for i, tx := range txs {
-	// 	a.Logger.Info("Processing transaction", "txNumber", i, "of", len(txs))
-	// 	rootAcc, err := a.DB.GetRoot()
-	// 	if err != nil {
-	// 		return commitments, err
-	// 	}
-	// 	a.Logger.Debug("Latest root", "root", rootAcc.Hash)
-	// 	currentRoot, err := core.HexToByteArray(rootAcc.Hash)
-	// 	if err != nil {
-	// 		return commitments, err
-	// 	}
-	// 	pdaRoot, err := a.DB.GetAccountRoot()
-	// 	if err != nil {
-	// 		return commitments, err
-	// 	}
-	// 	currentAccountTreeRoot := pdaRoot.HashToByteArray()
-	// 	fromAccProof, toAccProof, Accountproof, txDBConn, err := tx.GetVerificationData()
-	// 	if err != nil {
-	// 		a.Logger.Error("Unable to create verification data", "error", err)
-	// 		return commitments, err
-	// 	}
-	// 	updatedRoot, _, updatedTo, err := a.LoadedBazooka.ProcessTx(currentRoot, currentAccountTreeRoot, tx, fromAccProof, toAccProof, Accountproof)
-	// 	if err != nil {
-	// 		a.Logger.Error("Error processing tx", "tx", tx.String(), "error", err)
-	// 		if txDBConn.Instance != nil {
-	// 			txDBConn.Instance.Rollback()
-	// 			txDBConn.Close()
-	// 		}
-	// 		return commitments, err
-	// 	} else {
-	// 		if txDBConn.Instance != nil {
-	// 			txDBConn.Instance.Commit()
-	// 			txDBConn.Close()
-	// 		}
-	// 	}
-	// 	switch txType := tx.Type; txType {
-	// 	case core.TX_TRANSFER_TYPE:
-	// 		tx.ApplySingleTx(toAccProof.Account, updatedTo)
-	// 	}
+	if len(txs) == 0 {
+		return commitments, errors.New("no tx to process,aborting")
+	}
+	for i, tx := range txs {
+		a.Logger.Info("Processing transaction", "txNumber", i, "of", len(txs))
 
-	// 	if i%32 == 0 {
-	// 		txInCommitment := txs[i : i+32]
-	// 		a.Logger.Info("Preparing a commitment", "NumOfTxs", len(txInCommitment), "type", txs[0].Type, "totalCommitmentsYet", len(commitments))
-	// 		aggregatedSig, err := aggregateSignatures(txInCommitment)
-	// 		if err != nil {
-	// 			return commitments, err
-	// 		}
-	// 		fmt.Println("Aggregated signature", hex.EncodeToString(aggregatedSig.ToBytes()))
-	// 		commitment := core.Commitment{Txs: txInCommitment, UpdatedRoot: updatedRoot, BatchType: tx.Type, AggregatedSignature: aggregatedSig.ToBytes()}
-	// 		commitments = append(commitments, commitment)
-	// 	}
-	// 	currentRoot = updatedRoot
-	// }
-	// elapsed := time.Since(start)
-	// log.Printf("Process batch took %s", elapsed)
-	// return commitments, nil
+		rootAcc, err := a.DB.GetRoot()
+		if err != nil {
+			return commitments, err
+		}
+		a.Logger.Debug("Latest root", "root", rootAcc.Hash)
+		currentRoot, err := core.HexToByteArray(rootAcc.Hash)
+		if err != nil {
+			return commitments, err
+		}
+		fromAccProof, toAccProof, txDBConn, err := tx.GetVerificationData()
+		if err != nil {
+			a.Logger.Error("Unable to create verification data", "error", err)
+			return commitments, err
+		}
+
+		newRoot, err := a.LoadedBazooka.ProcessTx(currentRoot, tx, fromAccProof, toAccProof)
+		if err != nil {
+			a.Logger.Error("Error processing tx", "tx", tx.String(), "error", err)
+			if txDBConn.Instance != nil {
+				txDBConn.Instance.Rollback()
+				txDBConn.Close()
+			}
+			return commitments, err
+		}
+		if txDBConn.Instance != nil {
+			txDBConn.Instance.Commit()
+			txDBConn.Close()
+		}
+
+		if i%32 == 0 {
+			txInCommitment := txs[i : i+32]
+			a.Logger.Info("Preparing a commitment", "NumOfTxs", len(txInCommitment), "type", txs[0].Type, "totalCommitmentsYet", len(commitments))
+			aggregatedSig, err := aggregateSignatures(txInCommitment)
+			if err != nil {
+				return commitments, err
+			}
+			commitment := core.Commitment{Txs: txInCommitment, UpdatedRoot: newRoot, BatchType: tx.Type, AggregatedSignature: aggregatedSig.ToBytes()}
+			commitments = append(commitments, commitment)
+		}
+		currentRoot = newRoot
+	}
+	return commitments, nil
 }
 
 // generates aggregated signature for commitment

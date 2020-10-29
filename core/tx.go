@@ -3,16 +3,11 @@ package core
 import (
 	"encoding/hex"
 	"fmt"
-	"sync"
 
+	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/wallet"
-	ethCmn "github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/rlp"
-	"golang.org/x/crypto/sha3"
 )
-
-var VerifierWaitGroup sync.WaitGroup
 
 // Tx represets the transaction on hubble
 type Tx struct {
@@ -85,71 +80,8 @@ func (t *Tx) AssignHash() {
 	if t.TxHash != "" {
 		return
 	}
-	hash := rlpHash(t)
+	hash := common.RlpHash(t)
 	t.TxHash = hash.String()
-}
-
-func (tx *Tx) Apply(updatedFrom, updatedTo []byte) error {
-	// get fresh copy of database
-	db, err := NewDB()
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
-	// begin a transaction
-	mysqlTx := db.Instance.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			mysqlTx.Rollback()
-		}
-	}()
-
-	// post this perform all ops on transaction
-	db.Instance = mysqlTx
-
-	// apply transaction on from account
-	fromAcc, err := db.GetStateByIndex(tx.From)
-	if err != nil {
-		mysqlTx.Rollback()
-		return err
-	}
-
-	fromAcc.Data = updatedFrom
-
-	err = db.UpdateState(fromAcc)
-	if err != nil {
-		mysqlTx.Rollback()
-		return err
-	}
-	toAcc, err := DBInstance.GetStateByIndex(tx.To)
-	if err != nil {
-		mysqlTx.Rollback()
-		return err
-	}
-
-	toAcc.Data = updatedTo
-
-	err = db.UpdateState(toAcc)
-	if err != nil {
-		mysqlTx.Rollback()
-		return err
-	}
-
-	tx.UpdateStatus(TX_STATUS_PROCESSED)
-
-	// Or commit the transaction
-	mysqlTx.Commit()
-	return nil
-}
-
-func (tx *Tx) ApplySingleTx(account UserState, updatedData []byte) error {
-	account.Data = updatedData
-	err := DBInstance.UpdateState(account)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (t *Tx) String() string {
@@ -229,58 +161,62 @@ func (tx *Tx) UpdateStatus(status uint64) error {
 }
 
 // GetVerificationData fetches all the data required to prove validity fo transaction
-func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof StateMerkleProof, AccountProof AccountMerkleProof, txDBConn DB, err error) {
+func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof StateMerkleProof, txDBConn DB, err error) {
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
-		return tx.CreateVerificationDataForTransfer()
+		return tx.GetWitnessTranfer()
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return
 	}
 }
 
-func (tx *Tx) CreateVerificationDataForTransfer() (fromMerkleProof, toMerkleProof StateMerkleProof, AccountProof AccountMerkleProof, txDBConn DB, err error) {
-	// VerifierWaitGroup.Add(2)
-	// go DBInstance.FetchAccountProofWithID(tx.From, &AccountProof)
-	// go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
-	// toAcc, err := DBInstance.GetAccountByIndex(tx.To)
-	// if err != nil {
-	// 	return
-	// }
-	// var toSiblings []UserState
+func (tx *Tx) GetWitnessTranfer() (fromMerkleProof, toMerkleProof StateMerkleProof, txDBConn DB, err error) {
 	dbCopy, _ := NewDB()
-	// mysqlTx := dbCopy.Instance.Begin()
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		mysqlTx.Rollback()
-	// 	}
-	// }()
-	// dbCopy.Instance = mysqlTx
-	// VerifierWaitGroup.Wait()
-	// updatedFromAccountBytes, _, err := LoadedBazooka.ApplyTx(fromMerkleProof, *tx)
-	// if err != nil {
-	// 	return
-	// }
 
-	// fromMerkleProof.Account.Data = updatedFromAccountBytes
-	// err = dbCopy.UpdateAccount(fromMerkleProof.Account)
-	// if err != nil {
-	// 	return
-	// }
-	// // TODO add a check to ensure that DB copy of state matches the one returned by ApplyTransferTx
-	// toSiblings, err = dbCopy.GetSiblings(toAcc.Path)
-	// if err != nil {
-	// 	return
-	// }
-	// toMerkleProof = NewAccountMerkleProof(toAcc, toSiblings)
-	return fromMerkleProof, toMerkleProof, AccountProof, dbCopy, nil
-}
+	// fetch from state MP
+	DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
+	toState, err := DBInstance.GetStateByIndex(tx.To)
+	if err != nil {
+		return
+	}
+	var toSiblings []UserState
 
-func rlpHash(x interface{}) (h ethCmn.Hash) {
-	hw := sha3.NewLegacyKeccak256()
-	rlp.Encode(hw, x)
-	hw.Sum(h[:0])
-	return h
+	newFrom, newTo, err := LoadedBazooka.ApplyTx(fromMerkleProof.State.Data, toState.Data, *tx)
+	if err != nil {
+		return
+	}
+
+	mysqlTx := dbCopy.Instance.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			mysqlTx.Rollback()
+		}
+	}()
+	dbCopy.Instance = mysqlTx
+
+	// apply the new from leaf
+	fromMerkleProof.State.Data = newFrom
+	err = dbCopy.UpdateState(fromMerkleProof.State)
+	if err != nil {
+		return
+	}
+
+	// create witness for to leaf
+	toSiblings, err = dbCopy.GetSiblings(toState.Path)
+	if err != nil {
+		return
+	}
+	toMerkleProof = NewStateMerkleProof(toState, toSiblings)
+
+	// apply the new to leaf
+	toState.Data = newTo
+	err = dbCopy.UpdateState(toState)
+	if err != nil {
+		return
+	}
+
+	return fromMerkleProof, toMerkleProof, dbCopy, nil
 }
 
 func ConcatTxs(txs [][]byte) []byte {
@@ -304,7 +240,6 @@ func (db *DB) FetchAccountProofWithID(id uint64, pdaProof *AccountMerkleProof) (
 	}
 	pdaMP := NewAccountMerkleProof(leaf.Path, leaf.PublicKey, siblings)
 	*pdaProof = pdaMP
-	VerifierWaitGroup.Done()
 	return nil
 }
 
@@ -321,6 +256,5 @@ func (db *DB) FetchMPWithID(id uint64, accountMP *StateMerkleProof) (err error) 
 	}
 	accMP := NewStateMerkleProof(leaf, siblings)
 	*accountMP = accMP
-	VerifierWaitGroup.Done()
 	return nil
 }
