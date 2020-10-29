@@ -5,13 +5,10 @@ type Result int
 
 const (
 	Ok Result = iota
-	InvalidTokenAddress
 	InvalidTokenAmount
 	NotEnoughTokenBalance
 	BadFromTokenType
 	BadToTokenType
-	BadFromIndex
-	NotOnDesignatedStateLeaf
 	BadSignature
 	MismatchedAmount
 	BadWithdrawRoot
@@ -23,8 +20,6 @@ func ParseResult(result uint8) error {
 	switch r {
 	case Ok:
 		return nil
-	case InvalidTokenAddress:
-		return ErrInvalidTokenAddress
 	case InvalidTokenAmount:
 		return ErrInvalidTokenAmount
 	case NotEnoughTokenBalance:
@@ -33,10 +28,6 @@ func ParseResult(result uint8) error {
 		return ErrBadFromTokenType
 	case BadToTokenType:
 		return ErrBadToTokenType
-	case BadFromIndex:
-		return ErrBadFromIndex
-	case NotOnDesignatedStateLeaf:
-		return ErrNotOnDesignatedStateLeaf
 	case BadSignature:
 		return ErrBadSignature
 	case MismatchedAmount:
