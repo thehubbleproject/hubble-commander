@@ -210,6 +210,9 @@ func (b *Bazooka) processTransferTx(balanceTreeRoot ByteArray, tx Tx, fromMerkle
 	if err != nil {
 		return
 	}
+	if err = ParseResult(result.Result); err != nil {
+		return
+	}
 
 	b.log.Info("Processed transaction", "postTxRoot", result.NewRoot, "resultCode", result.Result)
 
@@ -227,9 +230,8 @@ func (b *Bazooka) applyCreate2TransferTx(sender, receiver []byte, tx Tx) (update
 		return
 	}
 
-	// TODO add error
-	if updates.Result != uint8(0) {
-		return sender, receiver, nil
+	if err = ParseResult(updates.Result); err != nil {
+		return
 	}
 
 	return updates.NewSender, updates.NewReceiver, nil
@@ -242,8 +244,8 @@ func (b *Bazooka) applyTransferTx(sender, receiver []byte, tx Tx) (updatedSender
 		return
 	}
 
-	if updates.Result != uint8(0) {
-		return sender, receiver, nil
+	if err = ParseResult(updates.Result); err != nil {
+		return
 	}
 
 	return updates.NewSender, updates.NewReceiver, nil
@@ -256,9 +258,8 @@ func (b *Bazooka) applyMassMigrationTx(sender, receiver []byte, tx Tx) (updatedS
 		return
 	}
 
-	// TODO add error
-	if updates.Result != uint8(0) {
-		return sender, receiver, nil
+	if err = ParseResult(updates.Result); err != nil {
+		return
 	}
 
 	return updates.NewSender, updatedReceiver, nil
