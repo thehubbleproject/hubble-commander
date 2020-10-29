@@ -15,7 +15,7 @@ func TestSignAndVerify(t *testing.T) {
 	signBytes := []byte("0x123222")
 	signature, err := wallet.Sign(signBytes)
 	require.Equal(t, err, nil, "error signing transaction")
-	fmt.Println(hex.EncodeToString(signature.Bytes()))
+	fmt.Println(hex.EncodeToString(signature.ToBytes()))
 	valid, err := wallet.VerifySignature(signBytes, signature, *wallet.Account.Public)
 	require.Equal(t, err, nil, "error verifying signature")
 	require.Equal(t, valid, true, "error verifying signature")

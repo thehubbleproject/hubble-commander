@@ -25,7 +25,3 @@ func TestStringToUint(t *testing.T) {
 	data, err := core.StringToUint("101")
 	fmt.Println("error", data, err)
 }
-
-func TestFlipBitInString(t *testing.T) {
-	fmt.Println(core.FlipBitInInt("101", 1))
-}
