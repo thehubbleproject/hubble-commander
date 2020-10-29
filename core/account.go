@@ -133,8 +133,8 @@ func (db *DB) GetAccountByDepth(depth uint64) ([]Account, error) {
 	return accs, nil
 }
 
-// UpdateAccountLeaf updates the account
-func (db *DB) UpdateAccountLeaf(leaf Account) error {
+// UpdateAccount updates the account
+func (db *DB) UpdateAccount(leaf Account) error {
 	db.Logger.Info("Updated account pubkey", "ID", leaf.ID)
 	leaf.PopulateHash()
 	siblings, err := db.GetAccountSiblings(leaf.Path)
@@ -303,12 +303,12 @@ func (db *DB) InitAccountTree(depth uint64, genesisAccount []Account) error {
 // storeAccountNode updates the nodes given the parent hash
 func (db *DB) storeAccountNode(parentHash ByteArray, leftNode, rightNode Account) (err error) {
 	// update left account
-	err = db.updateAccountLeaf(leftNode, leftNode.Path)
+	err = db.updateSingleAccount(leftNode, leftNode.Path)
 	if err != nil {
 		return err
 	}
 	// update right account
-	err = db.updateAccountLeaf(rightNode, rightNode.Path)
+	err = db.updateSingleAccount(rightNode, rightNode.Path)
 	if err != nil {
 		return err
 	}
@@ -316,8 +316,8 @@ func (db *DB) storeAccountNode(parentHash ByteArray, leftNode, rightNode Account
 	return db.updateParentAccountWithHash(GetParentPath(leftNode.Path), parentHash)
 }
 
-// updateAccount will simply replace all the changed fields
-func (db *DB) updateAccountLeaf(newAccount Account, path string) error {
+// updateSingleAccount will simply replace all the changed fields
+func (db *DB) updateSingleAccount(newAccount Account, path string) error {
 	return db.Instance.Model(&newAccount).Where("path = ?", path).Update(newAccount).Error
 }
 
@@ -326,14 +326,14 @@ func (db *DB) updateParentAccountWithHash(pathToParent string, newHash ByteArray
 	var tempAccount Account
 	tempAccount.Path = pathToParent
 	tempAccount.Hash = newHash.String()
-	return db.updateAccountLeaf(tempAccount, pathToParent)
+	return db.updateSingleAccount(tempAccount, pathToParent)
 }
 
 func (db *DB) updateAccountRootNodes(newRoot ByteArray) error {
 	var tempAccountLeaf Account
 	tempAccountLeaf.Path = ""
 	tempAccountLeaf.Hash = newRoot.String()
-	return db.updateAccountLeaf(tempAccountLeaf, tempAccountLeaf.Path)
+	return db.updateSingleAccount(tempAccountLeaf, tempAccountLeaf.Path)
 }
 func encodePubkey(pubkey string) ([]byte, error) {
 	pubkeyBytes, err := hex.DecodeString(pubkey)

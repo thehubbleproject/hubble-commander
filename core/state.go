@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"math/big"
 
 	"github.com/BOPR/common"
+	"github.com/BOPR/contracts/rollupclient"
 	"github.com/jinzhu/gorm"
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
 )
@@ -45,13 +45,6 @@ type UserState struct {
 	CreatedByDepositSubTree string
 }
 
-type UserStateSol struct {
-	PubkeyIndex *big.Int
-	TokenType   *big.Int
-	Balance     *big.Int
-	Nonce       *big.Int
-}
-
 // NewUserState creates a new user account
 func NewUserState(id, status uint64, path string, data []byte) *UserState {
 	newState := &UserState{
@@ -80,9 +73,9 @@ func newStateNode(path, hash string) *UserState {
 	return newUserState
 }
 
-// newPendingUserState creates a new terminal user account but in pending state
+// NewPendingUserState creates a new terminal user account but in pending state
 // It is to be used while adding new deposits while they are not finalised
-func newPendingUserState(id uint64, data []byte) *UserState {
+func NewPendingUserState(id uint64, data []byte) *UserState {
 	newAcccount := &UserState{
 		AccountID: id,
 		Path:      UNINITIALIZED_PATH,
@@ -100,26 +93,16 @@ func (acc *UserState) UpdatePath(path string) {
 	acc.Level = uint64(len(path))
 }
 
-func (acc *UserState) String() string {
-	_, balance, nonce, token, burn, lastBurn, _ := LoadedBazooka.DecodeAccount(acc.Data)
-	return fmt.Sprintf("ID: %d Bal: %d Nonce: %d Token: %v Path: %v TokenType:%v NodeType: %v Burn: %v LastBurn: %v", acc.AccountID, balance, nonce, token, acc.Path, acc.Type, acc.Hash, burn, lastBurn)
+func (s *UserState) String() string {
+	id, balance, nonce, token, _ := LoadedBazooka.DecodeState(s.Data)
+	return fmt.Sprintf("ID: %d Bal: %d Nonce: %d Token: %v Path: %v TokenType:%v", id, balance, nonce, token)
 }
 
-func (acc *UserState) ToABIAccount() (rollupAcc UserStateSol, err error) {
-	// var pubkeyIndex, balance, nonce, token *big.Int = big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0)
-	// if acc.Type == TYPE_TERMINAL {
-	// 	pubkeyIndex, balance, nonce, token, err = LoadedBazooka.DecodeAccount(acc.Data)
-	// 	if err != nil {
-	// 		fmt.Println("unable to convert", err)
-	// 		return
-	// 	}
-	// }
-
-	// // assign to sol struct
-	// rollupAcc.PubkeyIndex = ID
-	// rollupAcc.Balance = balance
-	// rollupAcc.Nonce = nonce
-	// rollupAcc.TokenType = token
+func (s *UserState) ToABIAccount() (solState rollupclient.TypesUserState, err error) {
+	solState.PubkeyIndex, solState.Balance, solState.Nonce, solState.TokenType, err = LoadedBazooka.DecodeState(s.Data)
+	if err != nil {
+		return
+	}
 	return
 }
 
@@ -146,18 +129,6 @@ func (acc *UserState) IsCoordinator() bool {
 
 	return true
 }
-
-// func (acc *UserState) AccountInclusionProof(path int64) (accInclusionProof rollupclient.TypesAccountInclusionProof, err error) {
-// 	// accABI, err := acc.ToABIAccount()
-// 	// if err != nil {
-// 	// 	return
-// 	// }
-// 	// accInclusionProof = rollupcaller.TypesAccountInclusionProof{
-// 	// 	PathToAccount: big.NewInt(path),
-// 	// 	Account:       accABI,
-// 	// }
-// 	return accInclusionProof, nil
-// }
 
 func (acc *UserState) CreateAccountHash() {
 	accountHash := common.Keccak256(acc.Data)
@@ -222,7 +193,7 @@ func (db *DB) InitStateTree(depth uint64, genesisAccounts []UserState) error {
 	// 4. Start with next round
 	for i := depth; i > 0; i-- {
 		// get all leaves at depth N
-		accs, err := db.GetAccountsAtDepth(i)
+		accs, err := db.GetStatesAtDepth(i)
 		if err != nil {
 			return err
 		}
@@ -248,8 +219,8 @@ func (db *DB) InitStateTree(depth uint64, genesisAccounts []UserState) error {
 		}
 		err = gormbulk.BulkInsert(db.Instance, nextLevelAccounts, CHUNK_SIZE)
 		if err != nil {
-			db.Logger.Error("Unable to insert accounts to DB", "err", err)
-			return errors.New("Unable to insert accounts")
+			db.Logger.Error("Unable to insert states to DB", "err", err)
+			return errors.New("Unable to insert states")
 		}
 	}
 
@@ -257,7 +228,7 @@ func (db *DB) InitStateTree(depth uint64, genesisAccounts []UserState) error {
 	return nil
 }
 
-func (db *DB) GetAccountsAtDepth(depth uint64) ([]UserState, error) {
+func (db *DB) GetStatesAtDepth(depth uint64) ([]UserState, error) {
 	var accs []UserState
 	err := db.Instance.Where("level = ?", depth).Find(&accs).Error
 	if err != nil {
@@ -266,7 +237,7 @@ func (db *DB) GetAccountsAtDepth(depth uint64) ([]UserState, error) {
 	return accs, nil
 }
 
-func (db *DB) UpdateAccount(account UserState) error {
+func (db *DB) UpdateState(account UserState) error {
 	db.Logger.Info("Updated account", "PATH", account.Path)
 	account.CreateAccountHash()
 	siblings, err := db.GetSiblings(account.Path)
@@ -278,10 +249,10 @@ func (db *DB) UpdateAccount(account UserState) error {
 	return db.StoreLeaf(account, account.Path, siblings)
 }
 
-func (db *DB) StoreLeaf(account UserState, path string, siblings []UserState) error {
+func (db *DB) StoreLeaf(state UserState, path string, siblings []UserState) error {
 	var err error
 	var isLeft bool
-	computedNode := account
+	computedNode := state
 	for i := 0; i < len(siblings); i++ {
 		var parentHash ByteArray
 		sibling := siblings[i]
@@ -312,7 +283,7 @@ func (db *DB) StoreLeaf(account UserState, path string, siblings []UserState) er
 				return err
 			}
 		}
-		parentAccount, err := db.GetAccountByPath(GetParentPath(computedNode.Path))
+		parentAccount, err := db.GetStateByPath(GetParentPath(computedNode.Path))
 		if err != nil {
 			return err
 		}
@@ -369,7 +340,7 @@ func (db *DB) GetSiblings(path string) ([]UserState, error) {
 	var siblings []UserState
 	for i := len(path); i > 0; i-- {
 		otherChild := GetOtherChild(relativePath)
-		otherNode, err := db.GetAccountByPath(otherChild)
+		otherNode, err := db.GetStateByPath(otherChild)
 		if err != nil {
 			return siblings, err
 		}
@@ -379,8 +350,8 @@ func (db *DB) GetSiblings(path string) ([]UserState, error) {
 	return siblings, nil
 }
 
-// GetAccount gets the account of the given path from the DB
-func (db *DB) GetAccountByPath(path string) (UserState, error) {
+// GetStateByDepth gets the state leaf of the given path from the DB
+func (db *DB) GetStateByDepth(path string) (UserState, error) {
 	var account UserState
 	err := db.Instance.Where("path = ?", path).Find(&account).GetErrors()
 	if len(err) != 0 {
@@ -389,7 +360,7 @@ func (db *DB) GetAccountByPath(path string) (UserState, error) {
 	return account, nil
 }
 
-func (db *DB) GetAccountByIndex(index uint64) (acc UserState, err error) {
+func (db *DB) GetStateByIndex(index uint64) (acc UserState, err error) {
 	params, err := db.GetParams()
 	if err != nil {
 		return
@@ -398,7 +369,16 @@ func (db *DB) GetAccountByIndex(index uint64) (acc UserState, err error) {
 	if err != nil {
 		return
 	}
-	return db.GetAccountByPath(path)
+	return db.GetStateByPath(path)
+}
+
+func (db *DB) GetStateByPath(path string) (UserState, error) {
+	var userState UserState
+	err := db.Instance.Where("path = ?", path).Find(&userState).GetErrors()
+	if len(err) != 0 {
+		return userState, ErrRecordNotFound(fmt.Sprintf("unable to find record for path: %v err:%v", path, err))
+	}
+	return userState, nil
 }
 
 func (db *DB) GetAccountByHash(hash string) (UserState, error) {

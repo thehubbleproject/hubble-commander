@@ -77,7 +77,7 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot ByteArra
 		acc.Status = STATUS_ACTIVE
 		acc.UpdatePath(terminalNodes[i])
 		acc.CreateAccountHash()
-		err := db.UpdateAccount(acc)
+		err := db.UpdateState(acc)
 		if err != nil {
 			return err
 		}
