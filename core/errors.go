@@ -6,7 +6,6 @@ import (
 )
 
 // corresponding errors to Types.Results
-
 var ErrInvalidTokenAddress = errors.New("invalid token address")
 var ErrInvalidTokenAmount = errors.New("invalid token amount")
 var ErrNotEnoughTokenBalance = errors.New("not enough token balance")
