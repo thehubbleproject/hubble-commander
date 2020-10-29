@@ -95,7 +95,7 @@ func (acc *UserState) UpdatePath(path string) {
 
 func (s *UserState) String() string {
 	id, balance, nonce, token, _ := LoadedBazooka.DecodeState(s.Data)
-	return fmt.Sprintf("ID: %d Bal: %d Nonce: %d Token: %v Path: %v TokenType:%v", id, balance, nonce, token)
+	return fmt.Sprintf("ID: %d Bal: %d Nonce: %d Token: %v", id, balance, nonce, token)
 }
 
 func (s *UserState) ToABIAccount() (solState rollupclient.TypesUserState, err error) {
