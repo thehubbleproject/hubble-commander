@@ -23,13 +23,12 @@ const (
 	BATCH_BROADCASTED = 100
 	BATCH_COMMITTED   = 200
 
-	TX_GENESIS        = 0
-	TX_TRANSFER_TYPE  = 1
-	TX_CREATE_ACCOUNT = 2
-	TX_AIRDROP_TYPE   = 3
-	TX_BURN_CONSENT   = 4
-	TX_BURN_EXEC      = 5
-	TX_DEPOSIT        = 6
+	// TODO make sure the types are correct
+	TX_GENESIS           = 0
+	TX_TRANSFER_TYPE     = 1
+	TX_CREATE_2_TRANSFER = 2
+	TX_MASS_MIGRATIONS   = 3
+	TX_DEPOSIT           = 4
 
 	CHUNK_SIZE = 3000
 )

@@ -6,15 +6,15 @@ import (
 
 // Batch is the batches that need to be submitted on-chain periodically
 type Batch struct {
-	BatchID              uint64
-	StateRoot            string
-	Committer            string
-	StakeAmount          uint64
-	FinalisesOn          big.Int
-	SubmissionHash       string
-	TransactionsIncluded []byte `gorm:"size:1000000"`
-	BatchType            uint64
-	Status               uint64
+	BatchID              uint64  `json:"batch_id,omitempty"`
+	StateRoot            string  `json:"state_root,omitempty"`
+	Committer            string  `json:"committer,omitempty"`
+	StakeAmount          uint64  `json:"stake_amount,omitempty"`
+	FinalisesOn          big.Int `json:"finalises_on,omitempty"`
+	SubmissionHash       string  `json:"submission_hash,omitempty"`
+	TransactionsIncluded []byte  `gorm:"size:1000000" json:"transactions_included,omitempty"`
+	BatchType            uint64  `json:"batch_type,omitempty"`
+	Status               uint64  `json:"status,omitempty"`
 }
 
 type Commitment struct {

@@ -111,7 +111,7 @@ func loadGenesisData(genesis config.Genesis) {
 		common.PanicIfError(err)
 
 		// use contracts to get coordinator state bytes
-		stateBytes, err := core.LoadedBazooka.EncodeAccount(acc.AccountID, acc.Balance, acc.Nonce, acc.TokenType)
+		stateBytes, err := core.LoadedBazooka.EncodeState(acc.AccountID, acc.Balance, acc.Nonce, acc.TokenType)
 		common.PanicIfError(err)
 
 		if i == 0 {

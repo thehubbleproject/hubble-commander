@@ -109,7 +109,7 @@ func (tx *Tx) Apply(updatedFrom, updatedTo []byte) error {
 	db.Instance = mysqlTx
 
 	// apply transaction on from account
-	fromAcc, err := db.GetAccountByIndex(tx.From)
+	fromAcc, err := db.GetStateByIndex(tx.From)
 	if err != nil {
 		mysqlTx.Rollback()
 		return err
@@ -117,12 +117,12 @@ func (tx *Tx) Apply(updatedFrom, updatedTo []byte) error {
 
 	fromAcc.Data = updatedFrom
 
-	err = db.UpdateAccount(fromAcc)
+	err = db.UpdateState(fromAcc)
 	if err != nil {
 		mysqlTx.Rollback()
 		return err
 	}
-	toAcc, err := DBInstance.GetAccountByIndex(tx.To)
+	toAcc, err := DBInstance.GetStateByIndex(tx.To)
 	if err != nil {
 		mysqlTx.Rollback()
 		return err
@@ -130,7 +130,7 @@ func (tx *Tx) Apply(updatedFrom, updatedTo []byte) error {
 
 	toAcc.Data = updatedTo
 
-	err = db.UpdateAccount(toAcc)
+	err = db.UpdateState(toAcc)
 	if err != nil {
 		mysqlTx.Rollback()
 		return err
@@ -145,7 +145,7 @@ func (tx *Tx) Apply(updatedFrom, updatedTo []byte) error {
 
 func (tx *Tx) ApplySingleTx(account UserState, updatedData []byte) error {
 	account.Data = updatedData
-	err := DBInstance.UpdateAccount(account)
+	err := DBInstance.UpdateState(account)
 	if err != nil {
 		return err
 	}
@@ -229,7 +229,7 @@ func (tx *Tx) UpdateStatus(status uint64) error {
 }
 
 // GetVerificationData fetches all the data required to prove validity fo transaction
-func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof UserStateMerkleProof, AccountProof AccountMerkleProof, txDBConn DB, err error) {
+func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof StateMerkleProof, AccountProof AccountMerkleProof, txDBConn DB, err error) {
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
 		return tx.CreateVerificationDataForTransfer()
@@ -239,7 +239,7 @@ func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof UserStateMer
 	}
 }
 
-func (tx *Tx) CreateVerificationDataForTransfer() (fromMerkleProof, toMerkleProof UserStateMerkleProof, AccountProof AccountMerkleProof, txDBConn DB, err error) {
+func (tx *Tx) CreateVerificationDataForTransfer() (fromMerkleProof, toMerkleProof StateMerkleProof, AccountProof AccountMerkleProof, txDBConn DB, err error) {
 	// VerifierWaitGroup.Add(2)
 	// go DBInstance.FetchAccountProofWithID(tx.From, &AccountProof)
 	// go DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
@@ -308,8 +308,8 @@ func (db *DB) FetchAccountProofWithID(id uint64, pdaProof *AccountMerkleProof) (
 	return nil
 }
 
-func (db *DB) FetchMPWithID(id uint64, accountMP *UserStateMerkleProof) (err error) {
-	leaf, err := DBInstance.GetAccountByIndex(id)
+func (db *DB) FetchMPWithID(id uint64, accountMP *StateMerkleProof) (err error) {
+	leaf, err := DBInstance.GetStateByIndex(id)
 	if err != nil {
 		fmt.Println("error while getting leaf", err)
 		return
@@ -319,7 +319,7 @@ func (db *DB) FetchMPWithID(id uint64, accountMP *UserStateMerkleProof) (err err
 		fmt.Println("error while getting siblings", err)
 		return
 	}
-	accMP := NewUserStateMerkleProof(leaf, siblings)
+	accMP := NewStateMerkleProof(leaf, siblings)
 	*accountMP = accMP
 	VerifierWaitGroup.Done()
 	return nil

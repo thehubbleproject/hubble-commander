@@ -12,8 +12,9 @@ import (
 	"github.com/willf/pad"
 )
 
+// GetParent takes in left and right children and returns the parent hash
 func GetParent(left, right ByteArray) (parent ByteArray, err error) {
-	data, err := EncodeChildren(left, right)
+	data, err := encodeChildren(left, right)
 	if err != nil {
 		return parent, err
 	}
@@ -21,44 +22,12 @@ func GetParent(left, right ByteArray) (parent ByteArray, err error) {
 	return BytesToByteArray(leaf.Bytes()), nil
 }
 
+// GetParentPath given the path to any of the children returns the path to the parent
 func GetParentPath(path string) (parentNodePath string) {
-	return TrimPathToParentPath(path)
+	return trimPathToParentPath(path)
 }
 
-func EncodeChildren(left, right ByteArray) (result []byte, err error) {
-	bytes32Type, err := abi.NewType("bytes32", "bytes32", nil)
-	if err != nil {
-		return
-	}
-
-	arguments := abi.Arguments{
-		{
-			Type: bytes32Type,
-		},
-		{
-			Type: bytes32Type,
-		},
-	}
-	bz, err := arguments.Pack(
-		[32]byte(left),
-		[32]byte(right),
-	)
-	if err != nil {
-		return
-	}
-
-	return bz, nil
-}
-
-func Keccak256AndConvertToByteArray(data []byte) ByteArray {
-	hash := common.Keccak256(data)
-	return BytesToByteArray(hash.Bytes())
-}
-
-func ToUint64(i *big.Int) uint64 {
-	return i.Uint64()
-}
-
+// StringToBigInt takes in a string and returns the corresponding big int
 func StringToBigInt(s string) *big.Int {
 	t := big.NewInt(0)
 	t.SetString(s, 2)
@@ -69,11 +38,6 @@ func UintToBigInt(a uint64) *big.Int {
 	t := big.NewInt(0)
 	t.SetUint64(a)
 	return t
-}
-
-func GetBit(a uint64, index int) uint {
-	b := UintToBigInt(a)
-	return b.Bit(index)
 }
 
 func StringToUint(s string) (uint64, error) {
@@ -122,7 +86,7 @@ func GetOtherChild(path string) string {
 	return FlipBitInString(path, len(path)-1)
 }
 
-func TrimPathToParentPath(s string) string {
+func trimPathToParentPath(s string) string {
 	r, size := utf8.DecodeLastRuneInString(s)
 	if r == utf8.RuneError && (size == 0 || size == 1) {
 		size = 0
@@ -162,4 +126,29 @@ func SolidityPathToNodePath(path uint64, depth uint64) (string, error) {
 	}
 	generatedPath := strings.Join([]string{string(pathToNode), pathWithoutPrefix}, "")
 	return generatedPath, nil
+}
+
+func encodeChildren(left, right ByteArray) (result []byte, err error) {
+	bytes32Type, err := abi.NewType("bytes32", "bytes32", nil)
+	if err != nil {
+		return
+	}
+
+	arguments := abi.Arguments{
+		{
+			Type: bytes32Type,
+		},
+		{
+			Type: bytes32Type,
+		},
+	}
+	bz, err := arguments.Pack(
+		[32]byte(left),
+		[32]byte(right),
+	)
+	if err != nil {
+		return
+	}
+
+	return bz, nil
 }
