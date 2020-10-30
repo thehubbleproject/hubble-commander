@@ -378,40 +378,44 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 
 	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
 
-	data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitBatch", txs, updatedRoots, uint8(commitments[0].BatchType), aggregatedSig)
-	if err != nil {
-		b.log.Error("Error packing data for submitBatch", "err", err)
-		return err
-	}
-
 	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
 	stakeAmount := big.NewInt(0)
-
-	// generate call msg
-	callMsg := ethereum.CallMsg{
-		To:    &rollupAddress,
-		Data:  data,
-		Value: stakeAmount,
-	}
-
-	// generate auth
-	auth, err := b.generateAuthObj(b.EthClient, callMsg)
-	if err != nil {
-		b.log.Error("Error creating auth object", "error", err)
-		return err
-	}
 
 	var feeReceivers []*big.Int
 	dummyReceivers := big.NewInt(0)
 	feeReceivers = append(feeReceivers, dummyReceivers)
 
-	tx, err := b.RollupContract.SubmitTransfer(auth, updatedRoots, aggregatedSig, feeReceivers, txs)
-	if err != nil {
-		b.log.Error("Error submitting batch", "err", err)
-		return err
-	}
+	switch txType := commitments[0].BatchType; txType {
+	case TX_TRANSFER_TYPE:
+		data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitTransfer", txs, updatedRoots, uint8(commitments[0].BatchType), aggregatedSig)
+		if err != nil {
+			b.log.Error("Error packing data for submitBatch", "err", err)
+			return err
+		}
 
-	b.log.Info("Sent a new batch!", "TxHash", tx.Hash().String())
+		// generate call msg
+		callMsg := ethereum.CallMsg{
+			To:    &rollupAddress,
+			Data:  data,
+			Value: stakeAmount,
+		}
+
+		// generate auth
+		auth, err := b.generateAuthObj(b.EthClient, callMsg)
+		if err != nil {
+			b.log.Error("Error creating auth object", "error", err)
+			return err
+		}
+
+		tx, err := b.RollupContract.SubmitTransfer(auth, updatedRoots, aggregatedSig, feeReceivers, txs)
+		if err != nil {
+			b.log.Error("Error submitting batch", "err", err)
+			return err
+		}
+		b.log.Info("Sent a new batch!", "TxHash", tx.Hash().String())
+	default:
+		b.log.Error("Tx not indentified", "txType", commitments[0].BatchType)
+	}
 
 	return nil
 }
