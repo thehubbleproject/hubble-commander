@@ -381,13 +381,14 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
 	stakeAmount := big.NewInt(0)
 
+	// TODO fix
 	var feeReceivers []*big.Int
 	dummyReceivers := big.NewInt(0)
 	feeReceivers = append(feeReceivers, dummyReceivers)
 
 	switch txType := commitments[0].BatchType; txType {
 	case TX_TRANSFER_TYPE:
-		data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitTransfer", txs, updatedRoots, uint8(commitments[0].BatchType), aggregatedSig)
+		data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitTransfer", updatedRoots, aggregatedSig, feeReceivers, txs)
 		if err != nil {
 			b.log.Error("Error packing data for submitBatch", "err", err)
 			return err
