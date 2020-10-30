@@ -19,6 +19,10 @@ const (
 	COMMITMENT_SIZE    = 32
 )
 
+var (
+	ErrNoTxsFound = errors.New("no tx found")
+)
+
 // Aggregator is the service which is supposed to create batches
 // It has the following tasks:
 // 1. Pick txs from the mempool
@@ -130,7 +134,7 @@ func (a *Aggregator) ProcessAndSubmitBatch(txs []core.Tx) {
 // and calls the proccess tx function to return the updated balance root and accounts
 func (a *Aggregator) ProcessTx(txs []core.Tx) (commitments []core.Commitment, err error) {
 	if len(txs) == 0 {
-		return commitments, errors.New("no tx to process,aborting")
+		return commitments, ErrNoTxsFound
 	}
 	for i, tx := range txs {
 		a.Logger.Info("Processing transaction", "txNumber", i, "of", len(txs))
@@ -144,13 +148,13 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) (commitments []core.Commitment, er
 		if err != nil {
 			return commitments, err
 		}
-		fromAccProof, toAccProof, txDBConn, err := tx.GetVerificationData()
+		fromStateProof, toStateProof, txDBConn, err := tx.GetVerificationData()
 		if err != nil {
 			a.Logger.Error("Unable to create verification data", "error", err)
 			return commitments, err
 		}
 
-		newRoot, err := a.LoadedBazooka.ProcessTx(currentRoot, tx, fromAccProof, toAccProof)
+		newRoot, err := a.LoadedBazooka.ProcessTx(currentRoot, tx, fromStateProof, toStateProof)
 		if err != nil {
 			a.Logger.Error("Error processing tx", "tx", tx.String(), "error", err)
 			if txDBConn.Instance != nil {
@@ -164,8 +168,8 @@ func (a *Aggregator) ProcessTx(txs []core.Tx) (commitments []core.Commitment, er
 			txDBConn.Close()
 		}
 
-		if i%32 == 0 {
-			txInCommitment := txs[i : i+32]
+		if i%COMMITMENT_SIZE == 0 {
+			txInCommitment := txs[i : i+COMMITMENT_SIZE]
 			a.Logger.Info("Preparing a commitment", "NumOfTxs", len(txInCommitment), "type", txs[0].Type, "totalCommitmentsYet", len(commitments))
 			aggregatedSig, err := aggregateSignatures(txInCommitment)
 			if err != nil {
