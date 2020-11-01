@@ -2,6 +2,8 @@ package core
 
 import (
 	"encoding/hex"
+	"encoding/json"
+	"math/big"
 
 	ethCmn "github.com/ethereum/go-ethereum/common"
 )
@@ -33,3 +35,51 @@ func BytesToByteArray(bz []byte) ByteArray {
 	copy(temp[:], bz)
 	return temp
 }
+
+// Pubkey is an alias for public key
+type Pubkey [4]*big.Int
+
+func (p Pubkey) String() (string, error) {
+	pubBytes, err := p.Serialize()
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(pubBytes), nil
+}
+
+// Serialize seralises a public key to bytes
+func (p Pubkey) Serialize() ([]byte, error) {
+	var pubkey []uint64
+	for i := range p {
+		pub := p[i].Uint64()
+		pubkey = append(pubkey, pub)
+	}
+	return json.Marshal(pubkey)
+}
+
+// BytesToPubkey converts bytes to Pubkey
+func BytesToPubkey(b []byte) (pubkey Pubkey, err error) {
+	var p []uint64
+	err = json.Unmarshal(b, &p)
+	if err != nil {
+		return pubkey, err
+	}
+	var pubkeyBigInt [4]*big.Int
+	for i := range p {
+		temp := big.NewInt(0)
+		temp.SetUint64(p[i])
+		pubkeyBigInt[i] = temp
+	}
+	return pubkeyBigInt, nil
+}
+
+func StrToPubkey(s string) (pubkey Pubkey, err error) {
+	pubBytes, err := hex.DecodeString(s)
+	if err != nil {
+		return
+	}
+	return BytesToPubkey(pubBytes)
+}
+
+// BLS signature
+type BLSSig [2]uint32
