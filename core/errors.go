@@ -13,6 +13,8 @@ var ErrBadToTokenType = errors.New("bad receiver token type")
 var ErrBadSignature = errors.New("bad signature")
 var ErrMismatchedAmount = errors.New("mismatched amount")
 var ErrBadWithdrawRoot = errors.New("bad withdraw root")
+var ErrBadCompression = errors.New("bad transaction compression")
+var ErrTooManyTx = errors.New("too many transactions in a commitment")
 
 func ErrRecordNotFound(msg string) error {
 	return fmt.Errorf("Error: Record not found. Msg: %s", msg)
