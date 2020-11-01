@@ -18,7 +18,6 @@ type Account struct {
 	ID uint64 `gorm:"not null"`
 
 	// Public key for the user
-	// TODO fix varchar len
 	PublicKey string `gorm:"type:varchar(1000)"`
 
 	// Path from root to leaf
@@ -34,6 +33,7 @@ type Account struct {
 	// keccak hash of the node
 	Hash string `gorm:"not null"`
 
+	// Level is the level of node in the tree
 	Level uint64 `gorm:"not null"`
 }
 

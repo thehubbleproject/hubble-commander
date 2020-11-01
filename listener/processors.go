@@ -15,10 +15,8 @@ import (
 )
 
 func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
-	s.Logger.Info("New pubkey added")
-
 	// unpack event
-	event := new(logger.LoggerNewPubkeyAdded)
+	event := new(logger.LoggerPubkeyRegistered)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
 		// TODO do something with this error
@@ -29,7 +27,7 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 	s.Logger.Info(
 		"⬜ New event found",
 		"event", eventName,
-		"accountID", event.AccountID.String(),
+		"accountID", event.PubkeyID.String(),
 		"pubkey", event.Pubkey,
 	)
 	params, err := s.DBInstance.GetParams()
@@ -37,17 +35,19 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 		return
 	}
 	// add new account in pending state to DB and
-	pathToNode, err := core.SolidityPathToNodePath(event.AccountID.Uint64(), params.MaxDepth)
+	pathToNode, err := core.SolidityPathToNodePath(event.PubkeyID.Uint64(), params.MaxDepth)
 	if err != nil {
 		// TODO do something with this error
 		fmt.Println("Unable to convert path", err)
 		panic(err)
 	}
-	newAcc, err := core.NewAccount(event.AccountID.Uint64(), hex.EncodeToString(event.Pubkey), pathToNode)
+
+	newAcc, err := core.NewAccount(event.PubkeyID.Uint64(), event.Pubkey, pathToNode)
 	if err != nil {
 		fmt.Println("unable to create new account")
 		panic(err)
 	}
+
 	if err := s.DBInstance.UpdateAccount(*newAcc); err != nil {
 		panic(err)
 	}

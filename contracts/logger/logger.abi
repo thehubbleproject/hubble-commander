@@ -5,7 +5,7 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "batch_id",
+          "name": "batchID",
           "type": "uint256"
         }
       ],
@@ -18,7 +18,7 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "AccountID",
+          "name": "pubkeyID",
           "type": "uint256"
         },
         {
@@ -74,12 +74,6 @@
         },
         {
           "indexed": false,
-          "internalType": "bytes32",
-          "name": "updatedRoot",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
           "internalType": "uint256",
           "name": "index",
           "type": "uint256"
@@ -99,25 +93,6 @@
       "inputs": [
         {
           "indexed": false,
-          "internalType": "uint256",
-          "name": "AccountID",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes",
-          "name": "pubkey",
-          "type": "bytes"
-        }
-      ],
-      "name": "NewPubkeyAdded",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
           "internalType": "uint256[4]",
           "name": "pubkey",
           "type": "uint256[4]"
@@ -125,7 +100,7 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "accountID",
+          "name": "pubkeyID",
           "type": "uint256"
         }
       ],
@@ -189,7 +164,7 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "batch_id",
+          "name": "batchID",
           "type": "uint256"
         }
       ],
@@ -201,7 +176,7 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "batch_id",
+          "name": "batchID",
           "type": "uint256"
         }
       ],
@@ -275,11 +250,6 @@
           "type": "address"
         },
         {
-          "internalType": "bytes32",
-          "name": "updatedRoot",
-          "type": "bytes32"
-        },
-        {
           "internalType": "uint256",
           "name": "index",
           "type": "uint256"
@@ -300,33 +270,13 @@
       "constant": false,
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "accountID",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes",
-          "name": "pubkey",
-          "type": "bytes"
-        }
-      ],
-      "name": "logNewPubkeyAdded",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
           "internalType": "uint256[4]",
           "name": "pubkey",
           "type": "uint256[4]"
         },
         {
           "internalType": "uint256",
-          "name": "accountID",
+          "name": "pubkeyID",
           "type": "uint256"
         }
       ],
@@ -396,7 +346,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "batch_id",
+          "name": "batchID",
           "type": "uint256"
         }
       ],
