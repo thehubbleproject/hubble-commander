@@ -15,10 +15,8 @@ import (
 )
 
 func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
-	s.Logger.Info("New pubkey added")
-
 	// unpack event
-	event := new(logger.LoggerNewPubkeyAdded)
+	event := new(logger.LoggerPubkeyRegistered)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
 		// TODO do something with this error
@@ -29,47 +27,55 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 	s.Logger.Info(
 		"⬜ New event found",
 		"event", eventName,
-		"accountID", event.AccountID.String(),
+		"accountID", event.PubkeyID.String(),
 		"pubkey", event.Pubkey,
 	)
 	params, err := s.DBInstance.GetParams()
 	if err != nil {
 		return
 	}
+
 	// add new account in pending state to DB and
-	pathToNode, err := core.SolidityPathToNodePath(event.AccountID.Uint64(), params.MaxDepth)
+	pathToNode, err := core.SolidityPathToNodePath(event.PubkeyID.Uint64(), params.MaxDepth)
 	if err != nil {
 		// TODO do something with this error
 		fmt.Println("Unable to convert path", err)
 		panic(err)
 	}
-	newAcc, err := core.NewAccount(event.AccountID.Uint64(), hex.EncodeToString(event.Pubkey), pathToNode)
+
+	pubkey := core.Pubkey(event.Pubkey)
+	pubKeyStr, err := pubkey.String()
+	if err != nil {
+		return
+	}
+	newAcc, err := core.NewAccount(event.PubkeyID.Uint64(), pubKeyStr, pathToNode)
 	if err != nil {
 		fmt.Println("unable to create new account")
 		panic(err)
 	}
-	if err := s.DBInstance.UpdateAccount(*newAcc); err != nil {
+
+	if err := s.DBInstance.AddNewAccount(*newAcc); err != nil {
 		panic(err)
 	}
 }
+
 func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
 	s.Logger.Info("New deposit found")
 	// unpack event
 	event := new(logger.LoggerDepositQueued)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
-		// TODO do something with this error
 		fmt.Println("Unable to unpack log:", err)
 		panic(err)
 	}
 	s.Logger.Info(
 		"⬜ New event found",
 		"event", eventName,
-		"accountID", event.AccountID.String(),
+		"pubkeyID", event.PubkeyID.String(),
 		"Amount", hex.EncodeToString(event.Data),
 	)
 	// add new account in pending state to DB and
-	newAccount := core.NewPendingUserState(event.AccountID.Uint64(), event.Data)
+	newAccount := core.NewPendingUserState(event.PubkeyID.Uint64(), event.Data)
 	if err := s.DBInstance.AddNewPendingAccount(*newAccount); err != nil {
 		panic(err)
 	}
@@ -145,7 +151,6 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		"⬜ New event found",
 		"event", eventName,
 		"BatchNumber", event.Index.String(),
-		"NewStateRoot", core.ByteArray(event.UpdatedRoot).String(),
 		"Committer", event.Committer.String(),
 	)
 
@@ -174,9 +179,10 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 			panic(err)
 		}
 
+		// TODO add state root post batch processing
 		newBatch := core.Batch{
-			BatchID:              event.Index.Uint64(),
-			StateRoot:            core.ByteArray(event.UpdatedRoot).String(),
+			BatchID: event.Index.Uint64(),
+			// StateRoot:            core.ByteArray(event.UpdatedRoot).String(),
 			TransactionsIncluded: core.ConcatTxs(txs),
 			Committer:            event.Committer.String(),
 			StakeAmount:          params.StakeAmount,
@@ -198,15 +204,16 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 	// if batch is present but in a non committed state we parse txs and commit batch
 	if batch.Status != core.BATCH_COMMITTED {
 		s.Logger.Info("Found a non committed batch")
-		if batch.StateRoot != core.ByteArray(event.UpdatedRoot).String() {
-			// State root mismatch error
-		}
+		// TODO revive
+		// if batch.StateRoot != core.ByteArray(event.UpdatedRoot).String() {
+		// State root mismatch error
+		// }
 		// batch broadcasted by us
 		// txs applied but batch needs to be committed
 		// TODO add batch type
 		newBatch := core.Batch{
-			BatchID:              event.Index.Uint64(),
-			StateRoot:            core.ByteArray(event.UpdatedRoot).String(),
+			BatchID: event.Index.Uint64(),
+			// StateRoot:            core.ByteArray(event.UpO/udatedRoot).String(),
 			TransactionsIncluded: core.ConcatTxs(txs),
 			Committer:            event.Committer.String(),
 			StakeAmount:          params.StakeAmount,

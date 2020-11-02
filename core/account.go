@@ -11,6 +11,10 @@ import (
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
 )
 
+var (
+	ErrAccAlreadyExists = errors.New("Account already exists")
+)
+
 // Account is the copy of the accounts tree
 type Account struct {
 	// ID is the path of the user account in the Account Tree
@@ -18,7 +22,6 @@ type Account struct {
 	ID uint64 `gorm:"not null"`
 
 	// Public key for the user
-	// TODO fix varchar len
 	PublicKey string `gorm:"type:varchar(1000)"`
 
 	// Path from root to leaf
@@ -34,6 +37,7 @@ type Account struct {
 	// keccak hash of the node
 	Hash string `gorm:"not null"`
 
+	// Level is the level of node in the tree
 	Level uint64 `gorm:"not null"`
 }
 
@@ -131,6 +135,19 @@ func (db *DB) GetAccountByDepth(depth uint64) ([]Account, error) {
 		return accs, err
 	}
 	return accs, nil
+}
+
+func (db *DB) AddNewAccount(acc Account) error {
+	// check if the account already exists
+	currAcc, err := db.GetAccountLeafByID(acc.ID)
+	if err != nil {
+		return err
+	}
+
+	if currAcc.PublicKey != "" {
+		return ErrAccAlreadyExists
+	}
+	return db.UpdateAccount(acc)
 }
 
 // UpdateAccount updates the account
