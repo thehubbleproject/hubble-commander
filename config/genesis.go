@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -16,7 +17,7 @@ type Genesis struct {
 	MaxTreeDepth            uint64          `json:"max_tree_depth,omitempty"`      // height for all trees initially
 	MaxDepositSubTreeHeight uint64          `json:"max_deposit_subtree,omitempty"` // max height for deposit subtrees initially
 	StakeAmount             uint64          `json:"stake_amount,omitempty"`        // initial stake amount set on contracts
-	GenesisAccounts         GenesisAccounts `json:"genesis_accounts,omitempty"`    // genesis accounts
+	GenesisAccounts         GenesisAccounts `json:"genesis_accounts"`              // genesis accounts
 }
 
 // Validate validates the genesis file and checks for basic things
@@ -39,11 +40,11 @@ func (g Genesis) Validate() error {
 // GenUserState exists to allow remove circular dependency with types
 // and to allow storing more data about the account than the data in UserState
 type GenUserState struct {
-	AccountID uint64 `json:"account_id,omitempty"`
-	Nonce     uint64 `json:"nonce,omitempty"`
-	Balance   uint64 `json:"balance,omitempty"`
-	TokenType uint64 `json:"token_type,omitempty"`
-	PublicKey string `json:"public_key,omitempty"`
+	AccountID uint64 `json:"account_id"`
+	Nonce     uint64 `json:"nonce"`
+	Balance   uint64 `json:"balance"`
+	TokenType uint64 `json:"token_type"`
+	PublicKey string `json:"public_key"`
 }
 
 func (acc *GenUserState) IsCoordinator() bool {
@@ -79,8 +80,13 @@ func DefaultGenesisAccounts() GenesisAccounts {
 	var accounts []GenUserState
 
 	// add coordinator accounts
-	acc1 := NewGenUserState(0, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, "0")
-	acc2 := NewGenUserState(1, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, "0")
+
+	emptyPubkey, err := hex.DecodeString("0x0")
+	if err != nil {
+		panic(err)
+	}
+	acc1 := NewGenUserState(0, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, hex.EncodeToString(emptyPubkey))
+	acc2 := NewGenUserState(1, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, hex.EncodeToString(emptyPubkey))
 	accounts = append(accounts, acc1, acc2)
 
 	return NewGenesisAccounts(accounts)
