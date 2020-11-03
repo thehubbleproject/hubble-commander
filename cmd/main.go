@@ -50,6 +50,7 @@ func main() {
 	rootCmd.AddCommand(ResetCmd())
 	rootCmd.AddCommand(AddGenesisAcccountsCmd())
 	rootCmd.AddCommand(SendTransferTx())
+	rootCmd.AddCommand(DummyTransfer())
 	rootCmd.AddCommand(CreateDatabase())
 	rootCmd.AddCommand(CreateUsers())
 	rootCmd.AddCommand(migrationCmd)

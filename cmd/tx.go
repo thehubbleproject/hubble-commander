@@ -58,7 +58,7 @@ func SendTransferTx() *cobra.Command {
 	return cmd
 }
 
-func GetAccount() *cobra.Command {
+func DummyTransfer() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "dummy-transfer",
 		Short: "Creates 2 accounts and creates a transfer between them",
