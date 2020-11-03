@@ -3,7 +3,6 @@ package listener
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"sync"
 	"time"
 
@@ -180,11 +179,11 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 		return
 	}
 	s.Logger.Info("Sync status", "LastLogIndexed", syncStatus.LastEthBlockBigInt().String(), "LastBatch", syncStatus.LastBatchRecorded)
-	fmt.Println("header", header.Number.Uint64())
 	if header.Number.Uint64() <= syncStatus.LastEthBlockBigInt().Uint64() {
 		s.Logger.Error("No need to sync more events", "currentEthBlock", header.Number.String(), "lastSyncedBlock", syncStatus.LastEthBlockBigInt().String())
 		return
 	}
+
 	// we need to filter only by logger contracts
 	// since all events are emitted by it
 	query := ethereum.FilterQuery{
@@ -192,8 +191,11 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 		ToBlock:   header.Number,
 		Addresses: []ethCmn.Address{
 			ethCmn.HexToAddress(config.GlobalCfg.LoggerAddress),
+			ethCmn.HexToAddress(config.GlobalCfg.RollupAddress),
 		},
+		Topics: [][]ethCmn.Hash{},
 	}
+
 	// get all logs
 	logs, err := s.loadedBazooka.EthClient.FilterLogs(context.Background(), query)
 	if err != nil {
