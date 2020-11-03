@@ -277,6 +277,10 @@ func (b *Bazooka) compressMassMigrationTxs(opts bind.CallOpts, data [][]byte) ([
 	return b.Frontend.CompressMassMigration(&opts, data)
 }
 
+func (b *Bazooka) TransferSignBytes() {
+	// TODO hook into tx.GetSignData
+}
+
 //
 // Encoders and Decoders for transactions
 //

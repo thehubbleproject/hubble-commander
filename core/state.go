@@ -114,6 +114,10 @@ func (acc *UserState) HashToByteArray() ByteArray {
 	return ba
 }
 
+func (acc *UserState) IsActive() bool {
+	return acc.Status == STATUS_ACTIVE
+}
+
 func (acc *UserState) IsCoordinator() bool {
 	if acc.Path != "" {
 		return false
