@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -80,13 +79,8 @@ func DefaultGenesisAccounts() GenesisAccounts {
 	var accounts []GenUserState
 
 	// add coordinator accounts
-
-	emptyPubkey, err := hex.DecodeString("0x0")
-	if err != nil {
-		panic(err)
-	}
-	acc1 := NewGenUserState(0, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, hex.EncodeToString(emptyPubkey))
-	acc2 := NewGenUserState(1, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, hex.EncodeToString(emptyPubkey))
+	acc1 := NewGenUserState(0, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, "")
+	acc2 := NewGenUserState(1, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, "")
 	accounts = append(accounts, acc1, acc2)
 
 	return NewGenesisAccounts(accounts)
