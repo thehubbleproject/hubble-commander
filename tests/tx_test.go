@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/BOPR/common"
+	"github.com/BOPR/config"
 	"github.com/BOPR/core"
 	"github.com/BOPR/migrations"
 	"github.com/jinzhu/gorm"
@@ -48,27 +49,31 @@ func TestPopTx(t *testing.T) {
 	defer cleanup()
 
 	println("Testing start")
+	var txType uint64 = 1
+	config.GlobalCfg.TxsPerBatch = 2
 
-	tx1 := core.NewTx(1, 2, 1, []byte{00}, []byte{00})
-	tx2 := core.NewPendingTx(1, 2, 1, []byte{00}, []byte{00})
-	tx3 := core.NewPendingTx(1, 2, 1, []byte{00}, []byte{00})
+	tx1 := core.NewTx(1, 2, txType, []byte{00}, []byte{00})
+	tx2 := core.NewPendingTx(1, 2, txType, []byte{00}, []byte{01})
+	tx3 := core.NewPendingTx(1, 2, txType, []byte{00}, []byte{02})
 
-	err = db.InsertTx(&tx1)
-	if err != nil {
+	if err = db.InsertTx(&tx1); err != nil {
 		t.Errorf("PopTxs error %s", err)
 	}
-	err = db.InsertTx(&tx2)
-	if err != nil {
+	if err = db.InsertTx(&tx2); err != nil {
 		t.Errorf("PopTxs error %s", err)
 	}
-	err = db.InsertTx(&tx3)
-	if err != nil {
+	if err = db.InsertTx(&tx3); err != nil {
 		t.Errorf("PopTxs error %s", err)
 	}
+
+	fetchedTxType, err := db.FetchTxType()
+	assert.Equal(t, txType, fetchedTxType)
 
 	txs, err := db.PopTxs()
 	if err != nil {
 		t.Errorf("PopTxs error %s", err)
 	}
-	assert.Equal(t, []core.Tx{tx2, tx3}, txs)
+	for i, tx := range []core.Tx{tx2, tx3} {
+		assert.Equal(t, tx.TxHash, txs[i].TxHash)
+	}
 }
