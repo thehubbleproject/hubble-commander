@@ -176,6 +176,7 @@ func (tx *Tx) GetWitnessTranfer() (fromMerkleProof, toMerkleProof StateMerklePro
 
 	// fetch from state MP
 	DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
+
 	toState, err := DBInstance.GetStateByIndex(tx.To)
 	if err != nil {
 		return
@@ -196,8 +197,9 @@ func (tx *Tx) GetWitnessTranfer() (fromMerkleProof, toMerkleProof StateMerklePro
 	dbCopy.Instance = mysqlTx
 
 	// apply the new from leaf
-	fromMerkleProof.State.Data = newFrom
-	err = dbCopy.UpdateState(fromMerkleProof.State)
+	currentFromStateCopy := fromMerkleProof.State
+	currentFromStateCopy.Data = newFrom
+	err = dbCopy.UpdateState(currentFromStateCopy)
 	if err != nil {
 		return
 	}

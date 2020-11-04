@@ -28,6 +28,7 @@ func SendTransferTx() *cobra.Command {
 			privKey := viper.GetString(FlagPrivKey)
 			pubKey := viper.GetString(FlagPubKey)
 			amount := viper.GetUint64(FlagAmount)
+			fee := viper.GetUint64(FlagFee)
 
 			db, err := core.NewDB()
 			if err != nil {
@@ -39,7 +40,7 @@ func SendTransferTx() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err, txHash := ValidateAndTransfer(db, bazooka, fromIndex, toIndex, amount, privKey, pubKey)
+			err, txHash := ValidateAndTransfer(db, bazooka, fromIndex, toIndex, amount, fee, privKey, pubKey)
 			if err != nil {
 				return err
 			}
@@ -118,8 +119,9 @@ func DummyTransfer() *cobra.Command {
 			}
 
 			secretBytes, publicKeyBytes := users[0].Bytes()
+
 			// send a transfer tx between 2
-			err, txHash := ValidateAndTransfer(db, bazooka, 2, 3, 1, hex.EncodeToString(secretBytes), hex.EncodeToString(publicKeyBytes))
+			err, txHash := ValidateAndTransfer(db, bazooka, 2, 3, 1, 0, hex.EncodeToString(secretBytes), hex.EncodeToString(publicKeyBytes))
 			if err != nil {
 				return err
 			}
@@ -131,7 +133,7 @@ func DummyTransfer() *cobra.Command {
 }
 
 // ValidateAndTransfer creates and sends a transfer transaction
-func ValidateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, amount uint64, priv, pub string) (err error, txHash string) {
+func ValidateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, amount, fee uint64, priv, pub string) (err error, txHash string) {
 	from, err := db.GetStateByIndex(fromIndex)
 	if err != nil {
 		return
@@ -150,23 +152,25 @@ func ValidateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 		return ErrStateInActive, ""
 	}
 
-	_, bal, nonce, token, err := bazooka.DecodeState(from.Data)
+	_, bal, nonce, _, err := bazooka.DecodeState(from.Data)
 	if err != nil {
 		return
 	}
 
-	if bal.Int64() <= int64(amount) {
+	if bal.Int64() <= int64(amount+fee) {
 		return ErrInvalidAmount, ""
 	}
 
-	txData, err := bazooka.EncodeTransferTx(int64(fromIndex), int64(toIndex), token.Int64(), nonce.Int64(), int64(amount), core.TX_TRANSFER_TYPE)
+	txData, err := bazooka.EncodeTransferTx(int64(fromIndex), int64(toIndex), int64(fee), nonce.Int64(), int64(amount), core.TX_TRANSFER_TYPE)
 	if err != nil {
 		return
 	}
 
-	tx := core.NewPendingTx(toIndex, fromIndex, core.TX_TRANSFER_TYPE, []byte(""), txData)
+	tx := core.NewPendingTx(fromIndex, toIndex, core.TX_TRANSFER_TYPE, []byte(""), txData)
 	tx.SignTx(priv, pub, common.Keccak256(tx.GetSignBytes()))
 	tx.AssignHash()
+
+	fmt.Println("Sending new tx", tx.String())
 
 	err = db.InsertTx(&tx)
 	if err != nil {

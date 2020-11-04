@@ -214,7 +214,7 @@ func (b *Bazooka) processTransferTx(balanceTreeRoot ByteArray, tx Tx, fromMerkle
 		return
 	}
 
-	b.log.Info("Processed transaction", "postTxRoot", result.NewRoot, "resultCode", result.Result)
+	b.log.Info("Processed transaction", "postTxRoot", ByteArray(result.NewRoot).String(), "resultCode", result.Result)
 
 	// TOOD read result code and bubble up error messages
 	return result.NewRoot, nil
@@ -285,7 +285,7 @@ func (b *Bazooka) TransferSignBytes() {
 // Encoders and Decoders for transactions
 //
 
-func (b *Bazooka) EncodeTransferTx(from, to, token, nonce, amount, txType int64) ([]byte, error) {
+func (b *Bazooka) EncodeTransferTx(from, to, fee, nonce, amount, txType int64) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	tx := struct {
 		TxType    *big.Int
@@ -294,7 +294,7 @@ func (b *Bazooka) EncodeTransferTx(from, to, token, nonce, amount, txType int64)
 		Amount    *big.Int
 		Fee       *big.Int
 		Nonce     *big.Int
-	}{big.NewInt(txType), big.NewInt(from), big.NewInt(to), big.NewInt(token), big.NewInt(nonce), big.NewInt(amount)}
+	}{big.NewInt(txType), big.NewInt(from), big.NewInt(to), big.NewInt(amount), big.NewInt(fee), big.NewInt(nonce)}
 	return b.Frontend.EncodeTransfer(&opts, tx)
 }
 
@@ -383,7 +383,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
 
 	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
-	stakeAmount := big.NewInt(0)
+	stakeAmount := big.NewInt(1000000000000000000)
 
 	// TODO fix
 	var feeReceivers []*big.Int
@@ -408,7 +408,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 		// generate auth
 		auth, err := b.generateAuthObj(b.EthClient, callMsg)
 		if err != nil {
-			b.log.Error("Error creating auth object", "error", err)
+			b.log.Error("Estimate gas failed, tx reverting", "error", err)
 			return err
 		}
 

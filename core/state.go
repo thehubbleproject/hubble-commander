@@ -305,13 +305,13 @@ func (db *DB) StoreLeaf(state UserState, path string, siblings []UserState) erro
 func (db *DB) StoreNode(parentHash ByteArray, leftNode UserState, rightNode UserState, isLeft bool) (err error) {
 	if isLeft {
 		// update left account
-		err = db.updateAccount(leftNode, leftNode.Path)
+		err = db.updateState(leftNode, leftNode.Path)
 		if err != nil {
 			return err
 		}
 	} else {
 		// update right account
-		err = db.updateAccount(rightNode, rightNode.Path)
+		err = db.updateState(rightNode, rightNode.Path)
 		if err != nil {
 			return err
 		}
@@ -325,14 +325,14 @@ func (db *DB) UpdateParentWithHash(pathToParent string, newHash ByteArray) error
 	var tempAccount UserState
 	tempAccount.Path = pathToParent
 	tempAccount.Hash = newHash.String()
-	return db.updateAccount(tempAccount, pathToParent)
+	return db.updateState(tempAccount, pathToParent)
 }
 
 func (db *DB) UpdateRootNodeHashes(newRoot ByteArray) error {
 	var tempAccount UserState
 	tempAccount.Path = ""
 	tempAccount.Hash = newRoot.String()
-	return db.updateAccount(tempAccount, tempAccount.Path)
+	return db.updateState(tempAccount, tempAccount.Path)
 }
 
 func (db *DB) AddNewPendingAccount(acc UserState) error {
@@ -351,6 +351,7 @@ func (db *DB) GetSiblings(path string) ([]UserState, error) {
 		siblings = append(siblings, otherNode)
 		relativePath = GetParentPath(relativePath)
 	}
+
 	return siblings, nil
 }
 
@@ -418,9 +419,9 @@ func (db *DB) InsertCoordinatorAccounts(acc *UserState, depth uint64) error {
 	return db.Instance.Create(&acc).Error
 }
 
-// updateAccount will simply replace all the changed fields
-func (db *DB) updateAccount(newAcc UserState, path string) error {
-	return db.Instance.Model(&newAcc).Where("path = ?", path).Updates(UserState{Data: newAcc.Data, Hash: newAcc.Hash}).Error
+// updateState will simply replace all the changed fields
+func (db *DB) updateState(newAcc UserState, path string) error {
+	return db.Instance.Model(&newAcc).Where("path = ?", path).Updates(UserState{AccountID: newAcc.AccountID, Status: newAcc.Status, Data: newAcc.Data, Hash: newAcc.Hash}).Error
 }
 
 func (db *DB) GetAccountCount() (int, error) {
