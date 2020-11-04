@@ -16,7 +16,6 @@ import (
 
 func setupDB() (db core.DB, cleanup func(), err error) {
 	tmpfile, err := ioutil.TempFile("", "test.*.db")
-	println(tmpfile.Name())
 	if err != nil {
 		return
 	}
@@ -32,7 +31,6 @@ func setupDB() (db core.DB, cleanup func(), err error) {
 	m := migrations.NewGormigrate(db.Instance, migrations.DefaultOptions, allMigrations)
 	m.Migrate()
 	cleanup = func() {
-		println("Closing DB and removing file")
 		db.Close()
 		os.Remove(tmpfile.Name())
 	}
@@ -48,7 +46,6 @@ func TestPopTx(t *testing.T) {
 	}
 	defer cleanup()
 
-	println("Testing start")
 	var txType uint64 = 1
 	config.GlobalCfg.TxsPerBatch = 2
 
