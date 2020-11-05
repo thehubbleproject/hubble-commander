@@ -20,8 +20,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// StartCmd starts the daemon
-func StartCmd() *cobra.Command {
+// startCmd starts the daemon
+func startCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "start",
 		Short: "Starts hubble daemon",

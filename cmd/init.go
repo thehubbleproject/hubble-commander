@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// InitCmd generated init command to initialise the config file
-func InitCmd() *cobra.Command {
+// initCmd generated init command to initialise the config file
+func initCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "init",
 		Short: "Initialises Configration for BOPR",

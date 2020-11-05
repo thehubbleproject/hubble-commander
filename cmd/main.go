@@ -45,14 +45,14 @@ func main() {
 		WithConfigPathFlag,
 		rootCmd.Flags().Lookup(WithConfigPathFlag),
 	)
-	rootCmd.AddCommand(InitCmd())
-	rootCmd.AddCommand(StartCmd())
-	rootCmd.AddCommand(ResetCmd())
-	rootCmd.AddCommand(AddGenesisAcccountsCmd())
-	rootCmd.AddCommand(SendTransferTx())
-	rootCmd.AddCommand(DummyTransfer())
-	rootCmd.AddCommand(CreateDatabase())
-	rootCmd.AddCommand(CreateUsers())
+	rootCmd.AddCommand(initCmd())
+	rootCmd.AddCommand(startCmd())
+	rootCmd.AddCommand(resetCmd())
+	rootCmd.AddCommand(addGenesisAcccountsCmd())
+	rootCmd.AddCommand(sendTransferTx())
+	rootCmd.AddCommand(dummyTransfer())
+	rootCmd.AddCommand(createDatabase())
+	rootCmd.AddCommand(createUsers())
 	rootCmd.AddCommand(migrationCmd)
 
 	executor := Executor{rootCmd, os.Exit}
@@ -62,8 +62,8 @@ func main() {
 	}
 }
 
-// ResetCmd resets all the collections
-func ResetCmd() *cobra.Command {
+// resetCmd resets all the collections
+func resetCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "reset",
 		Short: "reset database",
@@ -91,8 +91,8 @@ type User struct {
 	PrivKey   string `json:"privkey"`
 }
 
-// CreateUsers creates the database
-func CreateUsers() *cobra.Command {
+// createUsers creates the database
+func createUsers() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-users",
 		Short: "Create users to be used in simulations",
@@ -119,7 +119,7 @@ func CreateUsers() *cobra.Command {
 	return cmd
 }
 
-func AddGenesisAcccountsCmd() *cobra.Command {
+func addGenesisAcccountsCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "add-gen-accounts",
 		Short: "Adds the accounts present in genesis account to the contract",
@@ -143,8 +143,8 @@ func AddGenesisAcccountsCmd() *cobra.Command {
 	}
 }
 
-// CreateDatabase creates the database
-func CreateDatabase() *cobra.Command {
+// createDatabase creates the database
+func createDatabase() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-database",
 		Short: "Create a new database",

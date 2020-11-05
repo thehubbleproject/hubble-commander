@@ -17,8 +17,8 @@ var (
 	ErrStateInActive = errors.New("User state inactive")
 )
 
-//  SendTransferTx generated init command to initialise the config file
-func SendTransferTx() *cobra.Command {
+//  sendTransferTx generated init command to initialise the config file
+func sendTransferTx() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer",
 		Short: "Transfers assets between 2 accounts",
@@ -40,7 +40,8 @@ func SendTransferTx() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err, txHash := ValidateAndTransfer(db, bazooka, fromIndex, toIndex, amount, fee, privKey, pubKey)
+
+			txHash, err := validateAndTransfer(db, bazooka, fromIndex, toIndex, amount, fee, privKey, pubKey)
 			if err != nil {
 				return err
 			}
@@ -51,15 +52,18 @@ func SendTransferTx() *cobra.Command {
 	}
 	cmd.Flags().StringP(FlagToID, "", "", "--to=<to-account>")
 	cmd.Flags().StringP(FlagFromID, "", "", "--from=<from-account>")
-	cmd.Flags().StringP(FlagTokenID, "", "", "--token=<token-id>")
 	cmd.Flags().StringP(FlagPubKey, "", "", "--pubkey=<pubkey>")
 	cmd.Flags().StringP(FlagPrivKey, "", "", "--privkey=<privkey>")
 	cmd.Flags().StringP(FlagAmount, "", "", "--amount=<amount>")
-	cmd.MarkFlagRequired(FlagTokenID)
+	cmd.MarkFlagRequired(FlagToID)
+	cmd.MarkFlagRequired(FlagFromID)
+	cmd.MarkFlagRequired(FlagPubKey)
+	cmd.MarkFlagRequired(FlagPrivKey)
+	cmd.MarkFlagRequired(FlagAmount)
 	return cmd
 }
 
-func DummyTransfer() *cobra.Command {
+func dummyTransfer() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "dummy-transfer",
 		Short: "Creates 2 accounts and creates a transfer between them",
@@ -121,10 +125,11 @@ func DummyTransfer() *cobra.Command {
 			secretBytes, publicKeyBytes := users[0].Bytes()
 
 			// send a transfer tx between 2
-			err, txHash := ValidateAndTransfer(db, bazooka, 2, 3, 1, 0, hex.EncodeToString(secretBytes), hex.EncodeToString(publicKeyBytes))
+			txHash, err := validateAndTransfer(db, bazooka, 2, 3, 1, 0, hex.EncodeToString(secretBytes), hex.EncodeToString(publicKeyBytes))
 			if err != nil {
 				return err
 			}
+
 			fmt.Println("Transaction sent!", "Hash", txHash)
 			return nil
 		},
@@ -132,15 +137,15 @@ func DummyTransfer() *cobra.Command {
 	return cmd
 }
 
-// ValidateAndTransfer creates and sends a transfer transaction
-func ValidateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, amount, fee uint64, priv, pub string) (err error, txHash string) {
+// validateAndTransfer creates and sends a transfer transaction
+func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, amount, fee uint64, priv, pub string) (txHash string, err error) {
 	from, err := db.GetStateByIndex(fromIndex)
 	if err != nil {
 		return
 	}
 
 	if !from.IsActive() {
-		return ErrStateInActive, ""
+		return "", ErrStateInActive
 	}
 
 	to, err := db.GetStateByIndex(toIndex)
@@ -149,7 +154,7 @@ func ValidateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 	}
 
 	if !to.IsActive() {
-		return ErrStateInActive, ""
+		return "", ErrStateInActive
 	}
 
 	_, bal, nonce, _, err := bazooka.DecodeState(from.Data)
@@ -158,7 +163,7 @@ func ValidateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 	}
 
 	if bal.Int64() <= int64(amount+fee) {
-		return ErrInvalidAmount, ""
+		return "", ErrInvalidAmount
 	}
 
 	txData, err := bazooka.EncodeTransferTx(int64(fromIndex), int64(toIndex), int64(fee), nonce.Int64(), int64(amount), core.TX_TRANSFER_TYPE)
@@ -177,5 +182,5 @@ func ValidateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 		return
 	}
 
-	return nil, tx.TxHash
+	return tx.TxHash, nil
 }
