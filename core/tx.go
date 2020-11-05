@@ -335,7 +335,6 @@ func ProcessTxs(db DB, bz Bazooka, txs []Tx, isSyncing bool) (commitments []Comm
 			commitment := Commitment{Txs: txInCommitment, UpdatedRoot: newRoot, BatchType: tx.Type, AggregatedSignature: aggregatedSig.ToBytes()}
 			commitments = append(commitments, commitment)
 		}
-		currentRoot = newRoot
 	}
 
 	return commitments, nil

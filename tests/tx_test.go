@@ -73,6 +73,9 @@ func TestPopTx(t *testing.T) {
 	}
 
 	fetchedTxType, err := db.FetchTxType()
+	if err != nil {
+		t.Error(err)
+	}
 	assert.Equal(t, txType, fetchedTxType)
 
 	txs, err := db.PopTxs()
