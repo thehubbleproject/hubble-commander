@@ -25,6 +25,9 @@ func TestBasicPathMutations(t *testing.T) {
 		panic(err)
 	}
 	data, err := StringToUint(newPath)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println("path generated", newPath, "data", data)
 }
 

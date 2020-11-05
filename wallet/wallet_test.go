@@ -33,6 +33,9 @@ func TestVerifyAggregated(t *testing.T) {
 			t.Fatal(err)
 		}
 		accountSignature, err := wallet.Sign(signBytes)
+		if err != nil {
+			t.Fatal(err)
+		}
 		messages[i] = signBytes
 		publicKeys[i] = wallet.signer.Account.Public
 		signatures[i] = &accountSignature

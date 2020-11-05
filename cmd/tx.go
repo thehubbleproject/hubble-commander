@@ -56,9 +56,13 @@ func sendTransferTx() *cobra.Command {
 	cmd.Flags().StringP(FlagPrivKey, "", "", "--privkey=<privkey>")
 	cmd.Flags().StringP(FlagAmount, "", "", "--amount=<amount>")
 	err := cmd.MarkFlagRequired(FlagToID)
+	common.PanicIfError(err)
 	err = cmd.MarkFlagRequired(FlagFromID)
+	common.PanicIfError(err)
 	err = cmd.MarkFlagRequired(FlagPubKey)
+	common.PanicIfError(err)
 	err = cmd.MarkFlagRequired(FlagPrivKey)
+	common.PanicIfError(err)
 	err = cmd.MarkFlagRequired(FlagAmount)
 	common.PanicIfError(err)
 	return cmd

@@ -239,6 +239,9 @@ func (s *Syncer) SendDepositFinalisationTx() {
 	}
 
 	err = s.loadedBazooka.FireDepositFinalisation(nodeToBeReplaced, siblings, params.MaxDepositSubTreeHeight)
+	if err != nil {
+		return
+	}
 }
 
 func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txType uint64, isSyncing bool) (newRoot core.ByteArray, err error) {
