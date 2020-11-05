@@ -17,13 +17,6 @@ func BytesToSignature(b []byte) (blswallet.Signature, error) {
 	return *sig, err
 }
 
-func getBLSSignatures(sigs []blswallet.Signature) (blsSigs []*blswallet.Signature) {
-	for _, sig := range sigs {
-		blsSigs = append(blsSigs, &sig)
-	}
-	return
-}
-
 func NewWallet() (wallet Wallet, err error) {
 	newAccount, err := blswallet.NewKeyPair(rand.Reader)
 	if err != nil {

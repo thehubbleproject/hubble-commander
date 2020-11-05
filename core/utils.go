@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"math/big"
 	"strconv"
 	"strings"
@@ -52,16 +51,6 @@ func UintToString(a uint64) string {
 	return strconv.FormatUint(a, 2)
 }
 
-func isRight(path string) bool {
-	dataRune := []rune(path)
-	// if the bit is 0
-	if dataRune[len(path)-1] == 48 {
-		return false
-	} else {
-		return true
-	}
-}
-
 func GetNthBitFromRight(path string, index int) int {
 	dataRune := []rune(path)
 	// if the bit is 0
@@ -110,10 +99,6 @@ func GetAdjacentNodePath(path string) (string, error) {
 	adjacentNodePath := nodePath + 1
 
 	return pad.Left(UintToString(adjacentNodePath), len(path), "0"), nil
-}
-
-func padNumberWithZero(value string, depth uint64) string {
-	return fmt.Sprintf("%03v", value)
 }
 
 // goes from 3 to 000000000011
