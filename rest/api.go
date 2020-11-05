@@ -37,10 +37,13 @@ func TxReceiverHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create a new pending transaction
-	userTx := core.NewPendingTx(tx.From, tx.To, core.TX_TRANSFER_TYPE, tx.Signature, tx.Message)
+	userTx, err := core.NewPendingTx(tx.From, tx.To, core.TX_TRANSFER_TYPE, tx.Signature, tx.Message)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+	}
 
 	// add the transaction to pool
-	err := core.DBInstance.InsertTx(&userTx)
+	err = core.DBInstance.InsertTx(&userTx)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
 	}

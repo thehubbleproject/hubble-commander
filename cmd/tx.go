@@ -55,11 +55,12 @@ func sendTransferTx() *cobra.Command {
 	cmd.Flags().StringP(FlagPubKey, "", "", "--pubkey=<pubkey>")
 	cmd.Flags().StringP(FlagPrivKey, "", "", "--privkey=<privkey>")
 	cmd.Flags().StringP(FlagAmount, "", "", "--amount=<amount>")
-	cmd.MarkFlagRequired(FlagToID)
-	cmd.MarkFlagRequired(FlagFromID)
-	cmd.MarkFlagRequired(FlagPubKey)
-	cmd.MarkFlagRequired(FlagPrivKey)
-	cmd.MarkFlagRequired(FlagAmount)
+	err := cmd.MarkFlagRequired(FlagToID)
+	err = cmd.MarkFlagRequired(FlagFromID)
+	err = cmd.MarkFlagRequired(FlagPubKey)
+	err = cmd.MarkFlagRequired(FlagPrivKey)
+	err = cmd.MarkFlagRequired(FlagAmount)
+	common.PanicIfError(err)
 	return cmd
 }
 
@@ -172,9 +173,18 @@ func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 		return
 	}
 
-	tx := core.NewPendingTx(fromIndex, toIndex, core.TX_TRANSFER_TYPE, []byte(""), txData)
-	tx.SignTx(priv, pub, common.Keccak256(tx.GetSignBytes()))
-	tx.AssignHash()
+	tx, err := core.NewPendingTx(fromIndex, toIndex, core.TX_TRANSFER_TYPE, []byte(""), txData)
+	if err != nil {
+		return
+	}
+	err = tx.SignTx(priv, pub, common.Keccak256(tx.GetSignBytes()))
+	if err != nil {
+		return
+	}
+	err = tx.AssignHash()
+	if err != nil {
+		return
+	}
 
 	fmt.Println("Sending new tx", tx.String())
 

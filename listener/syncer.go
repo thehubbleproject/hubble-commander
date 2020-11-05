@@ -161,7 +161,8 @@ func (s *Syncer) startSubscription(ctx context.Context, subscription ethereum.Su
 		case err := <-subscription.Err():
 			// stop service
 			s.Logger.Error("Error while subscribing new blocks", "error", err)
-			s.Stop()
+			err = s.Stop()
+			s.Logger.Error("Error while stopping", "error", err)
 
 			// cancel subscription
 			s.cancelSubscription()
