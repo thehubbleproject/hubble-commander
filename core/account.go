@@ -151,7 +151,10 @@ func (db *DB) AddNewAccount(acc Account) error {
 // UpdateAccount updates the account
 func (db *DB) UpdateAccount(leaf Account) error {
 	db.Logger.Info("Updated account pubkey", "ID", leaf.ID)
-	leaf.PopulateHash()
+	err := leaf.PopulateHash()
+	if err != nil {
+		return err
+	}
 	siblings, err := db.GetAccountSiblings(leaf.Path)
 	if err != nil {
 		return err
@@ -232,7 +235,10 @@ func (db *DB) storeAccountLeaf(pdaLeaf Account, path string, siblings []Account)
 // InsertCoordinatorPubkeyAccounts inserts the coordinator accounts
 func (db *DB) InsertCoordinatorPubkeyAccounts(coordinatorAccount *Account, depth uint64) error {
 	coordinatorAccount.UpdatePath(GenCoordinatorPath(depth))
-	coordinatorAccount.PopulateHash()
+	err := coordinatorAccount.PopulateHash()
+	if err != nil {
+		return err
+	}
 	coordinatorAccount.Type = TYPE_TERMINAL
 	return db.Instance.Create(&coordinatorAccount).Error
 }

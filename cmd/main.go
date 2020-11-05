@@ -41,10 +41,15 @@ func main() {
 	)
 
 	// bind with-heimdall-config config with root cmd
-	viper.BindPFlag(
+	err := viper.BindPFlag(
 		WithConfigPathFlag,
 		rootCmd.Flags().Lookup(WithConfigPathFlag),
 	)
+	if err != nil {
+		fmt.Println("BindPFlag Error", err)
+		return
+	}
+
 	rootCmd.AddCommand(initCmd())
 	rootCmd.AddCommand(startCmd())
 	rootCmd.AddCommand(resetCmd())
@@ -56,7 +61,7 @@ func main() {
 	rootCmd.AddCommand(migrationCmd)
 
 	executor := Executor{rootCmd, os.Exit}
-	if err := executor.Command.Execute(); err != nil {
+	if err = executor.Command.Execute(); err != nil {
 		fmt.Println("Error while executing command", err)
 		return
 	}

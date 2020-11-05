@@ -59,8 +59,13 @@ func startCmd() *cobra.Command {
 			go func() {
 				// sig is a ^C, handle it
 				for range catchSignal {
-					aggregator.Stop()
-					syncer.Stop()
+					if err := aggregator.Stop(); err != nil {
+						log.Fatalln("Unable to stop aggregator", "error", err)
+					}
+					if err := syncer.Stop(); err != nil {
+						log.Fatalln("Unable to stop syncer", "error", err)
+					}
+
 					core.DBInstance.Close()
 					// exit
 					os.Exit(1)
@@ -68,7 +73,7 @@ func startCmd() *cobra.Command {
 			}()
 
 			if err := syncer.Start(); err != nil {
-				log.Fatalln("Unable to start syncer", "error")
+				log.Fatalln("Unable to start syncer", "error", err)
 			}
 
 			if err := aggregator.Start(); err != nil {
@@ -143,10 +148,14 @@ func loadGenesisData(genesis config.Genesis) {
 
 	// load params
 	newParams := core.Params{StakeAmount: genesis.StakeAmount, MaxDepth: genesis.MaxTreeDepth, MaxDepositSubTreeHeight: genesis.MaxDepositSubTreeHeight}
-	core.DBInstance.UpdateStakeAmount(newParams.StakeAmount)
-	core.DBInstance.UpdateMaxDepth(newParams.MaxDepth)
-	core.DBInstance.UpdateDepositSubTreeHeight(newParams.MaxDepositSubTreeHeight)
-	core.DBInstance.UpdateFinalisationTimePerBatch(40320)
+	err = core.DBInstance.UpdateStakeAmount(newParams.StakeAmount)
+	common.PanicIfError(err)
+	err = core.DBInstance.UpdateMaxDepth(newParams.MaxDepth)
+	common.PanicIfError(err)
+	err = core.DBInstance.UpdateDepositSubTreeHeight(newParams.MaxDepositSubTreeHeight)
+	common.PanicIfError(err)
+	err = core.DBInstance.UpdateFinalisationTimePerBatch(40320)
+	common.PanicIfError(err)
 
 	// load sync status
 	err = core.DBInstance.InitSyncStatus(genesis.StartEthBlock)

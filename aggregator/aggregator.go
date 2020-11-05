@@ -59,7 +59,10 @@ func NewAggregator() *Aggregator {
 
 // OnStart starts new block subscription
 func (a *Aggregator) OnStart() error {
-	a.BaseService.OnStart() // Always call the overridden method.
+	err := a.BaseService.OnStart() // Always call the overridden method.
+	if err != nil {
+		return err
+	}
 
 	ctx, cancelAggregating := context.WithCancel(context.Background())
 	a.cancelAggregating = cancelAggregating

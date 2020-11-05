@@ -29,7 +29,10 @@ func setupDB() (db core.DB, cleanup func(), err error) {
 
 	allMigrations := migrations.GetMigrations()
 	m := migrations.NewGormigrate(db.Instance, migrations.DefaultOptions, allMigrations)
-	m.Migrate()
+	err = m.Migrate()
+	if err != nil {
+		return
+	}
 	cleanup = func() {
 		db.Close()
 		os.Remove(tmpfile.Name())
@@ -50,8 +53,14 @@ func TestPopTx(t *testing.T) {
 	config.GlobalCfg.TxsPerBatch = 2
 
 	tx1 := core.NewTx(1, 2, txType, []byte{00}, []byte{00})
-	tx2 := core.NewPendingTx(1, 2, txType, []byte{00}, []byte{01})
-	tx3 := core.NewPendingTx(1, 2, txType, []byte{00}, []byte{02})
+	tx2, err := core.NewPendingTx(1, 2, txType, []byte{00}, []byte{01})
+	if err != nil {
+		t.Errorf("PopTxs error %s", err)
+	}
+	tx3, err := core.NewPendingTx(1, 2, txType, []byte{00}, []byte{02})
+	if err != nil {
+		t.Errorf("PopTxs error %s", err)
+	}
 
 	if err = db.InsertTx(&tx1); err != nil {
 		t.Errorf("PopTxs error %s", err)

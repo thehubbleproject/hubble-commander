@@ -44,8 +44,8 @@ func NewTx(from, to, txType uint64, sig, data []byte) Tx {
 }
 
 // NewPendingTx creates a new transaction
-func NewPendingTx(from, to, txType uint64, sig, data []byte) Tx {
-	tx := Tx{
+func NewPendingTx(from, to, txType uint64, sig, data []byte) (tx Tx, err error) {
+	tx = Tx{
 		To:        to,
 		From:      from,
 		Data:      data,
@@ -53,8 +53,11 @@ func NewPendingTx(from, to, txType uint64, sig, data []byte) Tx {
 		Status:    TX_STATUS_PENDING,
 		Type:      txType,
 	}
-	tx.AssignHash()
-	return tx
+
+	if err = tx.AssignHash(); err != nil {
+		return
+	}
+	return
 }
 
 // GetSignBytes returns the transaction data that has to be signed
@@ -87,12 +90,16 @@ func (tx *Tx) SignTx(key string, pubkey string, txBytes [32]byte) (err error) {
 }
 
 // AssignHash creates a tx hash and add it to the tx
-func (t *Tx) AssignHash() {
+func (t *Tx) AssignHash() (err error) {
 	if t.TxHash != "" {
+		return nil
+	}
+	hash, err := common.RlpHash(t)
+	if err != nil {
 		return
 	}
-	hash := common.RlpHash(t)
 	t.TxHash = hash.String()
+	return nil
 }
 
 func (t *Tx) String() string {
@@ -186,8 +193,10 @@ func (tx *Tx) GetWitnessTranfer() (fromMerkleProof, toMerkleProof StateMerklePro
 	dbCopy, _ := NewDB()
 
 	// fetch from state MP
-	DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
-
+	err = DBInstance.FetchMPWithID(tx.From, &fromMerkleProof)
+	if err != nil {
+		return
+	}
 	toState, err := DBInstance.GetStateByIndex(tx.To)
 	if err != nil {
 		return
