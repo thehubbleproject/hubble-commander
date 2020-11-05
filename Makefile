@@ -19,6 +19,9 @@ build: clean
 
 buidl: build
 
+lint:
+	golangci-lint run ./...
+
 init:
 	./build/hubble init
 
