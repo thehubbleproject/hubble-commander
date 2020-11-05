@@ -371,7 +371,12 @@ func (b *Bazooka) DecodeTransferTx(txBytes []byte) (from, to, nonce, txType, amo
 
 func (b *Bazooka) EncodeState(id, balance, nonce, token uint64) (accountBytes []byte, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	accountBytes, err = b.Frontend.Encode(&opts, rollupclient.TypesUserState{big.NewInt(int64(id)), big.NewInt(int64(token)), big.NewInt(int64(balance)), big.NewInt(int64(nonce))})
+	accountBytes, err = b.Frontend.Encode(&opts, rollupclient.TypesUserState{
+		PubkeyIndex: big.NewInt(int64(id)),
+		TokenType:   big.NewInt(int64(token)),
+		Balance:     big.NewInt(int64(balance)),
+		Nonce:       big.NewInt(int64(nonce)),
+	})
 	if err != nil {
 		return
 	}
