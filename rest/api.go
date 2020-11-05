@@ -53,7 +53,6 @@ func TxReceiverHandler(w http.ResponseWriter, r *http.Request) {
 	// write headers and data
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(output)
-	return
 }
 
 // GetAccountHandler fetches the user account data like balance, token type and nonce
@@ -76,7 +75,6 @@ func GetAccountHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(output)
-	return
 }
 
 // GetAccountHandler fetches the user account data like balance, token type and nonce
@@ -98,5 +96,4 @@ func GetTxTemplateForTxType(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(output)
-	return
 }
