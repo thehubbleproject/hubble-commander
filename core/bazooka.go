@@ -383,7 +383,8 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
 
 	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
-	stakeAmount := big.NewInt(1000000000000000000)
+	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
+	stakeAmount := big.NewInt(100000000000000000)
 
 	// TODO fix
 	var feeReceivers []*big.Int
