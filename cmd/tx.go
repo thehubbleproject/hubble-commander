@@ -1,21 +1,34 @@
 package main
 
 import (
+	"encoding/hex"
+	"errors"
+	"fmt"
+
+	"github.com/BOPR/common"
 	"github.com/BOPR/core"
+	"github.com/BOPR/wallet"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-//  SendTransferTx generated init command to initialise the config file
-func SendTransferTx() *cobra.Command {
+var (
+	ErrInvalidAmount = errors.New("Invalid amount")
+	ErrStateInActive = errors.New("User state inactive")
+)
+
+//  sendTransferTx generated init command to initialise the config file
+func sendTransferTx() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer",
 		Short: "Transfers assets between 2 accounts",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// toIndex := viper.GetUint64(FlagToAccountID)
-			// fromIndex := viper.GetUint64(FlagFromAccountID)
-			// tokenID := viper.GetUint64(FlagTokenID)
-			// privKey := viper.GetString(FlagPrivKey)
-			// amount := viper.GetUint64(FlagAmount)
+			toIndex := viper.GetUint64(FlagToID)
+			fromIndex := viper.GetUint64(FlagFromID)
+			privKey := viper.GetString(FlagPrivKey)
+			pubKey := viper.GetString(FlagPubKey)
+			amount := viper.GetUint64(FlagAmount)
+			fee := viper.GetUint64(FlagFee)
 
 			db, err := core.NewDB()
 			if err != nil {
@@ -23,57 +36,151 @@ func SendTransferTx() *cobra.Command {
 			}
 			defer db.Close()
 
-			// fromAcc, err := db.GetAccountByID(fromIndex)
-			// if err != nil {
-			// 	return err
-			// }
+			bazooka, err := core.NewPreLoadedBazooka()
+			if err != nil {
+				return err
+			}
 
-			// privKeyBytes, err := hex.DecodeString(privKey)
-			// if err != nil {
-			// 	return err
-			// }
-			// key := crypto.ToECDSAUnsafe(privKeyBytes)
-			// var txCore = core.Tx{
-			// 	From:   fromIndex,
-			// 	To:     toIndex,
-			// 	Amount: 1,
-			// }
-			// signBytes, err := txCore.GetSignBytes()
-			// if err != nil {
-			// 	return err
-			// }
-			// sig, err := crypto.Sign(signBytes, key)
-			// if err != nil {
-			// 	return err
-			// }
+			txHash, err := validateAndTransfer(db, bazooka, fromIndex, toIndex, amount, fee, privKey, pubKey)
+			if err != nil {
+				return err
+			}
 
-			// tx := core.NewPendingTx(toIndex, fromIndex, amount, 1, hex.EncodeToString(sig), tokenID)
-			// tx.AssignHash()
-
-			// err = db.InsertTx(&tx)
-			// if err != nil {
-			// 	return err
-			// }
-			// fmt.Println("Transaction submitted successfully", "hash", tx.TxHash)
+			fmt.Println("Transaction submitted successfully", "hash", txHash)
 			return nil
 		},
 	}
-	cmd.Flags().StringP(FlagToAccountID, "", "", "--to=<to-account>")
-	cmd.Flags().StringP(FlagFromAccountID, "", "", "--from=<from-account>")
-	cmd.Flags().StringP(FlagTokenID, "", "", "--token=<token-id>")
+	cmd.Flags().StringP(FlagToID, "", "", "--to=<to-account>")
+	cmd.Flags().StringP(FlagFromID, "", "", "--from=<from-account>")
+	cmd.Flags().StringP(FlagPubKey, "", "", "--pubkey=<pubkey>")
 	cmd.Flags().StringP(FlagPrivKey, "", "", "--privkey=<privkey>")
 	cmd.Flags().StringP(FlagAmount, "", "", "--amount=<amount>")
-	cmd.MarkFlagRequired(FlagTokenID)
+	cmd.MarkFlagRequired(FlagToID)
+	cmd.MarkFlagRequired(FlagFromID)
+	cmd.MarkFlagRequired(FlagPubKey)
+	cmd.MarkFlagRequired(FlagPrivKey)
+	cmd.MarkFlagRequired(FlagAmount)
 	return cmd
 }
 
-//  GetAccount generated init command to initialise the config file
-func GetAccount() *cobra.Command {
-	return &cobra.Command{
+func dummyTransfer() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "dummy-transfer",
-		Short: "Transfers assets between 2 accounts",
-		Run: func(cmd *cobra.Command, args []string) {
+		Short: "Creates 2 accounts and creates a transfer between them",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			db, err := core.NewDB()
+			if err != nil {
+				return err
+			}
+			defer db.Close()
 
+			bazooka, err := core.NewPreLoadedBazooka()
+			if err != nil {
+				return err
+			}
+			params, err := db.GetParams()
+			if err != nil {
+				return err
+			}
+
+			// create 2 accounts
+			var users []wallet.Wallet
+			for i := 0; i < 2; i++ {
+				user, err := wallet.NewWallet()
+				if err != nil {
+					return err
+				}
+				users = append(users, user)
+				secretBytes, publicKeyBytes := user.Bytes()
+				publicKey := hex.EncodeToString(publicKeyBytes)
+				fmt.Println("Adding new account", "privkey", hex.EncodeToString(secretBytes), "publickey", publicKey)
+
+				pubkeyIndex := uint64(i + 2)
+				path, err := core.SolidityPathToNodePath(uint64(pubkeyIndex), params.MaxDepth)
+				if err != nil {
+					return err
+				}
+
+				// add accounts to tree
+				acc, err := core.NewAccount(pubkeyIndex, publicKey, path)
+				if err != nil {
+					return err
+				}
+				err = db.UpdateAccount(*acc)
+				if err != nil {
+					return err
+				}
+				// add accounts to state tree
+				userState, err := bazooka.EncodeState(pubkeyIndex, 10, 0, 1)
+				if err != nil {
+					return err
+				}
+				newUser := core.NewUserState(pubkeyIndex, core.STATUS_ACTIVE, path, userState)
+				err = db.UpdateState(*newUser)
+				if err != nil {
+					return err
+				}
+			}
+
+			secretBytes, publicKeyBytes := users[0].Bytes()
+
+			// send a transfer tx between 2
+			txHash, err := validateAndTransfer(db, bazooka, 2, 3, 1, 0, hex.EncodeToString(secretBytes), hex.EncodeToString(publicKeyBytes))
+			if err != nil {
+				return err
+			}
+
+			fmt.Println("Transaction sent!", "Hash", txHash)
+			return nil
 		},
 	}
+	return cmd
+}
+
+// validateAndTransfer creates and sends a transfer transaction
+func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, amount, fee uint64, priv, pub string) (txHash string, err error) {
+	from, err := db.GetStateByIndex(fromIndex)
+	if err != nil {
+		return
+	}
+
+	if !from.IsActive() {
+		return "", ErrStateInActive
+	}
+
+	to, err := db.GetStateByIndex(toIndex)
+	if err != nil {
+		return
+	}
+
+	if !to.IsActive() {
+		return "", ErrStateInActive
+	}
+
+	_, bal, nonce, _, err := bazooka.DecodeState(from.Data)
+	if err != nil {
+		return
+	}
+
+	if bal.Int64() <= int64(amount+fee) {
+		return "", ErrInvalidAmount
+	}
+
+	txData, err := bazooka.EncodeTransferTx(int64(fromIndex), int64(toIndex), int64(fee), nonce.Int64(), int64(amount), core.TX_TRANSFER_TYPE)
+	if err != nil {
+		return
+	}
+
+	tx := core.NewPendingTx(fromIndex, toIndex, core.TX_TRANSFER_TYPE, []byte(""), txData)
+	tx.SignTx(priv, pub, common.Keccak256(tx.GetSignBytes()))
+	tx.AssignHash()
+
+	fmt.Println("Sending new tx", tx.String())
+
+	err = db.InsertTx(&tx)
+	if err != nil {
+		return
+	}
+
+	return tx.TxHash, nil
 }

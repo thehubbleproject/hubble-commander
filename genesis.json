@@ -1,7 +1,23 @@
 {
-  "startEthBlock": 0,
-  "maxTreeDepth": 17,
-  "maxDepositSubTreeHeight": 1,
-  "stakeAmount": 32,
-  "genesisAccountCount": 2
+    "max_tree_depth": 4,
+    "max_deposit_subtree": 2,
+    "stake_amount": 32,
+    "genesis_accounts": {
+        "gen_accounts": [
+            {
+                "account_id": 0,
+                "nonce": 0,
+                "balance": 0,
+                "token_type": 0,
+                "public_key": ""
+            },
+            {
+                "account_id": 1,
+                "nonce": 0,
+                "balance": 0,
+                "token_type": 0,
+                "public_key": ""
+            }
+        ]
+    }
 }

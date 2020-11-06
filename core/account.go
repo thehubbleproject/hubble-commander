@@ -12,14 +12,15 @@ import (
 )
 
 var (
-	ErrAccAlreadyExists = errors.New("Account already exists")
+	ErrAccAlreadyExists     = errors.New("Account already exists")
+	ErrUnableToInsertLeaves = errors.New("Unable to insert leaves")
 )
 
 // Account is the copy of the accounts tree
 type Account struct {
 	// ID is the path of the user account in the Account Tree
 	// Cannot be changed once created
-	ID uint64 `gorm:"not null"`
+	ID uint64 `gorm:"not null;column:account_id"`
 
 	// Public key for the user
 	PublicKey string `gorm:"type:varchar(1000)"`
@@ -28,10 +29,7 @@ type Account struct {
 	// Path is a string to that we can run LIKE queries
 	Path string `gorm:"not null;index:Path"`
 
-	// Type of nodes
-	// 1 => terminal
-	// 0 => root
-	// 2 => non terminal
+	// Type of node
 	Type uint64 `gorm:"not null"`
 
 	// keccak hash of the node
@@ -239,6 +237,7 @@ func (db *DB) InsertCoordinatorPubkeyAccounts(coordinatorAccount *Account, depth
 	return db.Instance.Create(&coordinatorAccount).Error
 }
 
+// InitAccountTree init account tree with all leaves
 func (db *DB) InitAccountTree(depth uint64, genesisAccount []Account) error {
 	// calculate total number of leaves
 	totalLeaves := math.Exp2(float64(depth))
@@ -273,7 +272,7 @@ func (db *DB) InitAccountTree(depth uint64, genesisAccount []Account) error {
 	err = gormbulk.BulkInsert(db.Instance, insertRecords, CHUNK_SIZE)
 	if err != nil {
 		db.Logger.Error("Unable to insert leaves to DB", "err", err)
-		return errors.New("Unable to insert leaves")
+		return ErrUnableToInsertLeaves
 	}
 
 	// merkelise

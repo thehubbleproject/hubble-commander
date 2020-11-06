@@ -16,7 +16,7 @@ import (
 
 const (
 	AggregatingService = "aggregator"
-	COMMITMENT_SIZE    = 32
+	COMMITMENT_SIZE    = 1
 )
 
 var (

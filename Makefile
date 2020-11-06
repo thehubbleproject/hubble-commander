@@ -6,6 +6,7 @@ dep:
 	
 contracts:
 	abigen --abi=contracts/rollup/rollup.abi --pkg=rollup --out=contracts/rollup/rollup.go
+	abigen --abi=contracts/registry/registry.abi --pkg=registry --out=contracts/registry/registry.go
 	abigen --abi=contracts/logger/logger.abi --pkg=logger --out=contracts/logger/logger.go
 	abigen --abi=contracts/rollupclient/rollupclient.abi --pkg=rollupclient --out=contracts/rollupclient/rollupclient.go
 
