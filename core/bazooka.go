@@ -120,7 +120,12 @@ func (b *Bazooka) TotalBatches() (uint64, error) {
 	return totalBatches.Uint64(), nil
 }
 
+<<<<<<< HEAD
 func (b *Bazooka) GetTxDataByHash(txHash ethCmn.Hash) (data []byte, err error) {
+=======
+// FetchBatchInputData parses the calldata for transactions
+func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash) (txs []byte, err error) {
+>>>>>>> 19b9212... revive sync
 	tx, isPending, err := b.EthClient.TransactionByHash(context.Background(), txHash)
 	if err != nil {
 		b.log.Error("Cannot fetch transaction from hash", "Error", err)
@@ -163,6 +168,7 @@ func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash, batchType uint8) (txs 
 		return
 	}
 
+<<<<<<< HEAD
 	return getTxsFromInput(inputDataMap)
 }
 
@@ -178,6 +184,14 @@ func getTxsFromInput(input map[string]interface{}) (txs []byte, err error) {
 		return nil, ErrTxParamDoesntExist
 	}
 	return txs, nil
+=======
+	return getTxsFromInput(inputDataMap), nil
+}
+
+func getTxsFromInput(input map[string]interface{}) (txs []byte) {
+	data := input["_txs"].([]byte)
+	return data
+>>>>>>> 19b9212... revive sync
 }
 
 // ProcessTx calls the ProcessTx function on the contract to verify the tx

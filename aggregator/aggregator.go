@@ -129,6 +129,7 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 		fmt.Println("Error while submitting batch", "error", err)
 		return
 	}
+<<<<<<< HEAD
 
 	lastCommitment := commitments[len(commitments)-1]
 	newBatch := core.NewBatch(lastCommitment.UpdatedRoot.String(), config.GlobalCfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
@@ -140,4 +141,10 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 
 func (a *Aggregator) processTxs(txs []core.Tx) (commitments []core.Commitment, err error) {
 	return core.ProcessTxs(a.DB, a.LoadedBazooka, txs, false)
+=======
+}
+
+func (a *Aggregator) processTxs(txs []core.Tx) (commitments []core.Commitment, err error) {
+	return core.ProcessTxs(a.DB, a.LoadedBazooka, txs)
+>>>>>>> 19b9212... revive sync
 }
