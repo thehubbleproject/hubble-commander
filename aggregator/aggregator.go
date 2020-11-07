@@ -2,7 +2,6 @@ package aggregator
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -10,17 +9,10 @@ import (
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/core"
-	"github.com/BOPR/wallet"
-	"github.com/kilic/bn254/bls"
 )
 
 const (
 	AggregatingService = "aggregator"
-	COMMITMENT_SIZE    = 1
-)
-
-var (
-	ErrNoTxsFound = errors.New("no tx found")
 )
 
 // Aggregator is the service which is supposed to create batches
@@ -108,14 +100,14 @@ func (a *Aggregator) pickBatch() {
 	if err != nil {
 		fmt.Println("Error while popping txs from mempool", "Error", err)
 	}
-	a.ProcessAndSubmitBatch(txs)
+	a.processAndSubmitBatch(txs)
 }
 
-func (a *Aggregator) ProcessAndSubmitBatch(txs []core.Tx) {
+func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 	a.Logger.Info("Processing new batch", "numberOfTxs", len(txs))
 
 	// Step-2
-	commitments, err := a.ProcessTx(txs)
+	commitments, err := a.processTxs(txs)
 	if err != nil {
 		fmt.Println("Error while processing tx", "error", err)
 		return
@@ -130,68 +122,6 @@ func (a *Aggregator) ProcessAndSubmitBatch(txs []core.Tx) {
 	}
 }
 
-// ProcessTx fetches all the data required to validate tx from smart contact
-// and calls the proccess tx function to return the updated balance root and accounts
-func (a *Aggregator) ProcessTx(txs []core.Tx) (commitments []core.Commitment, err error) {
-	if len(txs) == 0 {
-		return commitments, ErrNoTxsFound
-	}
-	for i, tx := range txs {
-		a.Logger.Info("Processing transaction", "txNumber", i, "of", len(txs))
-
-		rootAcc, err := a.DB.GetRoot()
-		if err != nil {
-			return commitments, err
-		}
-		a.Logger.Debug("Latest root", "root", rootAcc.Hash)
-		currentRoot, err := core.HexToByteArray(rootAcc.Hash)
-		if err != nil {
-			return commitments, err
-		}
-		fromStateProof, toStateProof, txDBConn, err := tx.GetVerificationData()
-		if err != nil {
-			a.Logger.Error("Unable to create verification data", "error", err)
-			return commitments, err
-		}
-
-		newRoot, err := a.LoadedBazooka.ProcessTx(currentRoot, tx, fromStateProof, toStateProof)
-		if err != nil {
-			a.Logger.Error("Error processing tx", "tx", tx.String(), "error", err)
-			if txDBConn.Instance != nil {
-				txDBConn.Instance.Rollback()
-				txDBConn.Close()
-			}
-			return commitments, err
-		}
-		if txDBConn.Instance != nil {
-			txDBConn.Instance.Commit()
-			txDBConn.Close()
-		}
-
-		if i%COMMITMENT_SIZE == 0 {
-			txInCommitment := txs[i : i+COMMITMENT_SIZE]
-			a.Logger.Info("Preparing a commitment", "NumOfTxs", len(txInCommitment), "type", txs[0].Type, "totalCommitmentsYet", len(commitments))
-			aggregatedSig, err := aggregateSignatures(txInCommitment)
-			if err != nil {
-				return commitments, err
-			}
-			commitment := core.Commitment{Txs: txInCommitment, UpdatedRoot: newRoot, BatchType: tx.Type, AggregatedSignature: aggregatedSig.ToBytes()}
-			commitments = append(commitments, commitment)
-		}
-		currentRoot = newRoot
-	}
-	return commitments, nil
-}
-
-// generates aggregated signature for commitment
-func aggregateSignatures(txs []core.Tx) (aggregatedSig bls.Signature, err error) {
-	var signatures []*bls.Signature
-	for _, tx := range txs {
-		sig, err := wallet.BytesToSignature(tx.Signature)
-		if err != nil {
-			return aggregatedSig, err
-		}
-		signatures = append(signatures, &sig)
-	}
-	return wallet.NewAggregateSignature(signatures)
+func (a *Aggregator) processTxs(txs []core.Tx) (commitments []core.Commitment, err error) {
+	return core.ProcessTxs(a.DB, a.LoadedBazooka, txs)
 }

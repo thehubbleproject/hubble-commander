@@ -2,6 +2,7 @@ package listener
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -160,7 +161,7 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 	}
 
 	// if the batch has some txs, parse them
-	var txs [][]byte
+	var txs []byte
 	if event.BatchType != core.TX_GENESIS || event.BatchType == core.TX_DEPOSIT {
 		// pick the calldata for the batch
 		txs, err = s.loadedBazooka.FetchBatchInputData(vLog.TxHash)
@@ -170,20 +171,20 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		}
 	}
 
-	batch, err := s.DBInstance.GetBatchByIndex(event.Index.Uint64())
 	// if we havent seen the batch, apply txs and store batch
+	batch, err := s.DBInstance.GetBatchByIndex(event.Index.Uint64())
 	if err != nil && gorm.IsRecordNotFoundError(err) {
 		s.Logger.Info("Found a new batch, applying transactions and adding new batch", "index", event.Index.Uint64)
-		err := s.ApplyTxsFromBatch(txs, uint64(event.BatchType))
+		newRoot, err := s.applyTxsFromBatch(txs, uint64(event.BatchType))
 		if err != nil {
 			panic(err)
 		}
 
 		// TODO add state root post batch processing
 		newBatch := core.Batch{
-			BatchID: event.Index.Uint64(),
-			// StateRoot:            core.ByteArray(event.UpdatedRoot).String(),
-			TransactionsIncluded: core.ConcatTxs(txs),
+			BatchID:              event.Index.Uint64(),
+			StateRoot:            newRoot.String(),
+			TransactionsIncluded: txs,
 			Committer:            event.Committer.String(),
 			StakeAmount:          params.StakeAmount,
 			FinalisesOn:          *big.NewInt(int64(params.FinalisationTime)),
@@ -214,7 +215,7 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		newBatch := core.Batch{
 			BatchID: event.Index.Uint64(),
 			// StateRoot:            core.ByteArray(event.UpO/udatedRoot).String(),
-			TransactionsIncluded: core.ConcatTxs(txs),
+			TransactionsIncluded: txs,
 			Committer:            event.Committer.String(),
 			StakeAmount:          params.StakeAmount,
 			FinalisesOn:          *big.NewInt(int64(params.FinalisationTime)),
@@ -260,67 +261,60 @@ func (s *Syncer) SendDepositFinalisationTx() {
 	err = s.loadedBazooka.FireDepositFinalisation(nodeToBeReplaced, siblings, params.MaxDepositSubTreeHeight)
 }
 
-// TODO redo tx call data processing
-func (s *Syncer) ApplyTxsFromBatch(txs [][]byte, txType uint64) error {
-	// if len(txs) == 0 {
-	// 	s.Logger.Info("No txs to apply")
-	// 	return nil
-	// }
-	// var coreTxs []core.Tx
-	// for i := range txs {
-	// 	var from, to uint64
-	// 	var txData, sig []byte
+func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txType uint64) (newRoot core.ByteArray, err error) {
+	// check if the batch has any txs
+	if len(txsBytes) == 0 {
+		s.Logger.Info("No txs to apply")
+		return newRoot, nil
+	}
+	var transactions []core.Tx
 
-	// 	switch txType {
-	// 	case core.TX_TRANSFER_TYPE:
-	// 		from, to, amount, decodedSig, err := s.loadedBazooka.DecompressTransferTx(txs[i])
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		sig = decodedSig
-	// 		fromAccount, err := s.DBInstance.GetAccountByIndex(from.Uint64())
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		_, _, nonce, token, _, _, err := s.loadedBazooka.DecodeAccount(fromAccount.Data)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		txData, err = s.loadedBazooka.EncodeTransferTx(from.Int64(), to.Int64(), token.Int64(), nonce.Int64(), amount.Int64(), int64(txType))
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		// TODO call procesTx(validation and application)
-	// 	default:
-	// 		fmt.Println("TxType didnt match any options", txType)
-	// 		return errors.New("Didn't match any options")
-	// 	}
-	// 	coreTx := core.NewTx(from, to, txType, txData, sig)
-	// 	coreTxs = append(coreTxs, coreTx)
-	// 	fromMP, toMP, _, _, err := coreTx.GetVerificationData()
-	// 	if err != nil {
-	// 		return err
-	// 	}
+	switch txType {
+	case core.TX_TRANSFER_TYPE:
+		transactions, err = s.decompressTransfers(txsBytes)
+		if err != nil {
+			return newRoot, err
+		}
+	default:
+		fmt.Println("TxType didnt match any options", txType)
+		return newRoot, errors.New("Didn't match any options")
+	}
 
-	// 	updatedFromAccData, _, err := s.loadedBazooka.ApplyTx(fromMP, coreTx)
-	// 	if err != nil {
-	// 		return err
-	// 	}
+	commitments, err := core.ProcessTxs(s.DBInstance, s.loadedBazooka, transactions)
+	if err != nil {
+		return newRoot, err
+	}
 
-	// 	updatedToAccData, _, err := s.loadedBazooka.ApplyTx(toMP, coreTx)
-	// 	if err != nil {
-	// 		return err
-	// 	}
+	return commitments[len(commitments)-1].UpdatedRoot, nil
+}
 
-	// 	err = coreTx.Apply(updatedFromAccData, updatedToAccData)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	// TODO validate updated root post application
-	// 	// root, err := s.DBInstance.GetRoot()
-	// 	// if err != nil {
-	// 	// 	return err
-	// 	// }
-	// }
-	return nil
+// decompressTransfers decompresses transfer bytes to TX
+func (s *Syncer) decompressTransfers(decompressedTxs []byte) (txs []core.Tx, err error) {
+	froms, tos, amounts, fees, err := s.loadedBazooka.DecompressTransferTxs(decompressedTxs)
+	if err != nil {
+		return
+	}
+	var transactions []core.Tx
+
+	for i := 0; i < len(froms); i++ {
+		fromState, err := s.DBInstance.GetStateByIndex(froms[i].Uint64())
+		if err != nil {
+			return transactions, err
+		}
+		_, _, nonce, _, err := s.loadedBazooka.DecodeState(fromState.Data)
+		if err != nil {
+			return transactions, err
+		}
+
+		txData, err := s.loadedBazooka.EncodeTransferTx(froms[i].Int64(), tos[i].Int64(), fees[i].Int64(), nonce.Int64(), amounts[i].Int64(), int64(core.TX_TRANSFER_TYPE))
+		if err != nil {
+			return transactions, err
+		}
+
+		newTx := core.NewTx(froms[i].Uint64(), tos[i].Uint64(), core.TX_TRANSFER_TYPE, []byte(""), txData)
+		transactions = append(transactions, newTx)
+	}
+
+	return transactions, nil
+
 }
