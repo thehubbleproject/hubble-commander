@@ -6,15 +6,11 @@ import (
 	blswallet "github.com/kilic/bn254/bls"
 )
 
-var gHasher blswallet.Hasher
-
-func init() {
-	gHasher = &blswallet.HasherKeccak256{}
-}
-
 type Wallet struct {
-	Account *blswallet.KeyPair
+	signer blswallet.BLSSigner
 }
+
+var defaultDomain = []byte{0x00, 0x00, 0x00, 0x00}
 
 func BytesToSignature(b []byte) (blswallet.Signature, error) {
 	sig, err := blswallet.SignatureKeyFromBytes(b)
@@ -33,11 +29,12 @@ func NewWallet() (wallet Wallet, err error) {
 	if err != nil {
 		return
 	}
-	return Wallet{Account: newAccount}, nil
+	signer := blswallet.BLSSigner{Account:newAccount, Domain: defaultDomain}
+	return Wallet{signer: signer}, nil
 }
 
 func (w *Wallet) Bytes() (secretKey []byte, pubkey []byte) {
-	accountBytes := w.Account.ToBytes()
+	accountBytes := w.signer.Account.ToBytes()
 	secretBytes := accountBytes[128:]
 	pubkeyBytes := accountBytes[:128]
 	return secretBytes, pubkeyBytes
@@ -49,16 +46,12 @@ func SecretToWallet(secretKey []byte, pubkey []byte) (wallet Wallet, err error) 
 	if err != nil {
 		return
 	}
-	return Wallet{Account: keyPair}, nil
-}
-
-func createMessage(data []byte) *blswallet.Message {
-	return &blswallet.Message{Message: data, Domain: []byte{0x00, 0x00, 0x00, 0x00}}
+	signer := blswallet.BLSSigner{Account:keyPair, Domain: defaultDomain}
+	return Wallet{signer: signer}, nil
 }
 
 func (w *Wallet) Sign(data []byte) (blswallet.Signature, error) {
-	signer := blswallet.NewBLSSigner(gHasher, w.Account)
-	signature, err := signer.Sign(createMessage(data))
+	signature, err := w.signer.Sign(data)
 	if err != nil {
 		return blswallet.Signature{}, err
 	}
@@ -66,18 +59,19 @@ func (w *Wallet) Sign(data []byte) (blswallet.Signature, error) {
 }
 
 func (w *Wallet) VerifySignature(data []byte, signature blswallet.Signature, pubkey blswallet.PublicKey) (valid bool, err error) {
-	verifier := blswallet.NewBLSVerifier(gHasher)
-	return verifier.Verify(createMessage(data), &signature, w.Account.Public)
+	verifier := blswallet.NewBLSVerifier(w.signer.Domain)
+	valid, err = verifier.Verify(data, &signature, &pubkey)
+	return valid, err
 }
 
-func VerifyAggregatedSignature(data []*blswallet.Message, pubkeys []*blswallet.PublicKey, aggregateSignature blswallet.Signature) (valid bool, err error) {
-	verifier := blswallet.NewBLSVerifier(gHasher)
+func VerifyAggregatedSignature(data []blswallet.Message, pubkeys []*blswallet.PublicKey, aggregateSignature blswallet.Signature) (valid bool, err error) {
+	verifier := blswallet.NewBLSVerifier(defaultDomain)
 	return verifier.VerifyAggregate(data, pubkeys, &aggregateSignature)
 }
 
 // NewAggregateSignature creates a new aggregated signature
 func NewAggregateSignature(signatures []*blswallet.Signature) (aggregatedSignature blswallet.Signature, err error) {
-	verifier := blswallet.NewBLSVerifier(gHasher)
+	verifier := blswallet.NewBLSVerifier(defaultDomain)
 	aggregatedSig := verifier.AggregateSignatures(signatures)
 	return *aggregatedSig, nil
 }
