@@ -30,6 +30,16 @@ type IBazooka interface {
 	FetchBatchInputData(txHash ethCmn.Hash) (txs [][]byte, err error)
 }
 
+var (
+	ErrTxPending           = errors.New("Tx Pending, cannot read calldata")
+	ErrConvertingTxPayload = errors.New("Error converting tx payload")
+	ErrTxParamDoesntExist  = errors.New("Tx param does not exist")
+)
+
+const (
+	TXS_PARAM = "txss"
+)
+
 // Global Contract Caller Object
 var LoadedBazooka Bazooka
 
@@ -110,8 +120,7 @@ func (b *Bazooka) TotalBatches() (uint64, error) {
 	return totalBatches.Uint64(), nil
 }
 
-// FetchBatchInputData parses the calldata for transactions
-func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash) (txs []byte, err error) {
+func (b *Bazooka) GetTxDataByHash(txHash ethCmn.Hash) (data []byte, err error) {
 	tx, isPending, err := b.EthClient.TransactionByHash(context.Background(), txHash)
 	if err != nil {
 		b.log.Error("Cannot fetch transaction from hash", "Error", err)
@@ -119,27 +128,54 @@ func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash) (txs []byte, err error
 	}
 
 	if isPending {
-		err := errors.New("Transaction is pending")
-		b.log.Error("Transaction is still pending, cannot process", "Error", err)
-		return txs, err
+		b.log.Error("Transaction is still pending, cannot process", "Error", ErrTxPending)
+		return data, ErrTxPending
 	}
 
-	payload := tx.Data()
-	decodedPayload := payload[4:]
+	payload := tx.Data()[4:]
+	return payload, nil
+}
+
+// FetchBatchInputData parses the calldata for transactions
+func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash, batchType uint8) (txs []byte, err error) {
 	inputDataMap := make(map[string]interface{})
-	method := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Methods["submitBatch"]
-	err = method.Inputs.UnpackIntoMap(inputDataMap, decodedPayload)
+	var method abi.Method
+	var data []byte
+
+	switch batchType {
+	case TX_GENESIS:
+		return []byte{}, nil
+	case TX_DEPOSIT:
+		return []byte{}, nil
+	case TX_TRANSFER_TYPE:
+		method = b.ContractABI[common.ROLLUP_CONTRACT_KEY].Methods["submitBatch"]
+	case TX_CREATE_2_TRANSFER:
+		return []byte{}, nil
+	}
+
+	data, err = b.GetTxDataByHash(txHash)
+	if err != nil {
+		return nil, err
+	}
+	err = method.Inputs.UnpackIntoMap(inputDataMap, data)
 	if err != nil {
 		b.log.Error("Error unpacking payload", "Error", err)
 		return
 	}
 
-	return getTxsFromInput(inputDataMap), nil
+	return getTxsFromInput(inputDataMap)
 }
 
-func getTxsFromInput(input map[string]interface{}) (txs []byte) {
-	data := input["_txs"].([]byte)
-	return data
+func getTxsFromInput(input map[string]interface{}) (txs []byte, err error) {
+	if txPayload, ok := input[TXS_PARAM]; ok {
+		txs, ok = txPayload.([]byte)
+		if !ok {
+			return nil, ErrConvertingTxPayload
+		}
+	} else {
+		return nil, ErrTxParamDoesntExist
+	}
+	return txs, nil
 }
 
 // ProcessTx calls the ProcessTx function on the contract to verify the tx

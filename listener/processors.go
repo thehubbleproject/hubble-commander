@@ -168,7 +168,7 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 
 	if event.BatchType != core.TX_GENESIS || event.BatchType == core.TX_DEPOSIT {
 		// pick the calldata for the batch
-		txs, err = s.loadedBazooka.FetchBatchInputData(vLog.TxHash)
+		txs, err = s.loadedBazooka.FetchBatchInputData(vLog.TxHash, event.BatchType)
 		if err != nil {
 			s.Logger.Error("Error fetching input data from tx", "error", err)
 			return
