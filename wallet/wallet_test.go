@@ -16,30 +16,29 @@ func TestSignAndVerify(t *testing.T) {
 	signature, err := wallet.Sign(signBytes)
 	require.Equal(t, err, nil, "error signing transaction")
 	fmt.Println(hex.EncodeToString(signature.ToBytes()))
-	valid, err := wallet.VerifySignature(signBytes, signature, *wallet.Account.Public)
+	valid, err := wallet.VerifySignature(signBytes, signature, *wallet.signer.Account.Public)
 	require.Equal(t, err, nil, "error verifying signature")
 	require.Equal(t, valid, true, "error verifying signature")
 }
 
 func TestVerifyAggregated(t *testing.T) {
-	hasher := gHasher
 	signBytes := []byte("0x123222")
 	signerSize := 2
 	publicKeys := make([]*blswallet.PublicKey, signerSize)
-	messages := make([]*blswallet.Message, signerSize)
+	messages := make([]blswallet.Message, signerSize)
 	signatures := make([]*blswallet.Signature, signerSize)
 	for i := 0; i < signerSize; i++ {
-		account, err := NewWallet()
+		wallet, err := NewWallet()
 		if err != nil {
 			t.Fatal(err)
 		}
-		accountSignature, err := account.Sign(signBytes)
-		messages[i] = createMessage(signBytes)
-		publicKeys[i] = account.Account.Public
+		accountSignature, err := wallet.Sign(signBytes)
+		messages[i] = signBytes
+		publicKeys[i] = wallet.signer.Account.Public
 		signatures[i] = &accountSignature
 	}
 
-	verifier := blswallet.NewBLSVerifier(hasher)
+	verifier := blswallet.NewBLSVerifier(defaultDomain)
 	aggregatedSignature := verifier.AggregateSignatures(signatures)
 	aggregatedSignatureWallet, err := NewAggregateSignature(signatures)
 	if err != nil {
