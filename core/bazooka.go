@@ -148,7 +148,7 @@ func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash, batchType uint8) (txs 
 	case TX_DEPOSIT:
 		return []byte{}, nil
 	case TX_TRANSFER_TYPE:
-		method = b.ContractABI[common.ROLLUP_CONTRACT_KEY].Methods["submitBatch"]
+		method = b.ContractABI[common.ROLLUP_CONTRACT_KEY].Methods["submitTransfer"]
 	case TX_CREATE_2_TRANSFER:
 		return []byte{}, nil
 	}
