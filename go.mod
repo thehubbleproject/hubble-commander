@@ -18,7 +18,7 @@ require (
 	github.com/jinzhu/gorm v1.9.12
 	github.com/jinzhu/now v1.1.1 // indirect
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
-	github.com/kilic/bn254 v0.0.0-20200815091300-20e90d5cc039
+	github.com/kilic/bn254 v0.0.0-20201103073307-dd29157ef4fd
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/olekukonko/tablewriter v0.0.3 // indirect
 	github.com/pelletier/go-toml v1.6.0 // indirect
