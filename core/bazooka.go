@@ -359,7 +359,7 @@ func (b *Bazooka) DecodeState(stateBytes []byte) (ID, balance, nonce, token *big
 //
 
 // SubmitBatch submits the batch on chain with updated root and compressed transactions
-func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
+func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err error) {
 	b.log.Info(
 		"Attempting to submit a new batch",
 		"NumOfCommitments",
@@ -368,7 +368,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 
 	if len(commitments) == 0 {
 		b.log.Info("No transactions to submit, waiting....")
-		return nil
+		return "", nil
 	}
 
 	var txs [][]byte
@@ -380,7 +380,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 		compressedTxs, err := b.CompressTxs(commitment.Txs)
 		if err != nil {
 			b.log.Error("Unable to compress txs", "error", err)
-			return err
+			return "", err
 		}
 		txs = append(txs, compressedTxs)
 		updatedRoots = append(updatedRoots, commitment.UpdatedRoot)
@@ -413,7 +413,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 		data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitTransfer", updatedRoots, aggregatedSig, feeReceivers, txs)
 		if err != nil {
 			b.log.Error("Error packing data for submitBatch", "err", err)
-			return err
+			return "", nil
 		}
 
 		// generate call msg
@@ -427,20 +427,22 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 		auth, err := b.generateAuthObj(b.EthClient, callMsg)
 		if err != nil {
 			b.log.Error("Estimate gas failed, tx reverting", "error", err)
-			return err
+			return "", nil
 		}
 
 		tx, err := b.RollupContract.SubmitTransfer(auth, updatedRoots, aggregatedSig, feeReceivers, txs)
 		if err != nil {
 			b.log.Error("Error submitting batch", "err", err)
-			return err
+			return "", nil
 		}
-		b.log.Info("Sent a new batch!", "TxHash", tx.Hash().String())
+
+		txHash = tx.Hash().String()
+		b.log.Info("Sent a new batch!", "TxHash", txHash)
 	default:
 		b.log.Error("Tx not indentified", "txType", commitments[0].BatchType)
 	}
 
-	return nil
+	return txHash, nil
 }
 
 func (b *Bazooka) FireDepositFinalisation(TBreplaced UserState, siblings []UserState, subTreeHeight uint64) (err error) {

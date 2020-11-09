@@ -1,20 +1,23 @@
 package core
 
-import (
-	"math/big"
+import "errors"
+
+var (
+	ErrBatchAlreadyCommitted = errors.New("Batch Already Committed")
 )
 
 // Batch is the batches that need to be submitted on-chain periodically
 type Batch struct {
-	BatchID              uint64  `json:"batch_id,omitempty"`
-	StateRoot            string  `json:"state_root,omitempty"`
-	Committer            string  `json:"committer,omitempty"`
-	StakeAmount          uint64  `json:"stake_amount,omitempty"`
-	FinalisesOn          big.Int `json:"finalises_on,omitempty"`
-	SubmissionHash       string  `json:"submission_hash,omitempty"`
-	TransactionsIncluded []byte  `gorm:"size:1000000" json:"transactions_included,omitempty"`
-	BatchType            uint64  `json:"batch_type,omitempty"`
-	Status               uint64  `json:"status,omitempty"`
+	BatchID        uint64 `json:"batch_id,omitempty"`
+	StateRoot      string `json:"state_root,omitempty"`
+	Committer      string `json:"committer,omitempty"`
+	SubmissionHash string `json:"submission_hash,omitempty"`
+	BatchType      uint64 `json:"batch_type,omitempty"`
+	Status         uint64 `json:"status,omitempty"`
+}
+
+func NewBatch(stateRoot, committer, submissionHash string, batchType, status uint64) Batch {
+	return Batch{StateRoot: stateRoot, Committer: committer, SubmissionHash: submissionHash, BatchType: batchType, Status: status}
 }
 
 type Commitment struct {
@@ -38,6 +41,11 @@ func (db *DB) GetBatchCount() (int, error) {
 }
 
 func (db *DB) AddNewBatch(batch Batch) error {
+	batchCount, err := db.GetBatchCount()
+	if err != nil {
+		return err
+	}
+	batch.BatchID = uint64(batchCount) + 1
 	return db.Instance.Create(batch).Error
 }
 
@@ -48,6 +56,36 @@ func (db *DB) GetBatchByIndex(index uint64) (batch Batch, err error) {
 	return batch, nil
 }
 
-func (db *DB) CommitBatch(batch Batch) error {
+func (db *DB) CommitBatch(ID uint64) error {
+	batch, err := db.GetBatchByIndex(ID)
+	if err != nil {
+		return err
+	}
+
+	if batch.Status != BATCH_BROADCASTED && batch.Status == BATCH_COMMITTED {
+		return ErrBatchAlreadyCommitted
+	}
+
+	batch.Status = BATCH_COMMITTED
 	return db.Instance.Update(batch).Error
+}
+
+// IsCatchingUp returns true/false according to the sync status of the node
+func IsCatchingUp() (bool, error) {
+	totalBatches, err := LoadedBazooka.TotalBatches()
+	if err != nil {
+		return false, err
+	}
+
+	totalBatchedStored, err := DBInstance.GetBatchCount()
+	if err != nil {
+		return false, err
+	}
+
+	// if total batchse are greater than what we recorded we are still catching up
+	if totalBatches > uint64(totalBatchedStored) {
+		return true, err
+	}
+
+	return false, nil
 }

@@ -115,9 +115,16 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 
 	// Step-3
 	// Submit all commitments on-chain
-	a.LoadedBazooka.SubmitBatch(commitments)
+	txHash, err := a.LoadedBazooka.SubmitBatch(commitments)
 	if err != nil {
 		fmt.Println("Error while submitting batch", "error", err)
+		return
+	}
+
+	lastCommitment := commitments[len(commitments)-1]
+	newBatch := core.NewBatch(lastCommitment.UpdatedRoot.String(), config.GlobalCfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
+	err = a.DB.AddNewBatch(newBatch)
+	if err != nil {
 		return
 	}
 }

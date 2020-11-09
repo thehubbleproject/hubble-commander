@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"math/big"
 
 	"github.com/BOPR/common"
 	"github.com/BOPR/core"
@@ -98,10 +97,19 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 		fmt.Println("Unable to attack deposit information:", err)
 		panic(err)
 	}
-	// TODO add a sync flag, do not send transactions when in sync mode
 
 	// send deposit finalisation transction to ethereum chain
-	s.SendDepositFinalisationTx()
+	catchingup, err := core.IsCatchingUp()
+	if err != nil {
+		panic(err)
+	}
+
+	if !catchingup {
+		s.SendDepositFinalisationTx()
+	} else {
+		s.Logger.Info("Still cathing up, aborting deposit finalisation")
+	}
+
 }
 
 func (s *Syncer) processDepositFinalised(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
@@ -137,14 +145,12 @@ func (s *Syncer) processDepositFinalised(eventName string, abiObject *abi.ABI, v
 }
 
 func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
-	s.Logger.Info("New batch submitted on eth chain")
+	s.Logger.Info("New batch found!")
 
 	event := new(logger.LoggerNewBatch)
-
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
-		// TODO do something with this error
-		fmt.Println("Unable to unpack log:", err)
+		s.Logger.Error("Unable to unpack log:", "error", err)
 		panic(err)
 	}
 
@@ -152,22 +158,20 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		"⬜ New event found",
 		"event", eventName,
 		"BatchNumber", event.Index.String(),
+		"Type", event.BatchType,
 		"Committer", event.Committer.String(),
+		"TxHash", vLog.TxHash.String(),
 	)
-
-	params, err := s.DBInstance.GetParams()
-	if err != nil {
-		return
-	}
 
 	// if the batch has some txs, parse them
 	var txs []byte
+
 	if event.BatchType != core.TX_GENESIS || event.BatchType == core.TX_DEPOSIT {
 		// pick the calldata for the batch
 		txs, err = s.loadedBazooka.FetchBatchInputData(vLog.TxHash)
 		if err != nil {
-			// TODO do something with this error
-			panic(err)
+			s.Logger.Error("Error fetching input data from tx", "error", err)
+			return
 		}
 	}
 
@@ -177,24 +181,15 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		s.Logger.Info("Found a new batch, applying transactions and adding new batch", "index", event.Index.Uint64)
 		newRoot, err := s.applyTxsFromBatch(txs, uint64(event.BatchType))
 		if err != nil {
-			panic(err)
+			s.Logger.Error("Error applying transactions from batch", "index", event.Index.String(), "error", err)
+			return
 		}
 
-		// TODO add state root post batch processing
-		newBatch := core.Batch{
-			BatchID:              event.Index.Uint64(),
-			StateRoot:            newRoot.String(),
-			TransactionsIncluded: txs,
-			Committer:            event.Committer.String(),
-			StakeAmount:          params.StakeAmount,
-			FinalisesOn:          *big.NewInt(int64(params.FinalisationTime)),
-			Status:               core.BATCH_COMMITTED,
-		}
-
+		newBatch := core.NewBatch(newRoot.String(), event.Committer.String(), vLog.TxHash.String(), uint64(event.BatchType), core.BATCH_COMMITTED)
 		err = s.DBInstance.AddNewBatch(newBatch)
 		if err != nil {
-			// TODO do something with this error
-			panic(err)
+			s.Logger.Error("Error adding new batch to DB", "error", err)
+			return
 		}
 		return
 	} else if err != nil {
@@ -202,28 +197,15 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		return
 	}
 
-	// if batch is present but in a non committed state we parse txs and commit batch
+	// Mark seen batch as committed if we havent already
 	if batch.Status != core.BATCH_COMMITTED {
 		s.Logger.Info("Found a non committed batch")
-		// TODO revive
-		// if batch.StateRoot != core.ByteArray(event.UpdatedRoot).String() {
-		// State root mismatch error
-		// }
-		// batch broadcasted by us
-		// txs applied but batch needs to be committed
-		// TODO add batch type
-		newBatch := core.Batch{
-			BatchID: event.Index.Uint64(),
-			// StateRoot:            core.ByteArray(event.UpO/udatedRoot).String(),
-			TransactionsIncluded: txs,
-			Committer:            event.Committer.String(),
-			StakeAmount:          params.StakeAmount,
-			FinalisesOn:          *big.NewInt(int64(params.FinalisationTime)),
-			Status:               core.BATCH_COMMITTED,
+		err = s.DBInstance.CommitBatch(event.Index.Uint64())
+		if err != nil {
+			s.Logger.Error("Unable to commit batch", "index", event.Index.String(), "err", err)
+			return
 		}
-		s.DBInstance.CommitBatch(newBatch)
 	}
-	s.DBInstance.UpdateSyncStatusWithBatchNumber(event.Index.Uint64())
 }
 
 func (s *Syncer) processRegisteredToken(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
@@ -316,5 +298,4 @@ func (s *Syncer) decompressTransfers(decompressedTxs []byte) (txs []core.Tx, err
 	}
 
 	return transactions, nil
-
 }
