@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	ErrNoTxsFound = errors.New("no tx found")
+	ErrNoTxsFound          = errors.New("no tx found")
+	ErrSignatureNotPresent = errors.New("signature not present")
 )
 
 const (
@@ -271,7 +272,7 @@ func (db *DB) FetchMPWithID(id uint64, accountMP *StateMerkleProof) (err error) 
 	return nil
 }
 
-// ValidateTx creates proofs for validating txs and returns new root post validation
+// Validate creates proofs for validating txs and returns new root post validation
 func (tx *Tx) Validate(bz Bazooka, currentRoot ByteArray) (newRoot ByteArray, err error) {
 	fromStateProof, toStateProof, txDBConn, err := tx.GetVerificationData()
 	if err != nil {
@@ -295,7 +296,7 @@ func (tx *Tx) Validate(bz Bazooka, currentRoot ByteArray) (newRoot ByteArray, er
 }
 
 // ProcessTxs processes all trasnactions and returns the commitment list
-func ProcessTxs(db DB, bz Bazooka, txs []Tx) (commitments []Commitment, err error) {
+func ProcessTxs(db DB, bz Bazooka, txs []Tx, isSyncing bool) (commitments []Commitment, err error) {
 	if len(txs) == 0 {
 		return commitments, ErrNoTxsFound
 	}
@@ -316,7 +317,11 @@ func ProcessTxs(db DB, bz Bazooka, txs []Tx) (commitments []Commitment, err erro
 			txInCommitment := txs[i : i+COMMITMENT_SIZE]
 			aggregatedSig, err := aggregateSignatures(txInCommitment)
 			if err != nil {
-				return commitments, err
+				if isSyncing && err == ErrSignatureNotPresent {
+					continue
+				} else {
+					return commitments, err
+				}
 			}
 			commitment := Commitment{Txs: txInCommitment, UpdatedRoot: newRoot, BatchType: tx.Type, AggregatedSignature: aggregatedSig.ToBytes()}
 			commitments = append(commitments, commitment)
@@ -331,6 +336,9 @@ func ProcessTxs(db DB, bz Bazooka, txs []Tx) (commitments []Commitment, err erro
 func aggregateSignatures(txs []Tx) (aggregatedSig bls.Signature, err error) {
 	var signatures []*bls.Signature
 	for _, tx := range txs {
+		if tx.Signature == nil {
+			return aggregatedSig, ErrSignatureNotPresent
+		}
 		sig, err := wallet.BytesToSignature(tx.Signature)
 		if err != nil {
 			return aggregatedSig, err

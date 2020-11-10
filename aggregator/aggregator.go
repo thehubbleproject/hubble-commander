@@ -130,5 +130,5 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 }
 
 func (a *Aggregator) processTxs(txs []core.Tx) (commitments []core.Commitment, err error) {
-	return core.ProcessTxs(a.DB, a.LoadedBazooka, txs)
+	return core.ProcessTxs(a.DB, a.LoadedBazooka, txs, false)
 }

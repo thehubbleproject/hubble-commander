@@ -179,7 +179,7 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 	batch, err := s.DBInstance.GetBatchByIndex(event.Index.Uint64())
 	if err != nil && gorm.IsRecordNotFoundError(err) {
 		s.Logger.Info("Found a new batch, applying transactions and adding new batch", "index", event.Index.Uint64)
-		newRoot, err := s.applyTxsFromBatch(txs, uint64(event.BatchType))
+		newRoot, err := s.applyTxsFromBatch(txs, uint64(event.BatchType), true)
 		if err != nil {
 			s.Logger.Error("Error applying transactions from batch", "index", event.Index.String(), "error", err)
 			return
@@ -243,7 +243,7 @@ func (s *Syncer) SendDepositFinalisationTx() {
 	err = s.loadedBazooka.FireDepositFinalisation(nodeToBeReplaced, siblings, params.MaxDepositSubTreeHeight)
 }
 
-func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txType uint64) (newRoot core.ByteArray, err error) {
+func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txType uint64, isSyncing bool) (newRoot core.ByteArray, err error) {
 	// check if the batch has any txs
 	if len(txsBytes) == 0 {
 		s.Logger.Info("No txs to apply")
@@ -262,7 +262,7 @@ func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txType uint64) (newRoot core
 		return newRoot, errors.New("Didn't match any options")
 	}
 
-	commitments, err := core.ProcessTxs(s.DBInstance, s.loadedBazooka, transactions)
+	commitments, err := core.ProcessTxs(s.DBInstance, s.loadedBazooka, transactions, isSyncing)
 	if err != nil {
 		return newRoot, err
 	}
@@ -293,7 +293,7 @@ func (s *Syncer) decompressTransfers(decompressedTxs []byte) (txs []core.Tx, err
 			return transactions, err
 		}
 
-		newTx := core.NewTx(froms[i].Uint64(), tos[i].Uint64(), core.TX_TRANSFER_TYPE, []byte(""), txData)
+		newTx := core.NewTx(froms[i].Uint64(), tos[i].Uint64(), core.TX_TRANSFER_TYPE, nil, txData)
 		transactions = append(transactions, newTx)
 	}
 
