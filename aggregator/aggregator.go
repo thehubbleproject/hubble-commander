@@ -131,6 +131,8 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 	}
 <<<<<<< HEAD
 
+	// Step-4
+	// Record batch locally
 	lastCommitment := commitments[len(commitments)-1]
 	newBatch := core.NewBatch(lastCommitment.UpdatedRoot.String(), config.GlobalCfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
 	err = a.DB.AddNewBatch(newBatch)

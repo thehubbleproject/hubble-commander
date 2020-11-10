@@ -309,12 +309,39 @@ func (tx *Tx) Validate(bz Bazooka, currentRoot ByteArray) (newRoot ByteArray, er
 		}
 		return
 	}
+
+	err = tx.authenticate(bz)
+	if err != nil {
+		txDBConn.Instance.Rollback()
+		txDBConn.Close()
+		return
+	}
+
 	if txDBConn.Instance != nil {
 		txDBConn.Instance.Commit()
 		txDBConn.Close()
 	}
 
 	return
+}
+
+func (tx *Tx) authenticate(bz Bazooka) error {
+	accID, _, _, _, err := bz.DecodeState(tx.Data)
+	if err != nil {
+		return err
+	}
+
+	acc, err := DBInstance.GetAccountLeafByID(accID.Uint64())
+	if err != nil {
+		return err
+	}
+
+	err = bz.authenticateTx(*tx, acc.PublicKey)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ProcessTxs processes all trasnactions and returns the commitment list
