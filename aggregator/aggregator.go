@@ -84,6 +84,12 @@ func (a *Aggregator) startAggregating(ctx context.Context, interval time.Duratio
 	for {
 		select {
 		case <-ticker.C:
+			if isCatchingUp, err := core.IsCatchingUp(); err != nil {
+				return
+			} else if isCatchingUp {
+				a.Logger.Info("Commander catching up, aborting aggregation till next poll")
+				return
+			}
 			a.wg.Wait()
 			a.wg.Add(1)
 			go a.pickBatch()
