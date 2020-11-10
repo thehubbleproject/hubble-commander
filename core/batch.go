@@ -45,7 +45,10 @@ func (db *DB) AddNewBatch(batch Batch) error {
 	if err != nil {
 		return err
 	}
-	batch.BatchID = uint64(batchCount) + 1
+
+	// this is because batch ID starts from 0
+	batch.BatchID = uint64(batchCount)
+
 	return db.Instance.Create(batch).Error
 }
 
@@ -67,7 +70,7 @@ func (db *DB) CommitBatch(ID uint64) error {
 	}
 
 	batch.Status = BATCH_COMMITTED
-	return db.Instance.Update(batch).Error
+	return db.Instance.Model(&batch).Where("batch_id = ?", batch.BatchID).Update(batch).Error
 }
 
 // IsCatchingUp returns true/false according to the sync status of the node

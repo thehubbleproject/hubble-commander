@@ -168,10 +168,12 @@ func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash, batchType uint8) (txs 
 
 func getTxsFromInput(input map[string]interface{}) (txs []byte, err error) {
 	if txPayload, ok := input[TXS_PARAM]; ok {
-		txs, ok = txPayload.([]byte)
+		txList, ok := txPayload.([][]byte)
 		if !ok {
 			return nil, ErrConvertingTxPayload
 		}
+
+		txs = txList[0]
 	} else {
 		return nil, ErrTxParamDoesntExist
 	}
