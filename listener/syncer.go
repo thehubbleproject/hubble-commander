@@ -66,7 +66,7 @@ func NewSyncer() Syncer {
 	if err != nil {
 		panic(err)
 	}
-
+	//nolint:govet // will fix later in #76
 	return *syncerService
 }
 
