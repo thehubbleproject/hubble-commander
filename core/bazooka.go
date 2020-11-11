@@ -30,6 +30,16 @@ type IBazooka interface {
 	FetchBatchInputData(txHash ethCmn.Hash) (txs [][]byte, err error)
 }
 
+var (
+	ErrTxPending           = errors.New("Tx Pending, cannot read calldata")
+	ErrConvertingTxPayload = errors.New("Error converting tx payload")
+	ErrTxParamDoesntExist  = errors.New("Tx param does not exist")
+)
+
+const (
+	TXS_PARAM = "txss"
+)
+
 // Global Contract Caller Object
 var LoadedBazooka Bazooka
 
@@ -110,8 +120,7 @@ func (b *Bazooka) TotalBatches() (uint64, error) {
 	return totalBatches.Uint64(), nil
 }
 
-// FetchBatchInputData parses the calldata for transactions
-func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash) (txs [][]byte, err error) {
+func (b *Bazooka) GetTxDataByHash(txHash ethCmn.Hash) (data []byte, err error) {
 	tx, isPending, err := b.EthClient.TransactionByHash(context.Background(), txHash)
 	if err != nil {
 		b.log.Error("Cannot fetch transaction from hash", "Error", err)
@@ -119,27 +128,56 @@ func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash) (txs [][]byte, err err
 	}
 
 	if isPending {
-		err := errors.New("Transaction is pending")
-		b.log.Error("Transaction is still pending, cannot process", "Error", err)
-		return txs, err
+		b.log.Error("Transaction is still pending, cannot process", "Error", ErrTxPending)
+		return data, ErrTxPending
 	}
 
-	payload := tx.Data()
-	decodedPayload := payload[4:]
+	payload := tx.Data()[4:]
+	return payload, nil
+}
+
+// FetchBatchInputData parses the calldata for transactions
+func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash, batchType uint8) (txs []byte, err error) {
 	inputDataMap := make(map[string]interface{})
-	method := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Methods["submitBatch"]
-	err = method.Inputs.UnpackIntoMap(inputDataMap, decodedPayload)
+	var method abi.Method
+	var data []byte
+
+	switch batchType {
+	case TX_GENESIS:
+		return []byte{}, nil
+	case TX_DEPOSIT:
+		return []byte{}, nil
+	case TX_TRANSFER_TYPE:
+		method = b.ContractABI[common.ROLLUP_CONTRACT_KEY].Methods["submitTransfer"]
+	case TX_CREATE_2_TRANSFER:
+		return []byte{}, nil
+	}
+
+	data, err = b.GetTxDataByHash(txHash)
+	if err != nil {
+		return nil, err
+	}
+	err = method.Inputs.UnpackIntoMap(inputDataMap, data)
 	if err != nil {
 		b.log.Error("Error unpacking payload", "Error", err)
 		return
 	}
 
-	return GetTxsFromInput(inputDataMap), nil
+	return getTxsFromInput(inputDataMap)
 }
 
-func GetTxsFromInput(input map[string]interface{}) (txs [][]byte) {
-	data := input["_txs"].([][]byte)
-	return data
+func getTxsFromInput(input map[string]interface{}) (txs []byte, err error) {
+	if txPayload, ok := input[TXS_PARAM]; ok {
+		txList, ok := txPayload.([][]byte)
+		if !ok {
+			return nil, ErrConvertingTxPayload
+		}
+
+		txs = txList[0]
+	} else {
+		return nil, ErrTxParamDoesntExist
+	}
+	return txs, nil
 }
 
 // ProcessTx calls the ProcessTx function on the contract to verify the tx
@@ -159,10 +197,10 @@ func (b *Bazooka) ApplyTx(sender, receiver []byte, tx Tx) (updatedSender, update
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
 		return b.applyTransferTx(sender, receiver, tx)
-	case TX_CREATE_2_TRANSFER:
-		return b.applyCreate2TransferTx(sender, receiver, tx)
-	case TX_MASS_MIGRATIONS:
-		return b.applyMassMigrationTx(sender, receiver, tx)
+	// case TX_CREATE_2_TRANSFER:
+	// 	return b.applyCreate2TransferTx(sender, receiver, tx)
+	// case TX_MASS_MIGRATIONS:
+	// 	return b.applyMassMigrationTx(sender, receiver, tx)
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return updatedSender, updatedReceiver, errors.New("Didn't match any options")
@@ -178,10 +216,10 @@ func (b *Bazooka) CompressTxs(txs []Tx) ([]byte, error) {
 	switch txType := txs[0].Type; txType {
 	case TX_TRANSFER_TYPE:
 		return LoadedBazooka.compressTransferTxs(opts, data)
-	case TX_CREATE_2_TRANSFER:
-		return LoadedBazooka.compressCreate2TransferTxs(opts, data)
-	case TX_MASS_MIGRATIONS:
-		return LoadedBazooka.compressMassMigrationTxs(opts, data)
+	// case TX_CREATE_2_TRANSFER:
+	// 	return LoadedBazooka.compressCreate2TransferTxs(opts, data)
+	// case TX_MASS_MIGRATIONS:
+	// 	return LoadedBazooka.compressMassMigrationTxs(opts, data)
 	default:
 		fmt.Println("TxType didnt match any options", txs[0].Type)
 		return []byte(""), errors.New("Did not match any options")
@@ -223,19 +261,19 @@ func (b *Bazooka) processTransferTx(balanceTreeRoot ByteArray, tx Tx, fromMerkle
 // TOOD add processCreate2TransferTx
 // TOOD add processMassMigrationTx
 
-func (b *Bazooka) applyCreate2TransferTx(sender, receiver []byte, tx Tx) (updatedSender, updatedReceiver []byte, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	updates, err := b.Frontend.ValidateAndApplyCreate2Transfer(&opts, sender, tx.Data)
-	if err != nil {
-		return
-	}
+// func (b *Bazooka) applyCreate2TransferTx(sender, receiver []byte, tx Tx) (updatedSender, updatedReceiver []byte, err error) {
+// 	opts := bind.CallOpts{From: config.OperatorAddress}
+// 	updates, err := b.Frontend.ValidateAndApplyCreate2Transfer(&opts, sender, tx.Data)
+// 	if err != nil {
+// 		return
+// 	}
 
-	if err = ParseResult(updates.Result); err != nil {
-		return
-	}
+// 	if err = ParseResult(updates.Result); err != nil {
+// 		return
+// 	}
 
-	return updates.NewSender, updates.NewReceiver, nil
-}
+// 	return updates.NewSender, updates.NewReceiver, nil
+// }
 
 func (b *Bazooka) applyTransferTx(sender, receiver []byte, tx Tx) (updatedSender, updatedReceiver []byte, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
@@ -251,34 +289,51 @@ func (b *Bazooka) applyTransferTx(sender, receiver []byte, tx Tx) (updatedSender
 	return updates.NewSender, updates.NewReceiver, nil
 }
 
-func (b *Bazooka) applyMassMigrationTx(sender, receiver []byte, tx Tx) (updatedSender, updatedReceiver []byte, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	updates, err := b.Frontend.ValidateAndApplyMassMigration(&opts, sender, tx.Data)
-	if err != nil {
-		return
-	}
+// func (b *Bazooka) applyMassMigrationTx(sender, receiver []byte, tx Tx) (updatedSender, updatedReceiver []byte, err error) {
+// 	opts := bind.CallOpts{From: config.OperatorAddress}
+// 	updates, err := b.Frontend.ValidateAndApplyMassMigration(&opts, sender, tx.Data)
+// 	if err != nil {
+// 		return
+// 	}
 
-	if err = ParseResult(updates.Result); err != nil {
-		return
-	}
+// 	if err = ParseResult(updates.Result); err != nil {
+// 		return
+// 	}
 
-	return updates.NewSender, updatedReceiver, nil
-}
+// 	return updates.NewSender, updatedReceiver, nil
+// }
 
 func (b *Bazooka) compressTransferTxs(opts bind.CallOpts, data [][]byte) ([]byte, error) {
 	return b.Frontend.CompressTransfer(&opts, data)
 }
 
-func (b *Bazooka) compressCreate2TransferTxs(opts bind.CallOpts, data [][]byte) ([]byte, error) {
-	return b.Frontend.CompressCreate2Transfer(&opts, data)
-}
+// func (b *Bazooka) compressCreate2TransferTxs(opts bind.CallOpts, data [][]byte) ([]byte, error) {
+// 	return b.Frontend.CompressCreate2Transfer(&opts, data)
+// }
 
-func (b *Bazooka) compressMassMigrationTxs(opts bind.CallOpts, data [][]byte) ([]byte, error) {
-	return b.Frontend.CompressMassMigration(&opts, data)
-}
+// func (b *Bazooka) compressMassMigrationTxs(opts bind.CallOpts, data [][]byte) ([]byte, error) {
+// 	return b.Frontend.CompressMassMigration(&opts, data)
+// }
 
 func (b *Bazooka) TransferSignBytes() {
 	// TODO hook into tx.GetSignData
+}
+
+func (b *Bazooka) DecompressTransferTxs(txs []byte) (froms, tos, amounts, fees []big.Int, err error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	decompressedTxs, err := b.Frontend.DecompressTransfer(&opts, txs)
+	if err != nil {
+		return
+	}
+
+	for _, decompressedTx := range decompressedTxs {
+		froms = append(froms, *decompressedTx.FromIndex)
+		tos = append(tos, *decompressedTx.ToIndex)
+		amounts = append(amounts, *decompressedTx.Amount)
+		fees = append(fees, *decompressedTx.Fee)
+	}
+
+	return
 }
 
 //
@@ -342,7 +397,7 @@ func (b *Bazooka) DecodeState(stateBytes []byte) (ID, balance, nonce, token *big
 //
 
 // SubmitBatch submits the batch on chain with updated root and compressed transactions
-func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
+func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err error) {
 	b.log.Info(
 		"Attempting to submit a new batch",
 		"NumOfCommitments",
@@ -351,7 +406,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 
 	if len(commitments) == 0 {
 		b.log.Info("No transactions to submit, waiting....")
-		return nil
+		return "", nil
 	}
 
 	var txs [][]byte
@@ -363,7 +418,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 		compressedTxs, err := b.CompressTxs(commitment.Txs)
 		if err != nil {
 			b.log.Error("Unable to compress txs", "error", err)
-			return err
+			return "", err
 		}
 		txs = append(txs, compressedTxs)
 		updatedRoots = append(updatedRoots, commitment.UpdatedRoot)
@@ -396,7 +451,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 		data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitTransfer", updatedRoots, aggregatedSig, feeReceivers, txs)
 		if err != nil {
 			b.log.Error("Error packing data for submitBatch", "err", err)
-			return err
+			return "", nil
 		}
 
 		// generate call msg
@@ -410,20 +465,22 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) error {
 		auth, err := b.generateAuthObj(b.EthClient, callMsg)
 		if err != nil {
 			b.log.Error("Estimate gas failed, tx reverting", "error", err)
-			return err
+			return "", nil
 		}
 
 		tx, err := b.RollupContract.SubmitTransfer(auth, updatedRoots, aggregatedSig, feeReceivers, txs)
 		if err != nil {
 			b.log.Error("Error submitting batch", "err", err)
-			return err
+			return "", nil
 		}
-		b.log.Info("Sent a new batch!", "TxHash", tx.Hash().String())
+
+		txHash = tx.Hash().String()
+		b.log.Info("Sent a new batch!", "TxHash", txHash)
 	default:
 		b.log.Error("Tx not indentified", "txType", commitments[0].BatchType)
 	}
 
-	return nil
+	return txHash, nil
 }
 
 func (b *Bazooka) FireDepositFinalisation(TBreplaced UserState, siblings []UserState, subTreeHeight uint64) (err error) {

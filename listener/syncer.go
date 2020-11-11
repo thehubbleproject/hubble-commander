@@ -178,7 +178,7 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 		s.Logger.Error("Unable to fetch listener log", "error", err)
 		return
 	}
-	s.Logger.Info("Sync status", "LastLogIndexed", syncStatus.LastEthBlockBigInt().String(), "LastBatch", syncStatus.LastBatchRecorded)
+	s.Logger.Info("Sync status", "LastLogIndexed", syncStatus.LastEthBlockBigInt().String())
 	if header.Number.Uint64() <= syncStatus.LastEthBlockBigInt().Uint64() {
 		s.Logger.Error("No need to sync more events", "currentEthBlock", header.Number.String(), "lastSyncedBlock", syncStatus.LastEthBlockBigInt().String())
 		return
@@ -191,7 +191,6 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 		ToBlock:   header.Number,
 		Addresses: []ethCmn.Address{
 			ethCmn.HexToAddress(config.GlobalCfg.LoggerAddress),
-			ethCmn.HexToAddress(config.GlobalCfg.RollupAddress),
 		},
 		Topics: [][]ethCmn.Hash{},
 	}

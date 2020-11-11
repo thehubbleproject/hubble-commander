@@ -2,11 +2,22 @@ package core
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/wallet"
+	"github.com/kilic/bn254/bls"
+)
+
+var (
+	ErrNoTxsFound          = errors.New("no tx found")
+	ErrSignatureNotPresent = errors.New("signature not present")
+)
+
+const (
+	COMMITMENT_SIZE = 1
 )
 
 // Tx represets the transaction on hubble
@@ -22,22 +33,22 @@ type Tx struct {
 }
 
 // NewTx creates a new transaction
-func NewTx(from, to, txType uint64, sig, message []byte) Tx {
+func NewTx(from, to, txType uint64, sig, data []byte) Tx {
 	return Tx{
 		From:      from,
 		To:        to,
-		Data:      message,
+		Data:      data,
 		Signature: sig,
 		Type:      txType,
 	}
 }
 
 // NewPendingTx creates a new transaction
-func NewPendingTx(from, to, txType uint64, sig, message []byte) Tx {
+func NewPendingTx(from, to, txType uint64, sig, data []byte) Tx {
 	tx := Tx{
 		To:        to,
 		From:      from,
-		Data:      message,
+		Data:      data,
 		Signature: sig,
 		Status:    TX_STATUS_PENDING,
 		Type:      txType,
@@ -259,4 +270,80 @@ func (db *DB) FetchMPWithID(id uint64, accountMP *StateMerkleProof) (err error) 
 	accMP := NewStateMerkleProof(leaf, siblings)
 	*accountMP = accMP
 	return nil
+}
+
+// Validate creates proofs for validating txs and returns new root post validation
+func (tx *Tx) Validate(bz Bazooka, currentRoot ByteArray) (newRoot ByteArray, err error) {
+	fromStateProof, toStateProof, txDBConn, err := tx.GetVerificationData()
+	if err != nil {
+		return
+	}
+
+	newRoot, err = bz.ProcessTx(currentRoot, *tx, fromStateProof, toStateProof)
+	if err != nil {
+		if txDBConn.Instance != nil {
+			txDBConn.Instance.Rollback()
+			txDBConn.Close()
+		}
+		return
+	}
+	if txDBConn.Instance != nil {
+		txDBConn.Instance.Commit()
+		txDBConn.Close()
+	}
+
+	return
+}
+
+// ProcessTxs processes all trasnactions and returns the commitment list
+func ProcessTxs(db DB, bz Bazooka, txs []Tx, isSyncing bool) (commitments []Commitment, err error) {
+	if len(txs) == 0 {
+		return commitments, ErrNoTxsFound
+	}
+	for i, tx := range txs {
+		rootAcc, err := db.GetRoot()
+		if err != nil {
+			return commitments, err
+		}
+		currentRoot, err := HexToByteArray(rootAcc.Hash)
+		if err != nil {
+			return commitments, err
+		}
+		newRoot, err := tx.Validate(LoadedBazooka, currentRoot)
+		if err != nil {
+			return commitments, err
+		}
+		if i%COMMITMENT_SIZE == 0 {
+			txInCommitment := txs[i : i+COMMITMENT_SIZE]
+			aggregatedSig, err := aggregateSignatures(txInCommitment)
+			if err != nil {
+				if isSyncing && err == ErrSignatureNotPresent {
+					continue
+				} else {
+					return commitments, err
+				}
+			}
+			commitment := Commitment{Txs: txInCommitment, UpdatedRoot: newRoot, BatchType: tx.Type, AggregatedSignature: aggregatedSig.ToBytes()}
+			commitments = append(commitments, commitment)
+		}
+		currentRoot = newRoot
+	}
+
+	return commitments, nil
+}
+
+// generates aggregated signature for commitment
+func aggregateSignatures(txs []Tx) (aggregatedSig bls.Signature, err error) {
+	var signatures []*bls.Signature
+	for _, tx := range txs {
+		if tx.Signature == nil {
+			return aggregatedSig, ErrSignatureNotPresent
+		}
+		sig, err := wallet.BytesToSignature(tx.Signature)
+		if err != nil {
+			return aggregatedSig, err
+		}
+		signatures = append(signatures, &sig)
+	}
+	return wallet.NewAggregateSignature(signatures)
 }

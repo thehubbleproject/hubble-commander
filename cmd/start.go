@@ -50,8 +50,7 @@ func startCmd() *cobra.Command {
 			}
 
 			logger.Info("Starting coordinator with sync and aggregator enabled", "lastSyncedEthBlock",
-				syncStatus.LastEthBlockBigInt().String(),
-				"lastSyncedBatch", syncStatus.LastBatchRecorded)
+				syncStatus.LastEthBlockBigInt().String())
 
 			// go routine to catch signal
 			catchSignal := make(chan os.Signal, 1)

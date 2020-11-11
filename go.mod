@@ -16,7 +16,6 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/jinzhu/gorm v1.9.12
-	github.com/jinzhu/now v1.1.1 // indirect
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/kilic/bn254 v0.0.0-20201103073307-dd29157ef4fd
 	github.com/mattn/go-isatty v0.0.12 // indirect

@@ -26,27 +26,6 @@ var (
 	_ = event.NewSubscription
 )
 
-// OffchainCreate2Transfer is an auto generated low-level Go binding around an user-defined struct.
-type OffchainCreate2Transfer struct {
-	TxType    *big.Int
-	FromIndex *big.Int
-	ToIndex   *big.Int
-	ToAccID   *big.Int
-	Amount    *big.Int
-	Fee       *big.Int
-	Nonce     *big.Int
-}
-
-// OffchainMassMigration is an auto generated low-level Go binding around an user-defined struct.
-type OffchainMassMigration struct {
-	TxType    *big.Int
-	FromIndex *big.Int
-	Amount    *big.Int
-	Fee       *big.Int
-	SpokeID   *big.Int
-	Nonce     *big.Int
-}
-
 // OffchainTransfer is an auto generated low-level Go binding around an user-defined struct.
 type OffchainTransfer struct {
 	TxType    *big.Int
@@ -57,22 +36,20 @@ type OffchainTransfer struct {
 	Nonce     *big.Int
 }
 
+// TxTransfer is an auto generated low-level Go binding around an user-defined struct.
+type TxTransfer struct {
+	FromIndex *big.Int
+	ToIndex   *big.Int
+	Amount    *big.Int
+	Fee       *big.Int
+}
+
 // TypesSignatureProof is an auto generated low-level Go binding around an user-defined struct.
 type TypesSignatureProof struct {
 	States          []TypesUserState
 	StateWitnesses  [][][32]byte
 	Pubkeys         [][4]*big.Int
 	PubkeyWitnesses [][][32]byte
-}
-
-// TypesSignatureProofWithReceiver is an auto generated low-level Go binding around an user-defined struct.
-type TypesSignatureProofWithReceiver struct {
-	States                  []TypesUserState
-	StateWitnesses          [][][32]byte
-	PubkeysSender           [][4]*big.Int
-	PubkeyWitnessesSender   [][][32]byte
-	PubkeysReceiver         [][4]*big.Int
-	PubkeyWitnessesReceiver [][][32]byte
 }
 
 // TypesStateMerkleProof is an auto generated low-level Go binding around an user-defined struct.
@@ -90,7 +67,7 @@ type TypesUserState struct {
 }
 
 // RollupclientABI is the input ABI used to generate the binding from.
-const RollupclientABI = "[{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"signature\",\"type\":\"uint256[2]\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState[]\",\"name\":\"states\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"stateWitnesses\",\"type\":\"bytes32[][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"pubkeysSender\",\"type\":\"uint256[4][]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"pubkeyWitnessesSender\",\"type\":\"bytes32[][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"pubkeysReceiver\",\"type\":\"uint256[4][]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"pubkeyWitnessesReceiver\",\"type\":\"bytes32[][]\"}],\"internalType\":\"structTypes.SignatureProofWithReceiver\",\"name\":\"proof\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"accountRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"domain\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"txs\",\"type\":\"bytes\"}],\"name\":\"checkSignatureCreate2Transfer\",\"outputs\":[{\"internalType\":\"enumTypes.Result\",\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"signature\",\"type\":\"uint256[2]\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState[]\",\"name\":\"states\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"stateWitnesses\",\"type\":\"bytes32[][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"pubkeys\",\"type\":\"uint256[4][]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"pubkeyWitnesses\",\"type\":\"bytes32[][]\"}],\"internalType\":\"structTypes.SignatureProof\",\"name\":\"proof\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"accountRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"domain\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"spokeID\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"txs\",\"type\":\"bytes\"}],\"name\":\"checkSignatureMassMigration\",\"outputs\":[{\"internalType\":\"enumTypes.Result\",\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"signature\",\"type\":\"uint256[2]\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState[]\",\"name\":\"states\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"stateWitnesses\",\"type\":\"bytes32[][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"pubkeys\",\"type\":\"uint256[4][]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"pubkeyWitnesses\",\"type\":\"bytes32[][]\"}],\"internalType\":\"structTypes.SignatureProof\",\"name\":\"proof\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"accountRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"domain\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"txs\",\"type\":\"bytes\"}],\"name\":\"checkSignatureTransfer\",\"outputs\":[{\"internalType\":\"enumTypes.Result\",\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"encodedTxs\",\"type\":\"bytes[]\"}],\"name\":\"compressCreate2Transfer\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"encodedTxs\",\"type\":\"bytes[]\"}],\"name\":\"compressMassMigration\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"encodedTxs\",\"type\":\"bytes[]\"}],\"name\":\"compressTransfer\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"}],\"name\":\"decodeCreate2Transfer\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toAccID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structOffchain.Create2Transfer\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"}],\"name\":\"decodeMassMigration\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"spokeID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structOffchain.MassMigration\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"stateBytes\",\"type\":\"bytes\"}],\"name\":\"decodeState\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"}],\"name\":\"decodeTransfer\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structOffchain.Transfer\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"}],\"name\":\"encode\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toAccID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structOffchain.Create2Transfer\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"encodeCreate2Transfer\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"spokeID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structOffchain.MassMigration\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"encodeMassMigration\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structOffchain.Transfer\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"encodeTransfer\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.StateMerkleProof\",\"name\":\"from\",\"type\":\"tuple\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.StateMerkleProof\",\"name\":\"to\",\"type\":\"tuple\"}],\"name\":\"processCreate2Transfer\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"newRoot\",\"type\":\"bytes32\"},{\"internalType\":\"enumTypes.Result\",\"name\":\"result\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.StateMerkleProof\",\"name\":\"from\",\"type\":\"tuple\"}],\"name\":\"processMassMigration\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"newRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"freshState\",\"type\":\"bytes\"},{\"internalType\":\"enumTypes.Result\",\"name\":\"result\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.StateMerkleProof\",\"name\":\"from\",\"type\":\"tuple\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.StateMerkleProof\",\"name\":\"to\",\"type\":\"tuple\"}],\"name\":\"processTransfer\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"newRoot\",\"type\":\"bytes32\"},{\"internalType\":\"enumTypes.Result\",\"name\":\"result\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"},{\"internalType\":\"uint256[2]\",\"name\":\"signature\",\"type\":\"uint256[2]\"},{\"internalType\":\"uint256[4]\",\"name\":\"fromPubkey\",\"type\":\"uint256[4]\"},{\"internalType\":\"uint256[4]\",\"name\":\"toPubkey\",\"type\":\"uint256[4]\"},{\"internalType\":\"bytes32\",\"name\":\"domain\",\"type\":\"bytes32\"}],\"name\":\"valiateCreate2Transfer\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"},{\"internalType\":\"uint256[2]\",\"name\":\"signature\",\"type\":\"uint256[2]\"},{\"internalType\":\"uint256[4]\",\"name\":\"pubkey\",\"type\":\"uint256[4]\"},{\"internalType\":\"bytes32\",\"name\":\"domain\",\"type\":\"bytes32\"}],\"name\":\"valiateMassMigration\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"},{\"internalType\":\"uint256[2]\",\"name\":\"signature\",\"type\":\"uint256[2]\"},{\"internalType\":\"uint256[4]\",\"name\":\"pubkey\",\"type\":\"uint256[4]\"},{\"internalType\":\"bytes32\",\"name\":\"domain\",\"type\":\"bytes32\"}],\"name\":\"valiateTransfer\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"senderEncoded\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"}],\"name\":\"validateAndApplyCreate2Transfer\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"newSender\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"newReceiver\",\"type\":\"bytes\"},{\"internalType\":\"enumTypes.Result\",\"name\":\"result\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"senderEncoded\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"}],\"name\":\"validateAndApplyMassMigration\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"newSender\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"withdrawState\",\"type\":\"bytes\"},{\"internalType\":\"enumTypes.Result\",\"name\":\"result\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"senderEncoded\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"receiverEncoded\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"}],\"name\":\"validateAndApplyTransfer\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"newSender\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"newReceiver\",\"type\":\"bytes\"},{\"internalType\":\"enumTypes.Result\",\"name\":\"result\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"}]"
+const RollupclientABI = "[{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"signature\",\"type\":\"uint256[2]\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState[]\",\"name\":\"states\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"stateWitnesses\",\"type\":\"bytes32[][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"pubkeys\",\"type\":\"uint256[4][]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"pubkeyWitnesses\",\"type\":\"bytes32[][]\"}],\"internalType\":\"structTypes.SignatureProof\",\"name\":\"proof\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"accountRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"domain\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"txs\",\"type\":\"bytes\"}],\"name\":\"checkSignatureTransfer\",\"outputs\":[{\"internalType\":\"enumTypes.Result\",\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"encodedTxs\",\"type\":\"bytes[]\"}],\"name\":\"compressTransfer\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"stateBytes\",\"type\":\"bytes\"}],\"name\":\"decodeState\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"}],\"name\":\"decodeTransfer\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structOffchain.Transfer\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"txs\",\"type\":\"bytes\"}],\"name\":\"decompressTransfer\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"internalType\":\"structTx.Transfer[]\",\"name\":\"txTxs\",\"type\":\"tuple[]\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"}],\"name\":\"encode\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"txType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fromIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"toIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structOffchain.Transfer\",\"name\":\"_tx\",\"type\":\"tuple\"}],\"name\":\"encodeTransfer\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.StateMerkleProof\",\"name\":\"from\",\"type\":\"tuple\"},{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"internalType\":\"structTypes.UserState\",\"name\":\"state\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[]\",\"name\":\"witness\",\"type\":\"bytes32[]\"}],\"internalType\":\"structTypes.StateMerkleProof\",\"name\":\"to\",\"type\":\"tuple\"}],\"name\":\"processTransfer\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"newRoot\",\"type\":\"bytes32\"},{\"internalType\":\"enumTypes.Result\",\"name\":\"result\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"},{\"internalType\":\"uint256[2]\",\"name\":\"signature\",\"type\":\"uint256[2]\"},{\"internalType\":\"uint256[4]\",\"name\":\"pubkey\",\"type\":\"uint256[4]\"},{\"internalType\":\"bytes32\",\"name\":\"domain\",\"type\":\"bytes32\"}],\"name\":\"valiateTransfer\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"senderEncoded\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"receiverEncoded\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"encodedTx\",\"type\":\"bytes\"}],\"name\":\"validateAndApplyTransfer\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"newSender\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"newReceiver\",\"type\":\"bytes\"},{\"internalType\":\"enumTypes.Result\",\"name\":\"result\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"}]"
 
 // Rollupclient is an auto generated Go binding around an Ethereum contract.
 type Rollupclient struct {
@@ -234,58 +211,6 @@ func (_Rollupclient *RollupclientTransactorRaw) Transact(opts *bind.TransactOpts
 	return _Rollupclient.Contract.contract.Transact(opts, method, params...)
 }
 
-// CheckSignatureCreate2Transfer is a free data retrieval call binding the contract method 0x249c2fbd.
-//
-// Solidity: function checkSignatureCreate2Transfer(uint256[2] signature, ((uint256,uint256,uint256,uint256)[],bytes32[][],uint256[4][],bytes32[][],uint256[4][],bytes32[][]) proof, bytes32 stateRoot, bytes32 accountRoot, bytes32 domain, bytes txs) view returns(uint8)
-func (_Rollupclient *RollupclientCaller) CheckSignatureCreate2Transfer(opts *bind.CallOpts, signature [2]*big.Int, proof TypesSignatureProofWithReceiver, stateRoot [32]byte, accountRoot [32]byte, domain [32]byte, txs []byte) (uint8, error) {
-	var (
-		ret0 = new(uint8)
-	)
-	out := ret0
-	err := _Rollupclient.contract.Call(opts, out, "checkSignatureCreate2Transfer", signature, proof, stateRoot, accountRoot, domain, txs)
-	return *ret0, err
-}
-
-// CheckSignatureCreate2Transfer is a free data retrieval call binding the contract method 0x249c2fbd.
-//
-// Solidity: function checkSignatureCreate2Transfer(uint256[2] signature, ((uint256,uint256,uint256,uint256)[],bytes32[][],uint256[4][],bytes32[][],uint256[4][],bytes32[][]) proof, bytes32 stateRoot, bytes32 accountRoot, bytes32 domain, bytes txs) view returns(uint8)
-func (_Rollupclient *RollupclientSession) CheckSignatureCreate2Transfer(signature [2]*big.Int, proof TypesSignatureProofWithReceiver, stateRoot [32]byte, accountRoot [32]byte, domain [32]byte, txs []byte) (uint8, error) {
-	return _Rollupclient.Contract.CheckSignatureCreate2Transfer(&_Rollupclient.CallOpts, signature, proof, stateRoot, accountRoot, domain, txs)
-}
-
-// CheckSignatureCreate2Transfer is a free data retrieval call binding the contract method 0x249c2fbd.
-//
-// Solidity: function checkSignatureCreate2Transfer(uint256[2] signature, ((uint256,uint256,uint256,uint256)[],bytes32[][],uint256[4][],bytes32[][],uint256[4][],bytes32[][]) proof, bytes32 stateRoot, bytes32 accountRoot, bytes32 domain, bytes txs) view returns(uint8)
-func (_Rollupclient *RollupclientCallerSession) CheckSignatureCreate2Transfer(signature [2]*big.Int, proof TypesSignatureProofWithReceiver, stateRoot [32]byte, accountRoot [32]byte, domain [32]byte, txs []byte) (uint8, error) {
-	return _Rollupclient.Contract.CheckSignatureCreate2Transfer(&_Rollupclient.CallOpts, signature, proof, stateRoot, accountRoot, domain, txs)
-}
-
-// CheckSignatureMassMigration is a free data retrieval call binding the contract method 0xe52e3c60.
-//
-// Solidity: function checkSignatureMassMigration(uint256[2] signature, ((uint256,uint256,uint256,uint256)[],bytes32[][],uint256[4][],bytes32[][]) proof, bytes32 stateRoot, bytes32 accountRoot, bytes32 domain, uint256 spokeID, bytes txs) view returns(uint8)
-func (_Rollupclient *RollupclientCaller) CheckSignatureMassMigration(opts *bind.CallOpts, signature [2]*big.Int, proof TypesSignatureProof, stateRoot [32]byte, accountRoot [32]byte, domain [32]byte, spokeID *big.Int, txs []byte) (uint8, error) {
-	var (
-		ret0 = new(uint8)
-	)
-	out := ret0
-	err := _Rollupclient.contract.Call(opts, out, "checkSignatureMassMigration", signature, proof, stateRoot, accountRoot, domain, spokeID, txs)
-	return *ret0, err
-}
-
-// CheckSignatureMassMigration is a free data retrieval call binding the contract method 0xe52e3c60.
-//
-// Solidity: function checkSignatureMassMigration(uint256[2] signature, ((uint256,uint256,uint256,uint256)[],bytes32[][],uint256[4][],bytes32[][]) proof, bytes32 stateRoot, bytes32 accountRoot, bytes32 domain, uint256 spokeID, bytes txs) view returns(uint8)
-func (_Rollupclient *RollupclientSession) CheckSignatureMassMigration(signature [2]*big.Int, proof TypesSignatureProof, stateRoot [32]byte, accountRoot [32]byte, domain [32]byte, spokeID *big.Int, txs []byte) (uint8, error) {
-	return _Rollupclient.Contract.CheckSignatureMassMigration(&_Rollupclient.CallOpts, signature, proof, stateRoot, accountRoot, domain, spokeID, txs)
-}
-
-// CheckSignatureMassMigration is a free data retrieval call binding the contract method 0xe52e3c60.
-//
-// Solidity: function checkSignatureMassMigration(uint256[2] signature, ((uint256,uint256,uint256,uint256)[],bytes32[][],uint256[4][],bytes32[][]) proof, bytes32 stateRoot, bytes32 accountRoot, bytes32 domain, uint256 spokeID, bytes txs) view returns(uint8)
-func (_Rollupclient *RollupclientCallerSession) CheckSignatureMassMigration(signature [2]*big.Int, proof TypesSignatureProof, stateRoot [32]byte, accountRoot [32]byte, domain [32]byte, spokeID *big.Int, txs []byte) (uint8, error) {
-	return _Rollupclient.Contract.CheckSignatureMassMigration(&_Rollupclient.CallOpts, signature, proof, stateRoot, accountRoot, domain, spokeID, txs)
-}
-
 // CheckSignatureTransfer is a free data retrieval call binding the contract method 0xf6de1ce2.
 //
 // Solidity: function checkSignatureTransfer(uint256[2] signature, ((uint256,uint256,uint256,uint256)[],bytes32[][],uint256[4][],bytes32[][]) proof, bytes32 stateRoot, bytes32 accountRoot, bytes32 domain, bytes txs) view returns(uint8)
@@ -312,58 +237,6 @@ func (_Rollupclient *RollupclientCallerSession) CheckSignatureTransfer(signature
 	return _Rollupclient.Contract.CheckSignatureTransfer(&_Rollupclient.CallOpts, signature, proof, stateRoot, accountRoot, domain, txs)
 }
 
-// CompressCreate2Transfer is a free data retrieval call binding the contract method 0x647a6636.
-//
-// Solidity: function compressCreate2Transfer(bytes[] encodedTxs) pure returns(bytes)
-func (_Rollupclient *RollupclientCaller) CompressCreate2Transfer(opts *bind.CallOpts, encodedTxs [][]byte) ([]byte, error) {
-	var (
-		ret0 = new([]byte)
-	)
-	out := ret0
-	err := _Rollupclient.contract.Call(opts, out, "compressCreate2Transfer", encodedTxs)
-	return *ret0, err
-}
-
-// CompressCreate2Transfer is a free data retrieval call binding the contract method 0x647a6636.
-//
-// Solidity: function compressCreate2Transfer(bytes[] encodedTxs) pure returns(bytes)
-func (_Rollupclient *RollupclientSession) CompressCreate2Transfer(encodedTxs [][]byte) ([]byte, error) {
-	return _Rollupclient.Contract.CompressCreate2Transfer(&_Rollupclient.CallOpts, encodedTxs)
-}
-
-// CompressCreate2Transfer is a free data retrieval call binding the contract method 0x647a6636.
-//
-// Solidity: function compressCreate2Transfer(bytes[] encodedTxs) pure returns(bytes)
-func (_Rollupclient *RollupclientCallerSession) CompressCreate2Transfer(encodedTxs [][]byte) ([]byte, error) {
-	return _Rollupclient.Contract.CompressCreate2Transfer(&_Rollupclient.CallOpts, encodedTxs)
-}
-
-// CompressMassMigration is a free data retrieval call binding the contract method 0x79374249.
-//
-// Solidity: function compressMassMigration(bytes[] encodedTxs) pure returns(bytes)
-func (_Rollupclient *RollupclientCaller) CompressMassMigration(opts *bind.CallOpts, encodedTxs [][]byte) ([]byte, error) {
-	var (
-		ret0 = new([]byte)
-	)
-	out := ret0
-	err := _Rollupclient.contract.Call(opts, out, "compressMassMigration", encodedTxs)
-	return *ret0, err
-}
-
-// CompressMassMigration is a free data retrieval call binding the contract method 0x79374249.
-//
-// Solidity: function compressMassMigration(bytes[] encodedTxs) pure returns(bytes)
-func (_Rollupclient *RollupclientSession) CompressMassMigration(encodedTxs [][]byte) ([]byte, error) {
-	return _Rollupclient.Contract.CompressMassMigration(&_Rollupclient.CallOpts, encodedTxs)
-}
-
-// CompressMassMigration is a free data retrieval call binding the contract method 0x79374249.
-//
-// Solidity: function compressMassMigration(bytes[] encodedTxs) pure returns(bytes)
-func (_Rollupclient *RollupclientCallerSession) CompressMassMigration(encodedTxs [][]byte) ([]byte, error) {
-	return _Rollupclient.Contract.CompressMassMigration(&_Rollupclient.CallOpts, encodedTxs)
-}
-
 // CompressTransfer is a free data retrieval call binding the contract method 0xa98d6265.
 //
 // Solidity: function compressTransfer(bytes[] encodedTxs) pure returns(bytes)
@@ -388,58 +261,6 @@ func (_Rollupclient *RollupclientSession) CompressTransfer(encodedTxs [][]byte) 
 // Solidity: function compressTransfer(bytes[] encodedTxs) pure returns(bytes)
 func (_Rollupclient *RollupclientCallerSession) CompressTransfer(encodedTxs [][]byte) ([]byte, error) {
 	return _Rollupclient.Contract.CompressTransfer(&_Rollupclient.CallOpts, encodedTxs)
-}
-
-// DecodeCreate2Transfer is a free data retrieval call binding the contract method 0xdd9a65a6.
-//
-// Solidity: function decodeCreate2Transfer(bytes encodedTx) pure returns((uint256,uint256,uint256,uint256,uint256,uint256,uint256) _tx)
-func (_Rollupclient *RollupclientCaller) DecodeCreate2Transfer(opts *bind.CallOpts, encodedTx []byte) (OffchainCreate2Transfer, error) {
-	var (
-		ret0 = new(OffchainCreate2Transfer)
-	)
-	out := ret0
-	err := _Rollupclient.contract.Call(opts, out, "decodeCreate2Transfer", encodedTx)
-	return *ret0, err
-}
-
-// DecodeCreate2Transfer is a free data retrieval call binding the contract method 0xdd9a65a6.
-//
-// Solidity: function decodeCreate2Transfer(bytes encodedTx) pure returns((uint256,uint256,uint256,uint256,uint256,uint256,uint256) _tx)
-func (_Rollupclient *RollupclientSession) DecodeCreate2Transfer(encodedTx []byte) (OffchainCreate2Transfer, error) {
-	return _Rollupclient.Contract.DecodeCreate2Transfer(&_Rollupclient.CallOpts, encodedTx)
-}
-
-// DecodeCreate2Transfer is a free data retrieval call binding the contract method 0xdd9a65a6.
-//
-// Solidity: function decodeCreate2Transfer(bytes encodedTx) pure returns((uint256,uint256,uint256,uint256,uint256,uint256,uint256) _tx)
-func (_Rollupclient *RollupclientCallerSession) DecodeCreate2Transfer(encodedTx []byte) (OffchainCreate2Transfer, error) {
-	return _Rollupclient.Contract.DecodeCreate2Transfer(&_Rollupclient.CallOpts, encodedTx)
-}
-
-// DecodeMassMigration is a free data retrieval call binding the contract method 0x7da53539.
-//
-// Solidity: function decodeMassMigration(bytes encodedTx) pure returns((uint256,uint256,uint256,uint256,uint256,uint256) _tx)
-func (_Rollupclient *RollupclientCaller) DecodeMassMigration(opts *bind.CallOpts, encodedTx []byte) (OffchainMassMigration, error) {
-	var (
-		ret0 = new(OffchainMassMigration)
-	)
-	out := ret0
-	err := _Rollupclient.contract.Call(opts, out, "decodeMassMigration", encodedTx)
-	return *ret0, err
-}
-
-// DecodeMassMigration is a free data retrieval call binding the contract method 0x7da53539.
-//
-// Solidity: function decodeMassMigration(bytes encodedTx) pure returns((uint256,uint256,uint256,uint256,uint256,uint256) _tx)
-func (_Rollupclient *RollupclientSession) DecodeMassMigration(encodedTx []byte) (OffchainMassMigration, error) {
-	return _Rollupclient.Contract.DecodeMassMigration(&_Rollupclient.CallOpts, encodedTx)
-}
-
-// DecodeMassMigration is a free data retrieval call binding the contract method 0x7da53539.
-//
-// Solidity: function decodeMassMigration(bytes encodedTx) pure returns((uint256,uint256,uint256,uint256,uint256,uint256) _tx)
-func (_Rollupclient *RollupclientCallerSession) DecodeMassMigration(encodedTx []byte) (OffchainMassMigration, error) {
-	return _Rollupclient.Contract.DecodeMassMigration(&_Rollupclient.CallOpts, encodedTx)
 }
 
 // DecodeState is a free data retrieval call binding the contract method 0xb3b83621.
@@ -494,6 +315,32 @@ func (_Rollupclient *RollupclientCallerSession) DecodeTransfer(encodedTx []byte)
 	return _Rollupclient.Contract.DecodeTransfer(&_Rollupclient.CallOpts, encodedTx)
 }
 
+// DecompressTransfer is a free data retrieval call binding the contract method 0x5f978145.
+//
+// Solidity: function decompressTransfer(bytes txs) pure returns((uint256,uint256,uint256,uint256)[] txTxs)
+func (_Rollupclient *RollupclientCaller) DecompressTransfer(opts *bind.CallOpts, txs []byte) ([]TxTransfer, error) {
+	var (
+		ret0 = new([]TxTransfer)
+	)
+	out := ret0
+	err := _Rollupclient.contract.Call(opts, out, "decompressTransfer", txs)
+	return *ret0, err
+}
+
+// DecompressTransfer is a free data retrieval call binding the contract method 0x5f978145.
+//
+// Solidity: function decompressTransfer(bytes txs) pure returns((uint256,uint256,uint256,uint256)[] txTxs)
+func (_Rollupclient *RollupclientSession) DecompressTransfer(txs []byte) ([]TxTransfer, error) {
+	return _Rollupclient.Contract.DecompressTransfer(&_Rollupclient.CallOpts, txs)
+}
+
+// DecompressTransfer is a free data retrieval call binding the contract method 0x5f978145.
+//
+// Solidity: function decompressTransfer(bytes txs) pure returns((uint256,uint256,uint256,uint256)[] txTxs)
+func (_Rollupclient *RollupclientCallerSession) DecompressTransfer(txs []byte) ([]TxTransfer, error) {
+	return _Rollupclient.Contract.DecompressTransfer(&_Rollupclient.CallOpts, txs)
+}
+
 // Encode is a free data retrieval call binding the contract method 0x17412b8a.
 //
 // Solidity: function encode((uint256,uint256,uint256,uint256) state) pure returns(bytes)
@@ -520,58 +367,6 @@ func (_Rollupclient *RollupclientCallerSession) Encode(state TypesUserState) ([]
 	return _Rollupclient.Contract.Encode(&_Rollupclient.CallOpts, state)
 }
 
-// EncodeCreate2Transfer is a free data retrieval call binding the contract method 0xbadcaf16.
-//
-// Solidity: function encodeCreate2Transfer((uint256,uint256,uint256,uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
-func (_Rollupclient *RollupclientCaller) EncodeCreate2Transfer(opts *bind.CallOpts, _tx OffchainCreate2Transfer) ([]byte, error) {
-	var (
-		ret0 = new([]byte)
-	)
-	out := ret0
-	err := _Rollupclient.contract.Call(opts, out, "encodeCreate2Transfer", _tx)
-	return *ret0, err
-}
-
-// EncodeCreate2Transfer is a free data retrieval call binding the contract method 0xbadcaf16.
-//
-// Solidity: function encodeCreate2Transfer((uint256,uint256,uint256,uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
-func (_Rollupclient *RollupclientSession) EncodeCreate2Transfer(_tx OffchainCreate2Transfer) ([]byte, error) {
-	return _Rollupclient.Contract.EncodeCreate2Transfer(&_Rollupclient.CallOpts, _tx)
-}
-
-// EncodeCreate2Transfer is a free data retrieval call binding the contract method 0xbadcaf16.
-//
-// Solidity: function encodeCreate2Transfer((uint256,uint256,uint256,uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
-func (_Rollupclient *RollupclientCallerSession) EncodeCreate2Transfer(_tx OffchainCreate2Transfer) ([]byte, error) {
-	return _Rollupclient.Contract.EncodeCreate2Transfer(&_Rollupclient.CallOpts, _tx)
-}
-
-// EncodeMassMigration is a free data retrieval call binding the contract method 0xbb2420f4.
-//
-// Solidity: function encodeMassMigration((uint256,uint256,uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
-func (_Rollupclient *RollupclientCaller) EncodeMassMigration(opts *bind.CallOpts, _tx OffchainMassMigration) ([]byte, error) {
-	var (
-		ret0 = new([]byte)
-	)
-	out := ret0
-	err := _Rollupclient.contract.Call(opts, out, "encodeMassMigration", _tx)
-	return *ret0, err
-}
-
-// EncodeMassMigration is a free data retrieval call binding the contract method 0xbb2420f4.
-//
-// Solidity: function encodeMassMigration((uint256,uint256,uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
-func (_Rollupclient *RollupclientSession) EncodeMassMigration(_tx OffchainMassMigration) ([]byte, error) {
-	return _Rollupclient.Contract.EncodeMassMigration(&_Rollupclient.CallOpts, _tx)
-}
-
-// EncodeMassMigration is a free data retrieval call binding the contract method 0xbb2420f4.
-//
-// Solidity: function encodeMassMigration((uint256,uint256,uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
-func (_Rollupclient *RollupclientCallerSession) EncodeMassMigration(_tx OffchainMassMigration) ([]byte, error) {
-	return _Rollupclient.Contract.EncodeMassMigration(&_Rollupclient.CallOpts, _tx)
-}
-
 // EncodeTransfer is a free data retrieval call binding the contract method 0x6712104b.
 //
 // Solidity: function encodeTransfer((uint256,uint256,uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
@@ -596,82 +391,6 @@ func (_Rollupclient *RollupclientSession) EncodeTransfer(_tx OffchainTransfer) (
 // Solidity: function encodeTransfer((uint256,uint256,uint256,uint256,uint256,uint256) _tx) pure returns(bytes)
 func (_Rollupclient *RollupclientCallerSession) EncodeTransfer(_tx OffchainTransfer) ([]byte, error) {
 	return _Rollupclient.Contract.EncodeTransfer(&_Rollupclient.CallOpts, _tx)
-}
-
-// ProcessCreate2Transfer is a free data retrieval call binding the contract method 0x45b42c83.
-//
-// Solidity: function processCreate2Transfer(bytes32 stateRoot, bytes encodedTx, uint256 tokenType, ((uint256,uint256,uint256,uint256),bytes32[]) from, ((uint256,uint256,uint256,uint256),bytes32[]) to) pure returns(bytes32 newRoot, uint8 result)
-func (_Rollupclient *RollupclientCaller) ProcessCreate2Transfer(opts *bind.CallOpts, stateRoot [32]byte, encodedTx []byte, tokenType *big.Int, from TypesStateMerkleProof, to TypesStateMerkleProof) (struct {
-	NewRoot [32]byte
-	Result  uint8
-}, error) {
-	ret := new(struct {
-		NewRoot [32]byte
-		Result  uint8
-	})
-	out := ret
-	err := _Rollupclient.contract.Call(opts, out, "processCreate2Transfer", stateRoot, encodedTx, tokenType, from, to)
-	return *ret, err
-}
-
-// ProcessCreate2Transfer is a free data retrieval call binding the contract method 0x45b42c83.
-//
-// Solidity: function processCreate2Transfer(bytes32 stateRoot, bytes encodedTx, uint256 tokenType, ((uint256,uint256,uint256,uint256),bytes32[]) from, ((uint256,uint256,uint256,uint256),bytes32[]) to) pure returns(bytes32 newRoot, uint8 result)
-func (_Rollupclient *RollupclientSession) ProcessCreate2Transfer(stateRoot [32]byte, encodedTx []byte, tokenType *big.Int, from TypesStateMerkleProof, to TypesStateMerkleProof) (struct {
-	NewRoot [32]byte
-	Result  uint8
-}, error) {
-	return _Rollupclient.Contract.ProcessCreate2Transfer(&_Rollupclient.CallOpts, stateRoot, encodedTx, tokenType, from, to)
-}
-
-// ProcessCreate2Transfer is a free data retrieval call binding the contract method 0x45b42c83.
-//
-// Solidity: function processCreate2Transfer(bytes32 stateRoot, bytes encodedTx, uint256 tokenType, ((uint256,uint256,uint256,uint256),bytes32[]) from, ((uint256,uint256,uint256,uint256),bytes32[]) to) pure returns(bytes32 newRoot, uint8 result)
-func (_Rollupclient *RollupclientCallerSession) ProcessCreate2Transfer(stateRoot [32]byte, encodedTx []byte, tokenType *big.Int, from TypesStateMerkleProof, to TypesStateMerkleProof) (struct {
-	NewRoot [32]byte
-	Result  uint8
-}, error) {
-	return _Rollupclient.Contract.ProcessCreate2Transfer(&_Rollupclient.CallOpts, stateRoot, encodedTx, tokenType, from, to)
-}
-
-// ProcessMassMigration is a free data retrieval call binding the contract method 0x38621a76.
-//
-// Solidity: function processMassMigration(bytes32 stateRoot, bytes encodedTx, uint256 tokenType, ((uint256,uint256,uint256,uint256),bytes32[]) from) pure returns(bytes32 newRoot, bytes freshState, uint8 result)
-func (_Rollupclient *RollupclientCaller) ProcessMassMigration(opts *bind.CallOpts, stateRoot [32]byte, encodedTx []byte, tokenType *big.Int, from TypesStateMerkleProof) (struct {
-	NewRoot    [32]byte
-	FreshState []byte
-	Result     uint8
-}, error) {
-	ret := new(struct {
-		NewRoot    [32]byte
-		FreshState []byte
-		Result     uint8
-	})
-	out := ret
-	err := _Rollupclient.contract.Call(opts, out, "processMassMigration", stateRoot, encodedTx, tokenType, from)
-	return *ret, err
-}
-
-// ProcessMassMigration is a free data retrieval call binding the contract method 0x38621a76.
-//
-// Solidity: function processMassMigration(bytes32 stateRoot, bytes encodedTx, uint256 tokenType, ((uint256,uint256,uint256,uint256),bytes32[]) from) pure returns(bytes32 newRoot, bytes freshState, uint8 result)
-func (_Rollupclient *RollupclientSession) ProcessMassMigration(stateRoot [32]byte, encodedTx []byte, tokenType *big.Int, from TypesStateMerkleProof) (struct {
-	NewRoot    [32]byte
-	FreshState []byte
-	Result     uint8
-}, error) {
-	return _Rollupclient.Contract.ProcessMassMigration(&_Rollupclient.CallOpts, stateRoot, encodedTx, tokenType, from)
-}
-
-// ProcessMassMigration is a free data retrieval call binding the contract method 0x38621a76.
-//
-// Solidity: function processMassMigration(bytes32 stateRoot, bytes encodedTx, uint256 tokenType, ((uint256,uint256,uint256,uint256),bytes32[]) from) pure returns(bytes32 newRoot, bytes freshState, uint8 result)
-func (_Rollupclient *RollupclientCallerSession) ProcessMassMigration(stateRoot [32]byte, encodedTx []byte, tokenType *big.Int, from TypesStateMerkleProof) (struct {
-	NewRoot    [32]byte
-	FreshState []byte
-	Result     uint8
-}, error) {
-	return _Rollupclient.Contract.ProcessMassMigration(&_Rollupclient.CallOpts, stateRoot, encodedTx, tokenType, from)
 }
 
 // ProcessTransfer is a free data retrieval call binding the contract method 0x5340fda8.
@@ -710,54 +429,6 @@ func (_Rollupclient *RollupclientCallerSession) ProcessTransfer(stateRoot [32]by
 	return _Rollupclient.Contract.ProcessTransfer(&_Rollupclient.CallOpts, stateRoot, encodedTx, tokenType, from, to)
 }
 
-// ValiateCreate2Transfer is a free data retrieval call binding the contract method 0x984ca4bb.
-//
-// Solidity: function valiateCreate2Transfer(bytes encodedTx, uint256[2] signature, uint256[4] fromPubkey, uint256[4] toPubkey, bytes32 domain) view returns()
-func (_Rollupclient *RollupclientCaller) ValiateCreate2Transfer(opts *bind.CallOpts, encodedTx []byte, signature [2]*big.Int, fromPubkey [4]*big.Int, toPubkey [4]*big.Int, domain [32]byte) error {
-	var ()
-	out := &[]interface{}{}
-	err := _Rollupclient.contract.Call(opts, out, "valiateCreate2Transfer", encodedTx, signature, fromPubkey, toPubkey, domain)
-	return err
-}
-
-// ValiateCreate2Transfer is a free data retrieval call binding the contract method 0x984ca4bb.
-//
-// Solidity: function valiateCreate2Transfer(bytes encodedTx, uint256[2] signature, uint256[4] fromPubkey, uint256[4] toPubkey, bytes32 domain) view returns()
-func (_Rollupclient *RollupclientSession) ValiateCreate2Transfer(encodedTx []byte, signature [2]*big.Int, fromPubkey [4]*big.Int, toPubkey [4]*big.Int, domain [32]byte) error {
-	return _Rollupclient.Contract.ValiateCreate2Transfer(&_Rollupclient.CallOpts, encodedTx, signature, fromPubkey, toPubkey, domain)
-}
-
-// ValiateCreate2Transfer is a free data retrieval call binding the contract method 0x984ca4bb.
-//
-// Solidity: function valiateCreate2Transfer(bytes encodedTx, uint256[2] signature, uint256[4] fromPubkey, uint256[4] toPubkey, bytes32 domain) view returns()
-func (_Rollupclient *RollupclientCallerSession) ValiateCreate2Transfer(encodedTx []byte, signature [2]*big.Int, fromPubkey [4]*big.Int, toPubkey [4]*big.Int, domain [32]byte) error {
-	return _Rollupclient.Contract.ValiateCreate2Transfer(&_Rollupclient.CallOpts, encodedTx, signature, fromPubkey, toPubkey, domain)
-}
-
-// ValiateMassMigration is a free data retrieval call binding the contract method 0x3b017bf4.
-//
-// Solidity: function valiateMassMigration(bytes encodedTx, uint256[2] signature, uint256[4] pubkey, bytes32 domain) view returns()
-func (_Rollupclient *RollupclientCaller) ValiateMassMigration(opts *bind.CallOpts, encodedTx []byte, signature [2]*big.Int, pubkey [4]*big.Int, domain [32]byte) error {
-	var ()
-	out := &[]interface{}{}
-	err := _Rollupclient.contract.Call(opts, out, "valiateMassMigration", encodedTx, signature, pubkey, domain)
-	return err
-}
-
-// ValiateMassMigration is a free data retrieval call binding the contract method 0x3b017bf4.
-//
-// Solidity: function valiateMassMigration(bytes encodedTx, uint256[2] signature, uint256[4] pubkey, bytes32 domain) view returns()
-func (_Rollupclient *RollupclientSession) ValiateMassMigration(encodedTx []byte, signature [2]*big.Int, pubkey [4]*big.Int, domain [32]byte) error {
-	return _Rollupclient.Contract.ValiateMassMigration(&_Rollupclient.CallOpts, encodedTx, signature, pubkey, domain)
-}
-
-// ValiateMassMigration is a free data retrieval call binding the contract method 0x3b017bf4.
-//
-// Solidity: function valiateMassMigration(bytes encodedTx, uint256[2] signature, uint256[4] pubkey, bytes32 domain) view returns()
-func (_Rollupclient *RollupclientCallerSession) ValiateMassMigration(encodedTx []byte, signature [2]*big.Int, pubkey [4]*big.Int, domain [32]byte) error {
-	return _Rollupclient.Contract.ValiateMassMigration(&_Rollupclient.CallOpts, encodedTx, signature, pubkey, domain)
-}
-
 // ValiateTransfer is a free data retrieval call binding the contract method 0x5aba4cf3.
 //
 // Solidity: function valiateTransfer(bytes encodedTx, uint256[2] signature, uint256[4] pubkey, bytes32 domain) view returns()
@@ -780,86 +451,6 @@ func (_Rollupclient *RollupclientSession) ValiateTransfer(encodedTx []byte, sign
 // Solidity: function valiateTransfer(bytes encodedTx, uint256[2] signature, uint256[4] pubkey, bytes32 domain) view returns()
 func (_Rollupclient *RollupclientCallerSession) ValiateTransfer(encodedTx []byte, signature [2]*big.Int, pubkey [4]*big.Int, domain [32]byte) error {
 	return _Rollupclient.Contract.ValiateTransfer(&_Rollupclient.CallOpts, encodedTx, signature, pubkey, domain)
-}
-
-// ValidateAndApplyCreate2Transfer is a free data retrieval call binding the contract method 0x323f6b7b.
-//
-// Solidity: function validateAndApplyCreate2Transfer(bytes senderEncoded, bytes encodedTx) pure returns(bytes newSender, bytes newReceiver, uint8 result)
-func (_Rollupclient *RollupclientCaller) ValidateAndApplyCreate2Transfer(opts *bind.CallOpts, senderEncoded []byte, encodedTx []byte) (struct {
-	NewSender   []byte
-	NewReceiver []byte
-	Result      uint8
-}, error) {
-	ret := new(struct {
-		NewSender   []byte
-		NewReceiver []byte
-		Result      uint8
-	})
-	out := ret
-	err := _Rollupclient.contract.Call(opts, out, "validateAndApplyCreate2Transfer", senderEncoded, encodedTx)
-	return *ret, err
-}
-
-// ValidateAndApplyCreate2Transfer is a free data retrieval call binding the contract method 0x323f6b7b.
-//
-// Solidity: function validateAndApplyCreate2Transfer(bytes senderEncoded, bytes encodedTx) pure returns(bytes newSender, bytes newReceiver, uint8 result)
-func (_Rollupclient *RollupclientSession) ValidateAndApplyCreate2Transfer(senderEncoded []byte, encodedTx []byte) (struct {
-	NewSender   []byte
-	NewReceiver []byte
-	Result      uint8
-}, error) {
-	return _Rollupclient.Contract.ValidateAndApplyCreate2Transfer(&_Rollupclient.CallOpts, senderEncoded, encodedTx)
-}
-
-// ValidateAndApplyCreate2Transfer is a free data retrieval call binding the contract method 0x323f6b7b.
-//
-// Solidity: function validateAndApplyCreate2Transfer(bytes senderEncoded, bytes encodedTx) pure returns(bytes newSender, bytes newReceiver, uint8 result)
-func (_Rollupclient *RollupclientCallerSession) ValidateAndApplyCreate2Transfer(senderEncoded []byte, encodedTx []byte) (struct {
-	NewSender   []byte
-	NewReceiver []byte
-	Result      uint8
-}, error) {
-	return _Rollupclient.Contract.ValidateAndApplyCreate2Transfer(&_Rollupclient.CallOpts, senderEncoded, encodedTx)
-}
-
-// ValidateAndApplyMassMigration is a free data retrieval call binding the contract method 0x5d4ac153.
-//
-// Solidity: function validateAndApplyMassMigration(bytes senderEncoded, bytes encodedTx) pure returns(bytes newSender, bytes withdrawState, uint8 result)
-func (_Rollupclient *RollupclientCaller) ValidateAndApplyMassMigration(opts *bind.CallOpts, senderEncoded []byte, encodedTx []byte) (struct {
-	NewSender     []byte
-	WithdrawState []byte
-	Result        uint8
-}, error) {
-	ret := new(struct {
-		NewSender     []byte
-		WithdrawState []byte
-		Result        uint8
-	})
-	out := ret
-	err := _Rollupclient.contract.Call(opts, out, "validateAndApplyMassMigration", senderEncoded, encodedTx)
-	return *ret, err
-}
-
-// ValidateAndApplyMassMigration is a free data retrieval call binding the contract method 0x5d4ac153.
-//
-// Solidity: function validateAndApplyMassMigration(bytes senderEncoded, bytes encodedTx) pure returns(bytes newSender, bytes withdrawState, uint8 result)
-func (_Rollupclient *RollupclientSession) ValidateAndApplyMassMigration(senderEncoded []byte, encodedTx []byte) (struct {
-	NewSender     []byte
-	WithdrawState []byte
-	Result        uint8
-}, error) {
-	return _Rollupclient.Contract.ValidateAndApplyMassMigration(&_Rollupclient.CallOpts, senderEncoded, encodedTx)
-}
-
-// ValidateAndApplyMassMigration is a free data retrieval call binding the contract method 0x5d4ac153.
-//
-// Solidity: function validateAndApplyMassMigration(bytes senderEncoded, bytes encodedTx) pure returns(bytes newSender, bytes withdrawState, uint8 result)
-func (_Rollupclient *RollupclientCallerSession) ValidateAndApplyMassMigration(senderEncoded []byte, encodedTx []byte) (struct {
-	NewSender     []byte
-	WithdrawState []byte
-	Result        uint8
-}, error) {
-	return _Rollupclient.Contract.ValidateAndApplyMassMigration(&_Rollupclient.CallOpts, senderEncoded, encodedTx)
 }
 
 // ValidateAndApplyTransfer is a free data retrieval call binding the contract method 0xc5e411be.

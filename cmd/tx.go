@@ -131,6 +131,7 @@ func dummyTransfer() *cobra.Command {
 			}
 
 			fmt.Println("Transaction sent!", "Hash", txHash)
+
 			return nil
 		},
 	}

@@ -31,28 +31,11 @@ type SyncStatus struct {
 	ID string `json:"-" gorm:"primary_key;size:100;default:'6ba7b810-9dad-11d1-80b4-00c04fd430c8'"`
 	// Last eth block seen by the syncer is persisted here so that we can resume sync from it
 	LastEthBlockRecorded uint64 `json:"lastEthBlockRecorded"`
-
-	// Last batch index is recorded for this field
-	LastBatchRecorded uint64 `json:"lastBatchRecorded"`
 }
 
 func (ss *SyncStatus) LastEthBlockBigInt() *big.Int {
 	n := new(big.Int)
 	return n.SetUint64(ss.LastEthBlockRecorded)
-}
-
-func (db *DB) UpdateSyncStatusWithBatchNumber(batchIndex uint64) error {
-	syncStatus, err := db.GetSyncStatus()
-	if err != nil {
-		return err
-	}
-	var updatedSyncStatus SyncStatus
-	updatedSyncStatus.LastBatchRecorded = batchIndex
-	updatedSyncStatus.LastEthBlockRecorded = syncStatus.LastEthBlockRecorded
-	if err := db.Instance.Table("sync_statuses").Where("id = ?", syncStatus.ID).Update(&updatedSyncStatus).Error; err != nil {
-		return err
-	}
-	return nil
 }
 
 func (db *DB) InitSyncStatus(startBlock uint64) error {
@@ -65,7 +48,6 @@ func (db *DB) UpdateSyncStatusWithBlockNumber(blkNum uint64) error {
 		return err
 	}
 	var updatedSyncStatus SyncStatus
-	updatedSyncStatus.LastBatchRecorded = syncStatus.LastBatchRecorded
 	updatedSyncStatus.LastEthBlockRecorded = blkNum
 	if err := db.Instance.Table("sync_statuses").Where("id = ?", syncStatus.ID).Update(&updatedSyncStatus).Error; err != nil {
 		return err
