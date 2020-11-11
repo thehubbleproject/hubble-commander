@@ -169,6 +169,6 @@ func PrivKeyStringToAddress(privKey string) (ethCmn.Address, error) {
 }
 
 func GetDBURL() string {
-	values := []string{DefaultDbUrlPrefix, "/", DATABASENAME}
+	values := []string{DefaultDbUrlPrefix, "/", DATABASENAME, "?parseTime=true"}
 	return strings.Join(values, "")
 }
