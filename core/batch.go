@@ -65,7 +65,7 @@ func (db *DB) CommitBatch(ID uint64) error {
 		return err
 	}
 
-	if batch.Status != BATCH_BROADCASTED && batch.Status == BATCH_COMMITTED {
+	if batch.Status == BATCH_COMMITTED {
 		return ErrBatchAlreadyCommitted
 	}
 
