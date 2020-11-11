@@ -34,6 +34,7 @@ migrate-down:
 
 start:
 	mkdir -p logs &
+	touch ./logs/node.log
 	./build/hubble start > ./logs/node.log & 
 
 .PHONY: contracts dep start-simulator build clean start buidl

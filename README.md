@@ -42,13 +42,13 @@ In `config.toml` you also have various params for entering ethereum RPC's and co
 
 ```bash
 $ ./build/hubble create-database
-$ make migration-up
+$ make migrate-up
 ```
 
 ## Reset DB
 
 ```bash
-$ make migration-down
+$ make migrate-down
 ```
 
 ## Start hubble
