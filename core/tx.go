@@ -274,7 +274,7 @@ func (db *DB) FetchAccountProofWithID(id uint64, pdaProof *AccountMerkleProof) (
 	return nil
 }
 
-func (db *DB) FetchMPWithID(id uint64, accountMP *StateMerkleProof) (err error) {
+func (db *DB) FetchMPWithID(id uint64, stateMP *StateMerkleProof) (err error) {
 	leaf, err := DBInstance.GetStateByIndex(id)
 	if err != nil {
 		fmt.Println("error while getting leaf", err)
@@ -286,7 +286,7 @@ func (db *DB) FetchMPWithID(id uint64, accountMP *StateMerkleProof) (err error) 
 		return
 	}
 	accMP := NewStateMerkleProof(leaf, siblings)
-	*accountMP = accMP
+	*stateMP = accMP
 	return nil
 }
 
