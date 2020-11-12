@@ -1,6 +1,8 @@
 package core
 
-import "errors"
+import (
+	"errors"
+)
 
 var (
 	ErrBatchAlreadyCommitted = errors.New("Batch Already Committed")
