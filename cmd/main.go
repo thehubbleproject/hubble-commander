@@ -33,17 +33,10 @@ func main() {
 		Short: "Optimistic Rollup Daemon (server)",
 	}
 
-	// add new persistent flag for heimdall-config
 	rootCmd.PersistentFlags().String(
 		WithConfigPathFlag,
 		"",
 		"Config file path (default ./config.toml)",
-	)
-
-	// bind with-heimdall-config config with root cmd
-	viper.BindPFlag(
-		WithConfigPathFlag,
-		rootCmd.Flags().Lookup(WithConfigPathFlag),
 	)
 	rootCmd.AddCommand(initCmd())
 	rootCmd.AddCommand(startCmd())
@@ -53,7 +46,13 @@ func main() {
 	rootCmd.AddCommand(dummyTransfer())
 	rootCmd.AddCommand(createDatabase())
 	rootCmd.AddCommand(createUsers())
+	rootCmd.AddCommand(viewState())
 	rootCmd.AddCommand(migrationCmd)
+
+	if err := viper.BindPFlag(WithConfigPathFlag, rootCmd.Flags().Lookup(WithConfigPathFlag)); err != nil {
+		fmt.Println("Error binding flags with viper", "Error", err)
+		return
+	}
 
 	executor := Executor{rootCmd, os.Exit}
 	if err := executor.Command.Execute(); err != nil {
