@@ -485,7 +485,9 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err erro
 	// TODO fix
 	var feeReceivers []*big.Int
 	dummyReceivers := big.NewInt(0)
-	feeReceivers = append(feeReceivers, dummyReceivers)
+	for i := 0; i <= len(commitments); i++ {
+		feeReceivers = append(feeReceivers, dummyReceivers)
+	}
 
 	switch txType := commitments[0].BatchType; txType {
 	case TX_TRANSFER_TYPE:
