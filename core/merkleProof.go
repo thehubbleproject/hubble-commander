@@ -19,7 +19,7 @@ func (m *StateMerkleProof) ToABIVersion() (stateMP rollupclient.TypesStateMerkle
 		witnesses = append(witnesses, s.HashToByteArray())
 	}
 
-	state, err := m.State.ToABIAccount()
+	state, err := m.State.ToABIState()
 	if err != nil {
 		return
 	}

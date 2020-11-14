@@ -131,7 +131,7 @@ func loadGenesisData(genesis config.Genesis) {
 		// create empty state
 		newEmptyState := core.EmptyUserState()
 		newEmptyState.Data = zeroData
-		newEmptyState.CreateAccountHash()
+		newEmptyState.CreateStateHash()
 		states = append(states, newEmptyState)
 
 		// create empty account

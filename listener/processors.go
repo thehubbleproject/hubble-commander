@@ -76,7 +76,7 @@ func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog
 	)
 	// add new account in pending state to DB and
 	newAccount := core.NewPendingUserState(event.PubkeyID.Uint64(), event.Data)
-	if err := s.DBInstance.AddNewPendingAccount(*newAccount); err != nil {
+	if err := s.DBInstance.AddNewPendingState(*newAccount); err != nil {
 		panic(err)
 	}
 }

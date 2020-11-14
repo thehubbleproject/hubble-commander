@@ -55,7 +55,7 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot ByteArra
 	}
 
 	// find out the accounts that are finalised
-	accounts, err := db.GetPendingAccByDepositRoot(depositRoot)
+	accounts, err := db.GetPendingStateByDepositRoot(depositRoot)
 	if err != nil {
 		return err
 	}
@@ -76,14 +76,14 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot ByteArra
 	for i, acc := range accounts {
 		acc.Status = STATUS_ACTIVE
 		acc.UpdatePath(terminalNodes[i])
-		acc.CreateAccountHash()
+		acc.CreateStateHash()
 		err := db.UpdateState(acc)
 		if err != nil {
 			return err
 		}
 
 		// delete pending account
-		err = db.DeletePendingAccount(acc.StateID)
+		err = db.DeletePendingState(acc.StateID)
 		if err != nil {
 			return err
 		}
