@@ -5,35 +5,9 @@ import (
 
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
-	"github.com/globalsign/mgo"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
-
-type IDB interface {
-	// Account related DB functions
-	// FetchSiblings(accID uint64) (accs []UserState, err error)
-	GetAllAccounts() (accs []UserStateNode, err error)
-	GetAccount(accID uint64) (UserStateNode, error)
-	InsertBulkAccounts(accounts []UserStateNode) error
-	InsertGenAccounts(genAccs []config.GenUserState) error
-	GetStateCount() (int, error)
-
-	// Tx related functions
-	InsertTx(t *Tx) error
-	PopTxs() (txs []Tx, err error)
-
-	// Batch related functions
-	InsertBatchInfo(root ByteArray, index uint64) error
-	GetAllBatches() (batches []Batch, err error)
-	GetLatestBatch() (Batch, error)
-	GetBatchCount() (int, error)
-
-	// common functions
-	GetBatchCollection() *mgo.Collection
-	GetTransactionCollection() *mgo.Collection
-	GetAccountCollection() *mgo.Collection
-}
 
 // global DB instance created while doing init
 var DBInstance DB
