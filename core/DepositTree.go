@@ -83,7 +83,7 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot ByteArra
 		}
 
 		// delete pending account
-		err = db.DeletePendingAccount(acc.AccountID)
+		err = db.DeletePendingAccount(acc.StateID)
 		if err != nil {
 			return err
 		}
