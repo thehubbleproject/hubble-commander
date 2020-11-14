@@ -28,8 +28,8 @@ func init() {
 			if !db.HasTable(&types.Account{}) {
 				db.CreateTable(&types.Account{})
 			}
-			if !db.HasTable(&types.UserState{}) {
-				db.CreateTable(&types.UserState{})
+			if !db.HasTable(&types.UserStateNode{}) {
+				db.CreateTable(&types.UserStateNode{})
 			}
 			return nil
 		},
@@ -40,7 +40,7 @@ func init() {
 			db.DropTableIfExists(&types.SyncStatus{})
 			db.DropTableIfExists(&types.Token{})
 			db.DropTableIfExists(&types.Account{})
-			db.DropTableIfExists(&types.UserState{})
+			db.DropTableIfExists(&types.UserStateNode{})
 			return nil
 		},
 	}

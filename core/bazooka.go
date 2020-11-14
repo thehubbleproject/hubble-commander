@@ -488,7 +488,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err erro
 	return txHash, nil
 }
 
-func (b *Bazooka) FireDepositFinalisation(TBreplaced UserState, siblings []UserState, subTreeHeight uint64) (err error) {
+func (b *Bazooka) FireDepositFinalisation(TBreplaced UserStateNode, siblings []UserStateNode, subTreeHeight uint64) (err error) {
 	// b.log.Info(
 	// 	"Attempting to finalise deposits",
 	// 	"NodeToBeReplaced",

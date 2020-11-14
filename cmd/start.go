@@ -101,7 +101,7 @@ func loadGenesisData(genesis config.Genesis) {
 
 	diff := int(math.Exp2(float64(genesis.MaxTreeDepth))) - len(genesisAccounts)
 
-	var states []core.UserState
+	var states []core.UserStateNode
 	var accounts []core.Account
 
 	var zeroData []byte

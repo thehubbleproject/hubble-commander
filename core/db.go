@@ -13,9 +13,9 @@ import (
 type IDB interface {
 	// Account related DB functions
 	// FetchSiblings(accID uint64) (accs []UserState, err error)
-	GetAllAccounts() (accs []UserState, err error)
-	GetAccount(accID uint64) (UserState, error)
-	InsertBulkAccounts(accounts []UserState) error
+	GetAllAccounts() (accs []UserStateNode, err error)
+	GetAccount(accID uint64) (UserStateNode, error)
+	InsertBulkAccounts(accounts []UserStateNode) error
 	InsertGenAccounts(genAccs []config.GenUserState) error
 	GetAccountCount() (int, error)
 

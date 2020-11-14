@@ -11,8 +11,8 @@ import (
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
 )
 
-// UserState is the user data stored on the node per user
-type UserState struct {
+// UserStateNode is the user data stored on the node per user
+type UserStateNode struct {
 	// ID is the path of the user account in the account Tree
 	// Cannot be changed once created
 	AccountID uint64 `gorm:"not null;index:AccountID"`
@@ -46,8 +46,8 @@ type UserState struct {
 }
 
 // NewUserState creates a new user account
-func NewUserState(id, status uint64, path string, data []byte) *UserState {
-	newState := &UserState{
+func NewUserState(id, status uint64, path string, data []byte) *UserStateNode {
+	newState := &UserStateNode{
 		AccountID: id,
 		Path:      path,
 		Status:    status,
@@ -61,8 +61,8 @@ func NewUserState(id, status uint64, path string, data []byte) *UserState {
 
 // newStateNode creates a new non-terminal user account, the only this useful in this is
 // Path, Status, Hash, PubkeyHash
-func newStateNode(path, hash string) *UserState {
-	newUserState := &UserState{
+func newStateNode(path, hash string) *UserStateNode {
+	newUserState := &UserStateNode{
 		AccountID: ZERO,
 		Path:      path,
 		Status:    STATUS_ACTIVE,
@@ -75,8 +75,8 @@ func newStateNode(path, hash string) *UserState {
 
 // NewPendingUserState creates a new terminal user account but in pending state
 // It is to be used while adding new deposits while they are not finalised
-func NewPendingUserState(id uint64, data []byte) *UserState {
-	newAcccount := &UserState{
+func NewPendingUserState(id uint64, data []byte) *UserStateNode {
+	newAcccount := &UserStateNode{
 		AccountID: id,
 		Path:      UNINITIALIZED_PATH,
 		Status:    STATUS_PENDING,
@@ -88,17 +88,17 @@ func NewPendingUserState(id uint64, data []byte) *UserState {
 	return newAcccount
 }
 
-func (acc *UserState) UpdatePath(path string) {
+func (acc *UserStateNode) UpdatePath(path string) {
 	acc.Path = path
 	acc.Level = uint64(len(path))
 }
 
-func (s *UserState) String() string {
+func (s *UserStateNode) String() string {
 	id, balance, nonce, token, _ := LoadedBazooka.DecodeState(s.Data)
 	return fmt.Sprintf("ID: %d Bal: %d Nonce: %d Token: %v", id, balance, nonce, token)
 }
 
-func (s *UserState) ToABIAccount() (solState rollupclient.TypesUserState, err error) {
+func (s *UserStateNode) ToABIAccount() (solState rollupclient.TypesUserState, err error) {
 	solState.PubkeyIndex, solState.Balance, solState.Nonce, solState.TokenType, err = LoadedBazooka.DecodeState(s.Data)
 	if err != nil {
 		return
@@ -106,7 +106,7 @@ func (s *UserState) ToABIAccount() (solState rollupclient.TypesUserState, err er
 	return
 }
 
-func (acc *UserState) HashToByteArray() ByteArray {
+func (acc *UserStateNode) HashToByteArray() ByteArray {
 	ba, err := HexToByteArray(acc.Hash)
 	if err != nil {
 		panic(err)
@@ -114,11 +114,11 @@ func (acc *UserState) HashToByteArray() ByteArray {
 	return ba
 }
 
-func (acc *UserState) IsActive() bool {
+func (acc *UserStateNode) IsActive() bool {
 	return acc.Status == STATUS_ACTIVE
 }
 
-func (acc *UserState) IsCoordinator() bool {
+func (acc *UserStateNode) IsCoordinator() bool {
 	if acc.Path != "" {
 		return false
 	}
@@ -134,7 +134,7 @@ func (acc *UserState) IsCoordinator() bool {
 	return true
 }
 
-func (acc *UserState) CreateAccountHash() {
+func (acc *UserStateNode) CreateAccountHash() {
 	accountHash := common.Keccak256(acc.Data)
 	acc.Hash = accountHash.String()
 }
@@ -144,7 +144,7 @@ func (acc *UserState) CreateAccountHash() {
 //
 
 // EmptyUserState creates a new account which has the same hash as ZERO_VALUE_LEAF
-func EmptyUserState() UserState {
+func EmptyUserState() UserStateNode {
 	return *NewUserState(ZERO, STATUS_INACTIVE, "", []byte(""))
 }
 
@@ -153,7 +153,7 @@ func EmptyUserState() UserState {
 //
 
 // InitStateTree initialises the states tree
-func (db *DB) InitStateTree(depth uint64, genesisAccounts []UserState) error {
+func (db *DB) InitStateTree(depth uint64, genesisAccounts []UserStateNode) error {
 	// calculate total number of leaves
 	totalLeaves := math.Exp2(float64(depth))
 	if int(totalLeaves) != len(genesisAccounts) {
@@ -232,8 +232,8 @@ func (db *DB) InitStateTree(depth uint64, genesisAccounts []UserState) error {
 	return nil
 }
 
-func (db *DB) GetStatesAtDepth(depth uint64) ([]UserState, error) {
-	var accs []UserState
+func (db *DB) GetStatesAtDepth(depth uint64) ([]UserStateNode, error) {
+	var accs []UserStateNode
 	err := db.Instance.Where("level = ?", depth).Find(&accs).Error
 	if err != nil {
 		return accs, err
@@ -241,7 +241,7 @@ func (db *DB) GetStatesAtDepth(depth uint64) ([]UserState, error) {
 	return accs, nil
 }
 
-func (db *DB) UpdateState(account UserState) error {
+func (db *DB) UpdateState(account UserStateNode) error {
 	db.Logger.Info("Updated account", "PATH", account.Path)
 	account.CreateAccountHash()
 	siblings, err := db.GetSiblings(account.Path)
@@ -253,7 +253,7 @@ func (db *DB) UpdateState(account UserState) error {
 	return db.StoreLeaf(account, account.Path, siblings)
 }
 
-func (db *DB) StoreLeaf(state UserState, path string, siblings []UserState) error {
+func (db *DB) StoreLeaf(state UserStateNode, path string, siblings []UserStateNode) error {
 	var err error
 	var isLeft bool
 	computedNode := state
@@ -302,7 +302,7 @@ func (db *DB) StoreLeaf(state UserState, path string, siblings []UserState) erro
 }
 
 // StoreNode updates the nodes given the parent hash
-func (db *DB) StoreNode(parentHash ByteArray, leftNode UserState, rightNode UserState, isLeft bool) (err error) {
+func (db *DB) StoreNode(parentHash ByteArray, leftNode UserStateNode, rightNode UserStateNode, isLeft bool) (err error) {
 	if isLeft {
 		// update left account
 		err = db.updateState(leftNode, leftNode.Path)
@@ -322,26 +322,26 @@ func (db *DB) StoreNode(parentHash ByteArray, leftNode UserState, rightNode User
 
 func (db *DB) UpdateParentWithHash(pathToParent string, newHash ByteArray) error {
 	// Update the root hash
-	var tempAccount UserState
+	var tempAccount UserStateNode
 	tempAccount.Path = pathToParent
 	tempAccount.Hash = newHash.String()
 	return db.updateState(tempAccount, pathToParent)
 }
 
 func (db *DB) UpdateRootNodeHashes(newRoot ByteArray) error {
-	var tempAccount UserState
+	var tempAccount UserStateNode
 	tempAccount.Path = ""
 	tempAccount.Hash = newRoot.String()
 	return db.updateState(tempAccount, tempAccount.Path)
 }
 
-func (db *DB) AddNewPendingAccount(acc UserState) error {
+func (db *DB) AddNewPendingAccount(acc UserStateNode) error {
 	return db.Instance.Create(&acc).Error
 }
 
-func (db *DB) GetSiblings(path string) ([]UserState, error) {
+func (db *DB) GetSiblings(path string) ([]UserStateNode, error) {
 	var relativePath = path
-	var siblings []UserState
+	var siblings []UserStateNode
 	for i := len(path); i > 0; i-- {
 		otherChild := GetOtherChild(relativePath)
 		otherNode, err := db.GetStateByPath(otherChild)
@@ -356,8 +356,8 @@ func (db *DB) GetSiblings(path string) ([]UserState, error) {
 }
 
 // GetStateByDepth gets the state leaf of the given path from the DB
-func (db *DB) GetStateByDepth(path string) (UserState, error) {
-	var account UserState
+func (db *DB) GetStateByDepth(path string) (UserStateNode, error) {
+	var account UserStateNode
 	err := db.Instance.Where("path = ?", path).Find(&account).GetErrors()
 	if len(err) != 0 {
 		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record for path: %v err:%v", path, err))
@@ -365,7 +365,7 @@ func (db *DB) GetStateByDepth(path string) (UserState, error) {
 	return account, nil
 }
 
-func (db *DB) GetStateByIndex(index uint64) (acc UserState, err error) {
+func (db *DB) GetStateByIndex(index uint64) (acc UserStateNode, err error) {
 	params, err := db.GetParams()
 	if err != nil {
 		return
@@ -377,8 +377,8 @@ func (db *DB) GetStateByIndex(index uint64) (acc UserState, err error) {
 	return db.GetStateByPath(path)
 }
 
-func (db *DB) GetStateByPath(path string) (UserState, error) {
-	var userState UserState
+func (db *DB) GetStateByPath(path string) (UserStateNode, error) {
+	var userState UserStateNode
 	err := db.Instance.Where("path = ?", path).Find(&userState).GetErrors()
 	if len(err) != 0 {
 		return userState, ErrRecordNotFound(fmt.Sprintf("unable to find record for path: %v err:%v", path, err))
@@ -386,16 +386,16 @@ func (db *DB) GetStateByPath(path string) (UserState, error) {
 	return userState, nil
 }
 
-func (db *DB) GetAccountByHash(hash string) (UserState, error) {
-	var account UserState
+func (db *DB) GetAccountByHash(hash string) (UserStateNode, error) {
+	var account UserStateNode
 	if db.Instance.First(&account, hash).RecordNotFound() {
 		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record for hash: %v", hash))
 	}
 	return account, nil
 }
 
-func (db *DB) GetDepositSubTreeRoot(hash string, level uint64) (UserState, error) {
-	var account UserState
+func (db *DB) GetDepositSubTreeRoot(hash string, level uint64) (UserStateNode, error) {
+	var account UserStateNode
 	err := db.Instance.Where("level = ? AND hash = ?", level, hash).First(&account).Error
 	if gorm.IsRecordNotFoundError(err) {
 		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record for hash: %v", hash))
@@ -403,8 +403,8 @@ func (db *DB) GetDepositSubTreeRoot(hash string, level uint64) (UserState, error
 	return account, nil
 }
 
-func (db *DB) GetRoot() (UserState, error) {
-	var account UserState
+func (db *DB) GetRoot() (UserStateNode, error) {
+	var account UserStateNode
 	err := db.Instance.Where("level = ?", 0).Find(&account).GetErrors()
 	if len(err) != 0 {
 		return account, ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v", err))
@@ -412,7 +412,7 @@ func (db *DB) GetRoot() (UserState, error) {
 	return account, nil
 }
 
-func (db *DB) InsertCoordinatorAccounts(acc *UserState, depth uint64) error {
+func (db *DB) InsertCoordinatorAccounts(acc *UserStateNode, depth uint64) error {
 	acc.UpdatePath(GenCoordinatorPath(depth))
 	acc.CreateAccountHash()
 	acc.Type = TYPE_TERMINAL
@@ -420,8 +420,8 @@ func (db *DB) InsertCoordinatorAccounts(acc *UserState, depth uint64) error {
 }
 
 // updateState will simply replace all the changed fields
-func (db *DB) updateState(newAcc UserState, path string) error {
-	return db.Instance.Model(&newAcc).Where("path = ?", path).Updates(UserState{AccountID: newAcc.AccountID, Status: newAcc.Status, Data: newAcc.Data, Hash: newAcc.Hash}).Error
+func (db *DB) updateState(newAcc UserStateNode, path string) error {
+	return db.Instance.Model(&newAcc).Where("path = ?", path).Updates(UserStateNode{AccountID: newAcc.AccountID, Status: newAcc.Status, Data: newAcc.Data, Hash: newAcc.Hash}).Error
 }
 
 func (db *DB) GetAccountCount() (int, error) {
@@ -431,7 +431,7 @@ func (db *DB) GetAccountCount() (int, error) {
 }
 
 // GetFirstEmptyAccount fetches the first empty account
-func (db *DB) GetFirstEmptyAccount() (acc UserState, err error) {
+func (db *DB) GetFirstEmptyAccount() (acc UserStateNode, err error) {
 	params, err := db.GetParams()
 	if err != nil {
 		return acc, err
@@ -441,7 +441,7 @@ func (db *DB) GetFirstEmptyAccount() (acc UserState, err error) {
 }
 
 func (db *DB) DeletePendingAccount(ID uint64) error {
-	var account UserState
+	var account UserStateNode
 	if err := db.Instance.Where("account_id = ? AND status = ?", ID, STATUS_PENDING).Delete(&account).Error; err != nil {
 		return ErrRecordNotFound(fmt.Sprintf("unable to delete record for ID: %v", ID))
 	}
@@ -454,7 +454,7 @@ func (db *DB) DeletePendingAccount(ID uint64) error {
 
 func (db *DB) AttachDepositInfo(root ByteArray) error {
 	// find all pending accounts
-	var account UserState
+	var account UserStateNode
 	account.CreatedByDepositSubTree = root.String()
 	if err := db.Instance.Model(&account).Where("status = ?", STATUS_PENDING).Update(&account).Error; err != nil {
 		return err
@@ -462,9 +462,9 @@ func (db *DB) AttachDepositInfo(root ByteArray) error {
 	return nil
 }
 
-func (db *DB) GetPendingAccByDepositRoot(root ByteArray) ([]UserState, error) {
+func (db *DB) GetPendingAccByDepositRoot(root ByteArray) ([]UserStateNode, error) {
 	// find all accounts with CreatedByDepositSubTree as `root`
-	var pendingAccounts []UserState
+	var pendingAccounts []UserStateNode
 	if err := db.Instance.Where("created_by_deposit_sub_tree = ? AND status = ?", root.String(), STATUS_PENDING).Find(&pendingAccounts).Error; err != nil {
 		return pendingAccounts, err
 	}

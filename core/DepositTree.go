@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-func (db *DB) GetDepositNodeAndSiblings() (NodeToBeReplaced UserState, siblings []UserState, err error) {
+func (db *DB) GetDepositNodeAndSiblings() (NodeToBeReplaced UserStateNode, siblings []UserStateNode, err error) {
 	// get params
 	params, err := db.GetParams()
 	if err != nil {
@@ -92,8 +92,8 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot ByteArra
 	return nil
 }
 
-func (db *DB) GetPendingDeposits(numberOfAccs uint64) ([]UserState, error) {
-	var accounts []UserState
+func (db *DB) GetPendingDeposits(numberOfAccs uint64) ([]UserStateNode, error) {
+	var accounts []UserStateNode
 	err := db.Instance.Limit(numberOfAccs).Where("status = ?", 0).Find(&accounts).Error
 	if err != nil {
 		return accounts, err
@@ -105,7 +105,7 @@ func (db *DB) GetAllTerminalNodes(pathToDepositSubTree string) (terminalNodes []
 	buf := bytes.Buffer{}
 	buf.WriteString(pathToDepositSubTree)
 	buf.WriteString("%")
-	var accounts []UserState
+	var accounts []UserStateNode
 
 	// LIKE query with search for terminal nodes to DB
 	if err = db.Instance.Where("path LIKE ? AND type = ?", buf.String(), 1).Find(&accounts).Error; err != nil {

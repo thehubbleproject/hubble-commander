@@ -201,7 +201,7 @@ func (tx *Tx) GetWitnessTranfer() (fromMerkleProof, toMerkleProof StateMerklePro
 	if err != nil {
 		return
 	}
-	var toSiblings []UserState
+	var toSiblings []UserStateNode
 
 	newFrom, newTo, err := LoadedBazooka.ApplyTx(fromMerkleProof.State.Data, toState.Data, *tx)
 	if err != nil {

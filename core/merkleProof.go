@@ -5,11 +5,11 @@ import (
 )
 
 type StateMerkleProof struct {
-	State    UserState
-	Siblings []UserState
+	State    UserStateNode
+	Siblings []UserStateNode
 }
 
-func NewStateMerkleProof(account UserState, siblings []UserState) StateMerkleProof {
+func NewStateMerkleProof(account UserStateNode, siblings []UserStateNode) StateMerkleProof {
 	return StateMerkleProof{State: account, Siblings: siblings}
 }
 
