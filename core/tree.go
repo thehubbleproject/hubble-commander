@@ -7,6 +7,7 @@ import (
 	"math"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/jinzhu/gorm"
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
 )
 
@@ -27,26 +28,80 @@ type Node struct {
 	Level uint64 `gorm:"not null"`
 }
 
+type nodes []Node
+
+func (nodes nodes) toByteArray() (witness []ByteArray, err error) {
+	for _, node := range nodes {
+		byteArray, err := HexToByteArray(node.Hash)
+		if err != nil {
+			return nil, err
+		}
+		witness = append(witness, byteArray)
+	}
+	return witness, nil
+}
+
 // Tree is tree
 type Tree interface {
-	GetWitness(path string) ([]ByteArray, error)
-	UpdateBranches(path string) error
+	getModel()
+	Root() (hash string, err error)
+	Get(index uint64) ([]ByteArray, error)
+	Update(index uint64, data interface{}) error
+}
+
+type UserState struct {
+	ID          uint64
+	pubkeyIndex uint64
+	tokenType   uint64
+	nonce       uint64
+}
+
+type UserStateNode struct {
+	Node
+}
+
+type StateTree struct {
+	Model gorm.ModelStruct
+	Depth uint64
+}
+
+// GetPathsFromIndex gets the required witness's paths
+func GetPathsFromIndex(index uint64) (paths []string, err error) {
+	paths = []string{"0", "01", "011", "0111", "01111"}
+	return paths, nil
+}
+
+// Get gets the data itself with its witness
+func (db *DB) Get(index uint64) (state UserState, witness []ByteArray, err error) {
+	paths, err := GetPathsFromIndex(index)
+	if err != nil {
+		return
+	}
+	nodes := nodes{}
+	// What about those paths not in db?
+	err = db.Instance.Model(&UserStateNode{}).Where("path = ?", &paths).Find(&nodes).Error
+	if err != nil {
+		return
+	}
+	witness, err = nodes.toByteArray()
+	if err != nil {
+		return
+	}
+	state = UserState{}
+	err = db.Instance.Model(&UserState{}).Where("ID = ?", index).First(&state).Error
+	if err != nil {
+		return
+	}
+	return state, witness, nil
 }
 
 func newNode(path, hash string) *Node {
 	newNode := &Node{
-		ID:   ZERO,
-		Path: path,
-		Type: TYPE_NON_TERMINAL,
+		Path:  path,
+		Hash:  hash,
+		Level: uint64(len(path)),
 	}
-	newNode.UpdatePath(path)
-	newNode.Hash = hash
 	return newNode
-}
-
-func (node *Node) UpdatePath(path string) {
-	node.Path = path
-	node.Level = uint64(len(path))
 }
 
 func (node *Node) HashToByteArray() ByteArray {
