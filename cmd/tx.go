@@ -9,7 +9,6 @@ import (
 	"github.com/BOPR/core"
 	"github.com/BOPR/wallet"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -23,12 +22,32 @@ func sendTransferTx() *cobra.Command {
 		Use:   "transfer",
 		Short: "Transfers assets between 2 accounts",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			toIndex := viper.GetUint64(FlagToID)
-			fromIndex := viper.GetUint64(FlagFromID)
-			privKey := viper.GetString(FlagPrivKey)
-			pubKey := viper.GetString(FlagPubKey)
-			amount := viper.GetUint64(FlagAmount)
-			fee := viper.GetUint64(FlagFee)
+			flags := cmd.Flags()
+
+			toIndex, err := flags.GetUint64(FlagToID)
+			if err != nil {
+				return err
+			}
+			fromIndex, err := flags.GetUint64(FlagFromID)
+			if err != nil {
+				return err
+			}
+			privKey, err := flags.GetString(FlagPrivKey)
+			if err != nil {
+				return err
+			}
+			pubKey, err := flags.GetString(FlagPubKey)
+			if err != nil {
+				return err
+			}
+			amount, err := flags.GetUint64(FlagAmount)
+			if err != nil {
+				return err
+			}
+			fee, err := flags.GetUint64(FlagFee)
+			if err != nil {
+				return err
+			}
 
 			db, err := core.NewDB()
 			if err != nil {
