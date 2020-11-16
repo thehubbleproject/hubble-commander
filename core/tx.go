@@ -12,12 +12,8 @@ import (
 )
 
 var (
-<<<<<<< HEAD
 	ErrNoTxsFound          = errors.New("no tx found")
 	ErrSignatureNotPresent = errors.New("signature not present")
-=======
-	ErrNoTxsFound = errors.New("no tx found")
->>>>>>> 19b9212... revive sync
 )
 
 const (
@@ -48,13 +44,8 @@ func NewTx(from, to, txType uint64, sig, data []byte) Tx {
 }
 
 // NewPendingTx creates a new transaction
-<<<<<<< HEAD
 func NewPendingTx(from, to, txType uint64, sig, data []byte) (tx Tx, err error) {
 	tx = Tx{
-=======
-func NewPendingTx(from, to, txType uint64, sig, data []byte) Tx {
-	tx := Tx{
->>>>>>> 19b9212... revive sync
 		To:        to,
 		From:      from,
 		Data:      data,
@@ -290,11 +281,7 @@ func (db *DB) FetchMPWithID(id uint64, stateMP *StateMerkleProof) (err error) {
 	return nil
 }
 
-<<<<<<< HEAD
 // Validate creates proofs for validating txs and returns new root post validation
-=======
-// ValidateTx creates proofs for validating txs and returns new root post validation
->>>>>>> 19b9212... revive sync
 func (tx *Tx) Validate(bz Bazooka, currentRoot ByteArray) (newRoot ByteArray, err error) {
 	fromStateProof, toStateProof, txDBConn, err := tx.GetVerificationData()
 	if err != nil {
@@ -345,11 +332,7 @@ func (tx *Tx) authenticate(bz Bazooka) error {
 }
 
 // ProcessTxs processes all trasnactions and returns the commitment list
-<<<<<<< HEAD
 func ProcessTxs(db DB, bz Bazooka, txs []Tx, isSyncing bool) (commitments []Commitment, err error) {
-=======
-func ProcessTxs(db DB, bz Bazooka, txs []Tx) (commitments []Commitment, err error) {
->>>>>>> 19b9212... revive sync
 	if len(txs) == 0 {
 		return commitments, ErrNoTxsFound
 	}
@@ -370,23 +353,15 @@ func ProcessTxs(db DB, bz Bazooka, txs []Tx) (commitments []Commitment, err erro
 			txInCommitment := txs[i : i+COMMITMENT_SIZE]
 			aggregatedSig, err := aggregateSignatures(txInCommitment)
 			if err != nil {
-<<<<<<< HEAD
 				if isSyncing && err == ErrSignatureNotPresent {
 					continue
 				} else {
 					return commitments, err
 				}
-=======
-				return commitments, err
->>>>>>> 19b9212... revive sync
 			}
 			commitment := Commitment{Txs: txInCommitment, UpdatedRoot: newRoot, BatchType: tx.Type, AggregatedSignature: aggregatedSig.ToBytes()}
 			commitments = append(commitments, commitment)
 		}
-<<<<<<< HEAD
-=======
-		currentRoot = newRoot
->>>>>>> 19b9212... revive sync
 	}
 
 	return commitments, nil
@@ -396,12 +371,9 @@ func ProcessTxs(db DB, bz Bazooka, txs []Tx) (commitments []Commitment, err erro
 func aggregateSignatures(txs []Tx) (aggregatedSig bls.Signature, err error) {
 	var signatures []*bls.Signature
 	for _, tx := range txs {
-<<<<<<< HEAD
 		if tx.Signature == nil {
 			return aggregatedSig, ErrSignatureNotPresent
 		}
-=======
->>>>>>> 19b9212... revive sync
 		sig, err := wallet.BytesToSignature(tx.Signature)
 		if err != nil {
 			return aggregatedSig, err

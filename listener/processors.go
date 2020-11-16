@@ -173,45 +173,14 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		return
 	}
 
-<<<<<<< HEAD
-=======
-	// if the batch has some txs, parse them
-	var txs []byte
-	if event.BatchType != core.TX_GENESIS || event.BatchType == core.TX_DEPOSIT {
-		// pick the calldata for the batch
-		txs, err = s.loadedBazooka.FetchBatchInputData(vLog.TxHash)
-		if err != nil {
-			// TODO do something with this error
-			panic(err)
-		}
-	}
-
->>>>>>> 19b9212... revive sync
 	// if we havent seen the batch, apply txs and store batch
 	batch, err := s.DBInstance.GetBatchByIndex(event.Index.Uint64())
 	if err != nil && gorm.IsRecordNotFoundError(err) {
 		s.Logger.Info("Found a new batch, applying transactions and adding new batch", "index", event.Index.Uint64)
-<<<<<<< HEAD
 		newRoot, err := s.applyTxsFromBatch(txs, uint64(event.BatchType), true)
 		if err != nil {
 			s.Logger.Error("Error applying transactions from batch", "index", event.Index.String(), "error", err)
 			return
-=======
-		newRoot, err := s.applyTxsFromBatch(txs, uint64(event.BatchType))
-		if err != nil {
-			panic(err)
-		}
-
-		// TODO add state root post batch processing
-		newBatch := core.Batch{
-			BatchID:              event.Index.Uint64(),
-			StateRoot:            newRoot.String(),
-			TransactionsIncluded: txs,
-			Committer:            event.Committer.String(),
-			StakeAmount:          params.StakeAmount,
-			FinalisesOn:          *big.NewInt(int64(params.FinalisationTime)),
-			Status:               core.BATCH_COMMITTED,
->>>>>>> 19b9212... revive sync
 		}
 
 		newBatch := core.NewBatch(newRoot.String(), event.Committer.String(), vLog.TxHash.String(), uint64(event.BatchType), core.BATCH_COMMITTED)
@@ -229,28 +198,10 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 	// Mark seen batch as committed if we havent already
 	if batch.Status != core.BATCH_COMMITTED {
 		s.Logger.Info("Found a non committed batch")
-<<<<<<< HEAD
 		err = s.DBInstance.CommitBatch(event.Index.Uint64())
 		if err != nil {
 			s.Logger.Error("Unable to commit batch", "index", event.Index.String(), "err", err)
 			return
-=======
-		// TODO revive
-		// if batch.StateRoot != core.ByteArray(event.UpdatedRoot).String() {
-		// State root mismatch error
-		// }
-		// batch broadcasted by us
-		// txs applied but batch needs to be committed
-		// TODO add batch type
-		newBatch := core.Batch{
-			BatchID: event.Index.Uint64(),
-			// StateRoot:            core.ByteArray(event.UpO/udatedRoot).String(),
-			TransactionsIncluded: txs,
-			Committer:            event.Committer.String(),
-			StakeAmount:          params.StakeAmount,
-			FinalisesOn:          *big.NewInt(int64(params.FinalisationTime)),
-			Status:               core.BATCH_COMMITTED,
->>>>>>> 19b9212... revive sync
 		}
 	}
 }
@@ -293,11 +244,7 @@ func (s *Syncer) SendDepositFinalisationTx() {
 	}
 }
 
-<<<<<<< HEAD
 func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txType uint64, isSyncing bool) (newRoot core.ByteArray, err error) {
-=======
-func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txType uint64) (newRoot core.ByteArray, err error) {
->>>>>>> 19b9212... revive sync
 	// check if the batch has any txs
 	if len(txsBytes) == 0 {
 		s.Logger.Info("No txs to apply")
@@ -316,11 +263,7 @@ func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txType uint64) (newRoot core
 		return newRoot, errors.New("Didn't match any options")
 	}
 
-<<<<<<< HEAD
 	commitments, err := core.ProcessTxs(s.DBInstance, s.loadedBazooka, transactions, isSyncing)
-=======
-	commitments, err := core.ProcessTxs(s.DBInstance, s.loadedBazooka, transactions)
->>>>>>> 19b9212... revive sync
 	if err != nil {
 		return newRoot, err
 	}
@@ -351,17 +294,9 @@ func (s *Syncer) decompressTransfers(decompressedTxs []byte) (txs []core.Tx, err
 			return transactions, err
 		}
 
-<<<<<<< HEAD
 		newTx := core.NewTx(froms[i].Uint64(), tos[i].Uint64(), core.TX_TRANSFER_TYPE, nil, txData)
-=======
-		newTx := core.NewTx(froms[i].Uint64(), tos[i].Uint64(), core.TX_TRANSFER_TYPE, []byte(""), txData)
->>>>>>> 19b9212... revive sync
 		transactions = append(transactions, newTx)
 	}
 
 	return transactions, nil
-<<<<<<< HEAD
-=======
-
->>>>>>> 19b9212... revive sync
 }
