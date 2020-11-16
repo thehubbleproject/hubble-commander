@@ -91,11 +91,11 @@ func (a *Aggregator) startAggregating(ctx context.Context, interval time.Duratio
 				return
 			} else if isCatchingUp {
 				a.Logger.Info("Commander catching up, aborting aggregation till next poll")
-				return
+			} else {
+				a.wg.Wait()
+				a.wg.Add(1)
+				go a.pickBatch()
 			}
-			a.wg.Wait()
-			a.wg.Add(1)
-			go a.pickBatch()
 		case <-ctx.Done():
 			ticker.Stop()
 			return
@@ -130,6 +130,8 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 		return
 	}
 
+	// Step-4
+	// Record batch locally
 	lastCommitment := commitments[len(commitments)-1]
 	newBatch := core.NewBatch(lastCommitment.UpdatedRoot.String(), config.GlobalCfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
 	err = a.DB.AddNewBatch(newBatch)

@@ -80,6 +80,3 @@ func StrToPubkey(s string) (pubkey Pubkey, err error) {
 	}
 	return BytesToPubkey(pubBytes)
 }
-
-// BLS signature
-type BLSSig [2]uint32

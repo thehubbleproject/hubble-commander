@@ -241,16 +241,16 @@ func (db *DB) GetStatesAtDepth(depth uint64) ([]UserState, error) {
 	return accs, nil
 }
 
-func (db *DB) UpdateState(account UserState) error {
-	db.Logger.Info("Updated account", "PATH", account.Path)
-	account.CreateAccountHash()
-	siblings, err := db.GetSiblings(account.Path)
+func (db *DB) UpdateState(state UserState) error {
+	db.Logger.Info("Updated state", "PATH", state.Path)
+	state.CreateAccountHash()
+	siblings, err := db.GetSiblings(state.Path)
 	if err != nil {
 		return err
 	}
 
-	db.Logger.Debug("Updating account", "Hash", account.Hash, "Path", account.Path, "countOfSiblings", len(siblings))
-	return db.StoreLeaf(account, account.Path, siblings)
+	db.Logger.Debug("Updating account", "Hash", state.Hash, "Path", state.Path, "countOfSiblings", len(siblings))
+	return db.StoreLeaf(state, state.Path, siblings)
 }
 
 func (db *DB) StoreLeaf(state UserState, path string, siblings []UserState) error {

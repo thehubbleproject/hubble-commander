@@ -40,6 +40,10 @@ const (
 	TXS_PARAM = "txss"
 )
 
+var (
+	DOMAIN = [32]byte{}
+)
+
 // Global Contract Caller Object
 var LoadedBazooka Bazooka
 
@@ -224,6 +228,28 @@ func (b *Bazooka) CompressTxs(txs []Tx) ([]byte, error) {
 		fmt.Println("TxType didnt match any options", txs[0].Type)
 		return []byte(""), errors.New("Did not match any options")
 	}
+}
+
+func (b *Bazooka) authenticateTx(tx Tx, pubkey string) error {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	solPubkey, err := StrToPubkey(pubkey)
+	if err != nil {
+		return err
+	}
+	signature, err := BytesToSolSignature(tx.Signature)
+	if err != nil {
+		return err
+	}
+
+	switch tx.Type {
+	case TX_TRANSFER_TYPE:
+		err = b.Frontend.ValiateTransfer(&opts, tx.Data, signature, solPubkey, DOMAIN)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (b *Bazooka) processTransferTx(balanceTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof StateMerkleProof) (newBalanceRoot ByteArray, err error) {
@@ -429,15 +455,11 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err erro
 		updatedRoots = append(updatedRoots, commitment.UpdatedRoot)
 		totalTxs += len(commitment.Txs)
 
-		// TODO cleanup
-		sig1 := commitment.AggregatedSignature[0:32]
-		sig2 := commitment.AggregatedSignature[32:64]
-		sig1bigInt := big.NewInt(0)
-		sig1bigInt.SetBytes(sig1)
-		sig2bigInt := big.NewInt(0)
-		sig2bigInt.SetBytes(sig2)
-		aggregatedSigBigInt := [2]*big.Int{sig1bigInt, sig2bigInt}
-		aggregatedSig = append(aggregatedSig, aggregatedSigBigInt)
+		sig, err := BytesToSolSignature(commitment.AggregatedSignature)
+		if err != nil {
+			return "", err
+		}
+		aggregatedSig = append(aggregatedSig, sig)
 	}
 
 	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
@@ -449,7 +471,9 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err erro
 	// TODO fix
 	var feeReceivers []*big.Int
 	dummyReceivers := big.NewInt(0)
-	feeReceivers = append(feeReceivers, dummyReceivers)
+	for i := 0; i <= len(commitments); i++ {
+		feeReceivers = append(feeReceivers, dummyReceivers)
+	}
 
 	switch txType := commitments[0].BatchType; txType {
 	case TX_TRANSFER_TYPE:
