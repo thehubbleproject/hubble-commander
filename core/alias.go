@@ -3,9 +3,14 @@ package core
 import (
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"math/big"
 
 	ethCmn "github.com/ethereum/go-ethereum/common"
+)
+
+var (
+	ErrInvalidPubkeyLen = errors.New("invalid pubkey length")
 )
 
 type Hash ethCmn.Hash
@@ -39,8 +44,23 @@ func BytesToByteArray(bz []byte) ByteArray {
 // Pubkey is an alias for public key
 type Pubkey [4]*big.Int
 
+// NewPubkeyFromBytes creates a pubkey from bytes
+func NewPubkeyFromBytes(bz []byte) (pubkey Pubkey, err error) {
+	if len(bz) != 128 {
+		return pubkey, ErrInvalidPubkeyLen
+	}
+
+	for i := 0; i < 4; i++ {
+		pubkeyPart := bz[i : i+32]
+		tempPubkeyPart := big.NewInt(0)
+		tempPubkeyPart = tempPubkeyPart.SetBytes(pubkeyPart)
+		pubkey[i] = tempPubkeyPart
+	}
+	return pubkey, nil
+}
+
 func (p Pubkey) String() (string, error) {
-	pubBytes, err := p.Serialize()
+	pubBytes, err := p.serialize()
 	if err != nil {
 		return "", err
 	}
@@ -48,7 +68,7 @@ func (p Pubkey) String() (string, error) {
 }
 
 // Serialize seralises a public key to bytes
-func (p Pubkey) Serialize() ([]byte, error) {
+func (p Pubkey) serialize() ([]byte, error) {
 	var pubkey []uint64
 	for i := range p {
 		pub := p[i].Uint64()
@@ -57,8 +77,8 @@ func (p Pubkey) Serialize() ([]byte, error) {
 	return json.Marshal(pubkey)
 }
 
-// BytesToPubkey converts bytes to Pubkey
-func BytesToPubkey(b []byte) (pubkey Pubkey, err error) {
+// bytesToPubkey converts bytes to Pubkey
+func bytesToPubkey(b []byte) (pubkey Pubkey, err error) {
 	var p []uint64
 	err = json.Unmarshal(b, &p)
 	if err != nil {
@@ -78,5 +98,6 @@ func StrToPubkey(s string) (pubkey Pubkey, err error) {
 	if err != nil {
 		return
 	}
-	return BytesToPubkey(pubBytes)
+
+	return bytesToPubkey(pubBytes)
 }

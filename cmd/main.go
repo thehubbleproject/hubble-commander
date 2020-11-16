@@ -51,7 +51,6 @@ func main() {
 
 	rootCmd.AddCommand(initCmd())
 	rootCmd.AddCommand(startCmd())
-	rootCmd.AddCommand(resetCmd())
 	rootCmd.AddCommand(addGenesisAcccountsCmd())
 	rootCmd.AddCommand(sendTransferTx())
 	rootCmd.AddCommand(dummyTransfer())
@@ -72,26 +71,6 @@ func main() {
 	}
 }
 
-// resetCmd resets all the collections
-func resetCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "reset",
-		Short: "reset database",
-		Run: func(cmd *cobra.Command, args []string) {
-			err := config.ParseAndInitGlobalConfig("")
-			common.PanicIfError(err)
-			// TODO fix this command for mysql database
-			// create new DB instance
-			// dbInstance, err := db.NewDB()
-			// defer dbInstance.Close()
-			// common.PanicIfError(err)
-			// fmt.Println("Resetting database", "db", common.DATABASE)
-			// err = dbInstance.MgoSession.DropDatabase(common.DATABASE)
-			// common.PanicIfError(err)
-		},
-	}
-}
-
 type UserList struct {
 	Users []User `json:"users"`
 }
@@ -107,8 +86,12 @@ func createUsers() *cobra.Command {
 		Use:   "create-users",
 		Short: "Create users to be used in simulations",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			userCount, err := cmd.Flags().GetInt(FlagDatabaseName)
+			if err != nil {
+				return err
+			}
 			var users []User
-			for i := 0; i < 2; i++ {
+			for i := 0; i < userCount; i++ {
 				newWallet, err := wallet.NewWallet()
 				if err != nil {
 					return err
@@ -125,6 +108,12 @@ func createUsers() *cobra.Command {
 			}
 			return ioutil.WriteFile("users.json", bz, 0644)
 		},
+	}
+
+	cmd.Flags().Int(FlagUserCount, 0, "--count=<user-count>")
+	err := cmd.MarkFlagRequired(FlagUserCount)
+	if err != nil {
+		panic(err)
 	}
 	return cmd
 }
@@ -159,6 +148,10 @@ func createDatabase() *cobra.Command {
 		Use:   "create-database",
 		Short: "Create a new database",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			dbName, err := cmd.Flags().GetString(FlagDatabaseName)
+			if err != nil {
+				return err
+			}
 			if err := config.ParseAndInitGlobalConfig(""); err != nil {
 				return err
 			}
@@ -169,7 +162,7 @@ func createDatabase() *cobra.Command {
 				return err
 			}
 			defer dbNew.Close()
-			_, err = dbNew.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %v", "hubble"))
+			_, err = dbNew.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %v", dbName))
 			if err != nil {
 				return err
 			}
@@ -177,6 +170,9 @@ func createDatabase() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringP(FlagDatabaseName, "", "", "--dbname=<database-name>")
-	// cmd.MarkFlagRequired(FlagDatabaseName)
+	err := cmd.MarkFlagRequired(FlagDatabaseName)
+	if err != nil {
+		panic(err)
+	}
 	return cmd
 }

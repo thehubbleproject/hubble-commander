@@ -9,4 +9,5 @@ const (
 	FlagAmount       = "amount"
 	FlagFee          = "fee"
 	FlagDatabaseName = "dbname"
+	FlagUserCount    = "count"
 )

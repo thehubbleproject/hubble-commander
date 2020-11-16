@@ -5,7 +5,6 @@ import (
 
 	"github.com/BOPR/core"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 //  viewState
@@ -14,7 +13,10 @@ func viewState() *cobra.Command {
 		Use:   "state-info",
 		Short: "returns decoded state info",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			stateID := viper.GetUint64(FlagStateID)
+			stateID, err := cmd.Flags().GetUint64(FlagStateID)
+			if err != nil {
+				return err
+			}
 			db, err := core.NewDB()
 			if err != nil {
 				return err
@@ -43,7 +45,7 @@ func viewState() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagStateID, "0", "--id=<state-id>")
+	cmd.Flags().Uint64(FlagStateID, 0, "--id=<state-id>")
 	err := cmd.MarkFlagRequired(FlagStateID)
 	if err != nil {
 		panic(err)
