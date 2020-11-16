@@ -44,6 +44,9 @@ func viewState() *cobra.Command {
 	}
 
 	cmd.Flags().String(FlagStateID, "0", "--id=<state-id>")
-	cmd.MarkFlagRequired(FlagStateID)
+	err := cmd.MarkFlagRequired(FlagStateID)
+	if err != nil {
+		panic(err)
+	}
 	return &cmd
 }
