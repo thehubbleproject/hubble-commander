@@ -313,7 +313,12 @@ func (tx *Tx) Validate(bz Bazooka, currentRoot ByteArray) (newRoot ByteArray, er
 }
 
 func (tx *Tx) authenticate(bz Bazooka) error {
-	accID, _, _, _, err := bz.DecodeState(tx.Data)
+	fromState, err := DBInstance.GetStateByIndex(tx.From)
+	if err != nil {
+		return err
+	}
+
+	accID, _, _, _, err := bz.DecodeState(fromState.Data)
 	if err != nil {
 		return err
 	}

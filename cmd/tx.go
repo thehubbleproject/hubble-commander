@@ -115,8 +115,16 @@ func dummyTransfer() *cobra.Command {
 					return err
 				}
 				users = append(users, user)
+
 				secretBytes, publicKeyBytes := user.Bytes()
-				publicKey := hex.EncodeToString(publicKeyBytes)
+				publicKey, err := core.NewPubkeyFromBytes(publicKeyBytes)
+				if err != nil {
+					return err
+				}
+				pubkeyStr, err := publicKey.String()
+				if err != nil {
+					return err
+				}
 				fmt.Println("Adding new account", "privkey", hex.EncodeToString(secretBytes), "publickey", publicKey)
 
 				pubkeyIndex := uint64(i + 2)
@@ -126,7 +134,7 @@ func dummyTransfer() *cobra.Command {
 				}
 
 				// add accounts to tree
-				acc, err := core.NewAccount(pubkeyIndex, publicKey, path)
+				acc, err := core.NewAccount(pubkeyIndex, pubkeyStr, path)
 				if err != nil {
 					return err
 				}
