@@ -11,8 +11,8 @@ import (
 //  viewState
 func viewState() *cobra.Command {
 	cmd := cobra.Command{
-		Use:   "account-info",
-		Short: "returns decoded account info",
+		Use:   "state-info",
+		Short: "returns decoded state info",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			stateID := viper.GetUint64(FlagStateID)
 			db, err := core.NewDB()
