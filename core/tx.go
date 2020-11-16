@@ -265,7 +265,7 @@ func (db *DB) FetchAccountProofWithID(id uint64, pdaProof *AccountMerkleProof) (
 	return nil
 }
 
-func (db *DB) FetchMPWithID(id uint64, accountMP *StateMerkleProof) (err error) {
+func (db *DB) FetchMPWithID(id uint64, stateMP *StateMerkleProof) (err error) {
 	leaf, err := DBInstance.GetStateByIndex(id)
 	if err != nil {
 		fmt.Println("error while getting leaf", err)
@@ -277,7 +277,7 @@ func (db *DB) FetchMPWithID(id uint64, accountMP *StateMerkleProof) (err error) 
 		return
 	}
 	accMP := NewStateMerkleProof(leaf, siblings)
-	*accountMP = accMP
+	*stateMP = accMP
 	return nil
 }
 
@@ -296,12 +296,39 @@ func (tx *Tx) Validate(bz Bazooka, currentRoot ByteArray) (newRoot ByteArray, er
 		}
 		return
 	}
+
+	err = tx.authenticate(bz)
+	if err != nil {
+		txDBConn.Instance.Rollback()
+		txDBConn.Close()
+		return
+	}
+
 	if txDBConn.Instance != nil {
 		txDBConn.Instance.Commit()
 		txDBConn.Close()
 	}
 
 	return
+}
+
+func (tx *Tx) authenticate(bz Bazooka) error {
+	accID, _, _, _, err := bz.DecodeState(tx.Data)
+	if err != nil {
+		return err
+	}
+
+	acc, err := DBInstance.GetAccountLeafByID(accID.Uint64())
+	if err != nil {
+		return err
+	}
+
+	err = bz.authenticateTx(*tx, acc.PublicKey)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ProcessTxs processes all trasnactions and returns the commitment list
