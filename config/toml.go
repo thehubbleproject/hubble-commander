@@ -38,6 +38,7 @@ frontend_address = "{{ .FrontendAddress }}"
 transfer_address = "{{ .Transfer }}"
 mass_migration_address = "{{ .MassMigration }}"
 create2transfer_address = "{{ .Create2Transfer }}"
+account_registry_address = "{{ .AccountRegistry }}"
 `
 
 var configTemplate *template.Template

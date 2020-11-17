@@ -6,7 +6,6 @@ import (
 	"math"
 
 	"github.com/BOPR/common"
-	"github.com/BOPR/contracts/rollupclient"
 	"github.com/jinzhu/gorm"
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
 )
@@ -98,7 +97,7 @@ func (s *UserState) String() string {
 	return fmt.Sprintf("ID: %d Bal: %d Nonce: %d Token: %v", id, balance, nonce, token)
 }
 
-func (s *UserState) ToABIAccount() (solState rollupclient.TypesUserState, err error) {
+func (s *UserState) ToABIAccount() (solState TypesUserState, err error) {
 	solState.PubkeyIndex, solState.Balance, solState.Nonce, solState.TokenType, err = LoadedBazooka.DecodeState(s.Data)
 	if err != nil {
 		return

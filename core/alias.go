@@ -101,3 +101,14 @@ func StrToPubkey(s string) (pubkey Pubkey, err error) {
 
 	return bytesToPubkey(pubBytes)
 }
+
+type TypesUserState struct {
+	PubkeyIndex *big.Int
+	TokenType   *big.Int
+	Balance     *big.Int
+	Nonce       *big.Int
+}
+type TypesStateMerkleProof struct {
+	State   TypesUserState
+	Witness [][32]byte
+}

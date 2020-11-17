@@ -48,10 +48,11 @@ type Configuration struct {
 
 	RollupAddress   string `mapstructure:"rollup_address"`
 	LoggerAddress   string `mapstructure:"logger_address"`
-	FrontendAddress string `mapstructure:"frontend_address"`
+	State           string `mapstructure:"frontend_generic_address"`
 	Transfer        string `mapstructure:"transfer_address"`
 	MassMigration   string `mapstructure:"mass_migration_address"`
 	Create2Transfer string `mapstructure:"create2transfer_address"`
+	AccountRegistry string `mapstructure:"account_registry_address"`
 
 	OperatorKey       string `mapstructure:"operator_key"`
 	OperatorAddress   string `mapstructure:"operator_address"`

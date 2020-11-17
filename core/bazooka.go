@@ -15,9 +15,13 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/tendermint/tendermint/libs/log"
 
+	"github.com/BOPR/contracts/accountregistry"
+	"github.com/BOPR/contracts/create2transfer"
 	"github.com/BOPR/contracts/logger"
+	"github.com/BOPR/contracts/massmigration"
 	"github.com/BOPR/contracts/rollup"
-	"github.com/BOPR/contracts/rollupclient"
+	"github.com/BOPR/contracts/state"
+	"github.com/BOPR/contracts/transfer"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCmn "github.com/ethereum/go-ethereum/common"
@@ -53,11 +57,18 @@ type Bazooka struct {
 	log       log.Logger
 	EthClient *ethclient.Client
 
-	ContractABI map[string]abi.ABI
+	RollupABI abi.ABI
+	SC        Contracts
+}
 
-	RollupContract *rollup.Rollup
-	EventLogger    *logger.Logger
-	Frontend       *rollupclient.Rollupclient
+type Contracts struct {
+	RollupContract  *rollup.Rollup
+	EventLogger     *logger.Logger
+	State           *state.State
+	Transfer        *transfer.Transfer
+	Create2Transfer *create2transfer.Create2transfer
+	MassMigration   *massmigration.Massmigration
+	AccountRegistry *accountregistry.Accountregistry
 }
 
 // NewContractCaller contract caller
@@ -74,31 +85,13 @@ func NewPreLoadedBazooka() (bazooka Bazooka, err error) {
 		bazooka.EthClient = ethclient.NewClient(RPCClient)
 	}
 
-	bazooka.ContractABI = make(map[string]abi.ABI)
-
-	// initialise all variables for rollup contract
-	rollupContractAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
-	if bazooka.RollupContract, err = rollup.NewRollup(rollupContractAddress, bazooka.EthClient); err != nil {
-		return bazooka, err
-	}
-	if bazooka.ContractABI[common.ROLLUP_CONTRACT_KEY], err = abi.JSON(strings.NewReader(rollup.RollupABI)); err != nil {
-		return bazooka, err
+	bazooka.RollupABI, err = abi.JSON(strings.NewReader(rollup.RollupABI))
+	if err != nil {
+		return
 	}
 
-	// initialise all variables for event logger contract
-	loggerAddress := ethCmn.HexToAddress(config.GlobalCfg.LoggerAddress)
-	if bazooka.EventLogger, err = logger.NewLogger(loggerAddress, bazooka.EthClient); err != nil {
-		return bazooka, err
-	}
-	if bazooka.ContractABI[common.LOGGER_KEY], err = abi.JSON(strings.NewReader(logger.LoggerABI)); err != nil {
-		return bazooka, err
-	}
-
-	clientAddr := ethCmn.HexToAddress(config.GlobalCfg.FrontendAddress)
-	if bazooka.Frontend, err = rollupclient.NewRollupclient(clientAddr, bazooka.EthClient); err != nil {
-		return bazooka, err
-	}
-	if bazooka.ContractABI[common.ROLLUP_CLIENT], err = abi.JSON(strings.NewReader(rollupclient.RollupclientABI)); err != nil {
+	bazooka.SC, err = getContractInstances(bazooka.EthClient)
+	if err != nil {
 		return bazooka, err
 	}
 
@@ -117,7 +110,7 @@ func (b *Bazooka) GetMainChainBlock(blockNum *big.Int) (header *ethTypes.Header,
 
 // TotalBatches returns the total number of batches that have been submitted on chain
 func (b *Bazooka) TotalBatches() (uint64, error) {
-	totalBatches, err := b.RollupContract.NumOfBatchesSubmitted(nil)
+	totalBatches, err := b.SC.RollupContract.NumOfBatchesSubmitted(nil)
 	if err != nil {
 		return 0, err
 	}
@@ -152,7 +145,7 @@ func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash, batchType uint8) (txs 
 	case TX_DEPOSIT:
 		return []byte{}, nil
 	case TX_TRANSFER_TYPE:
-		method = b.ContractABI[common.ROLLUP_CONTRACT_KEY].Methods["submitTransfer"]
+		method = b.RollupABI.Methods["submitTransfer"]
 	case TX_CREATE_2_TRANSFER:
 		return []byte{}, nil
 	}
@@ -243,7 +236,7 @@ func (b *Bazooka) authenticateTx(tx Tx, pubkey string) error {
 
 	switch tx.Type {
 	case TX_TRANSFER_TYPE:
-		err = b.Frontend.ValiateTransfer(&opts, tx.Data, signature, solPubkey, DOMAIN)
+		err = b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkey, DOMAIN)
 		if err != nil {
 			return err
 		}
@@ -263,7 +256,7 @@ func (b *Bazooka) processTransferTx(balanceTreeRoot ByteArray, tx Tx, fromMerkle
 		return
 	}
 
-	result, err := b.Frontend.ProcessTransfer(
+	result, err := b.SC.Transfer.Process(
 		&opts,
 		balanceTreeRoot,
 		tx.Data,
@@ -303,7 +296,7 @@ func (b *Bazooka) processTransferTx(balanceTreeRoot ByteArray, tx Tx, fromMerkle
 
 func (b *Bazooka) applyTransferTx(sender, receiver []byte, tx Tx) (updatedSender, updatedReceiver []byte, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	updates, err := b.Frontend.ValidateAndApplyTransfer(&opts, sender, receiver, tx.Data)
+	updates, err := b.SC.Transfer.ValidateAndApply(&opts, sender, receiver, tx.Data)
 	if err != nil {
 		return
 	}
@@ -330,7 +323,7 @@ func (b *Bazooka) applyTransferTx(sender, receiver []byte, tx Tx) (updatedSender
 // }
 
 func (b *Bazooka) compressTransferTxs(opts bind.CallOpts, data [][]byte) ([]byte, error) {
-	return b.Frontend.CompressTransfer(&opts, data)
+	return b.SC.Transfer.Compress(&opts, data)
 }
 
 // func (b *Bazooka) compressCreate2TransferTxs(opts bind.CallOpts, data [][]byte) ([]byte, error) {
@@ -347,7 +340,7 @@ func (b *Bazooka) TransferSignBytes() {
 
 func (b *Bazooka) DecompressTransferTxs(txs []byte) (froms, tos, amounts, fees []big.Int, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	decompressedTxs, err := b.Frontend.DecompressTransfer(&opts, txs)
+	decompressedTxs, err := b.SC.Transfer.Decompress(&opts, txs)
 	if err != nil {
 		return
 	}
@@ -376,12 +369,12 @@ func (b *Bazooka) EncodeTransferTx(from, to, fee, nonce, amount, txType int64) (
 		Fee       *big.Int
 		Nonce     *big.Int
 	}{big.NewInt(txType), big.NewInt(from), big.NewInt(to), big.NewInt(amount), big.NewInt(fee), big.NewInt(nonce)}
-	return b.Frontend.EncodeTransfer(&opts, tx)
+	return b.SC.Transfer.Encode(&opts, tx)
 }
 
 func (b *Bazooka) DecodeTransferTx(txBytes []byte) (from, to, nonce, txType, amount, fee *big.Int, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	tx, err := b.Frontend.DecodeTransfer(&opts, txBytes)
+	tx, err := b.SC.Transfer.Decode(&opts, txBytes)
 	if err != nil {
 		return
 	}
@@ -397,7 +390,7 @@ func (b *Bazooka) DecodeTransferTx(txBytes []byte) (from, to, nonce, txType, amo
 
 func (b *Bazooka) EncodeState(id, balance, nonce, token uint64) (accountBytes []byte, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	accountBytes, err = b.Frontend.Encode(&opts, rollupclient.TypesUserState{
+	accountBytes, err = b.SC.State.Encode(&opts, state.TypesUserState{
 		PubkeyIndex: big.NewInt(int64(id)),
 		TokenType:   big.NewInt(int64(token)),
 		Balance:     big.NewInt(int64(balance)),
@@ -412,7 +405,7 @@ func (b *Bazooka) EncodeState(id, balance, nonce, token uint64) (accountBytes []
 func (b *Bazooka) DecodeState(stateBytes []byte) (ID, balance, nonce, token *big.Int, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 
-	state, err := b.Frontend.DecodeState(&opts, stateBytes)
+	state, err := b.SC.State.DecodeState(&opts, stateBytes)
 	if err != nil {
 		return
 	}
@@ -477,7 +470,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err erro
 
 	switch txType := commitments[0].BatchType; txType {
 	case TX_TRANSFER_TYPE:
-		data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("submitTransfer", updatedRoots, aggregatedSig, feeReceivers, txs)
+		data, err := b.RollupABI.Pack("submitTransfer", updatedRoots, aggregatedSig, feeReceivers, txs)
 		if err != nil {
 			b.log.Error("Error packing data for submitBatch", "err", err)
 			return "", nil
@@ -497,7 +490,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err erro
 			return "", nil
 		}
 
-		tx, err := b.RollupContract.SubmitTransfer(auth, updatedRoots, aggregatedSig, feeReceivers, txs)
+		tx, err := b.SC.RollupContract.SubmitTransfer(auth, updatedRoots, aggregatedSig, feeReceivers, txs)
 		if err != nil {
 			b.log.Error("Error submitting batch", "err", err)
 			return "", nil
@@ -618,4 +611,29 @@ func (b *Bazooka) generateAuthObj(client *ethclient.Client, callMsg ethereum.Cal
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.GasLimit = uint64(gasLimit)
 	return
+}
+
+func getContractInstances(client *ethclient.Client) (contracts Contracts, err error) {
+	if contracts.RollupContract, err = rollup.NewRollup(ethCmn.HexToAddress(config.GlobalCfg.RollupAddress), client); err != nil {
+		return contracts, err
+	}
+	if contracts.EventLogger, err = logger.NewLogger(ethCmn.HexToAddress(config.GlobalCfg.LoggerAddress), client); err != nil {
+		return contracts, err
+	}
+	if contracts.AccountRegistry, err = accountregistry.NewAccountregistry(ethCmn.HexToAddress(config.GlobalCfg.AccountRegistry), client); err != nil {
+		return contracts, err
+	}
+	if contracts.State, err = state.NewState(ethCmn.HexToAddress(config.GlobalCfg.State), client); err != nil {
+		return contracts, err
+	}
+	if contracts.Transfer, err = transfer.NewTransfer(ethCmn.HexToAddress(config.GlobalCfg.Transfer), client); err != nil {
+		return contracts, err
+	}
+	if contracts.Create2Transfer, err = create2transfer.NewCreate2transfer(ethCmn.HexToAddress(config.GlobalCfg.Create2Transfer), client); err != nil {
+		return contracts, err
+	}
+	if contracts.MassMigration, err = massmigration.NewMassmigration(ethCmn.HexToAddress(config.GlobalCfg.MassMigration), client); err != nil {
+		return contracts, err
+	}
+	return contracts, nil
 }
