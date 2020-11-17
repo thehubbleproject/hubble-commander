@@ -56,7 +56,7 @@ func NewSyncer() Syncer {
 		panic(err)
 	}
 	var abis []abi.ABI
-	abis = append(abis, loadedBazooka.ContractABI[common.LOGGER_KEY])
+	abis = append(abis, loadedBazooka.LoggerABI)
 
 	// abis for all the events
 	syncerService.abis = abis

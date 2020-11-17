@@ -34,7 +34,7 @@ confirmation_blocks = "{{ .ConfirmationBlocks }}"
 ##### Contract Addresses #####
 rollup_address = "{{ .RollupAddress }}"
 logger_address = "{{ .LoggerAddress }}"
-frontend_address = "{{ .FrontendAddress }}"
+frontend_generic_address = "{{ .State }}"
 transfer_address = "{{ .Transfer }}"
 mass_migration_address = "{{ .MassMigration }}"
 create2transfer_address = "{{ .Create2Transfer }}"

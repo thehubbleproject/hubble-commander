@@ -28,7 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-// IContractCaller is the common interface using which we will interact with the contracts
+// IBazooka is the common interface using which we will interact with the contracts
 // and the ethereum chain
 type IBazooka interface {
 	FetchBatchInputData(txHash ethCmn.Hash) (txs [][]byte, err error)
@@ -48,16 +48,16 @@ var (
 	DOMAIN = [32]byte{}
 )
 
-// Global Contract Caller Object
+// Global bazooka Object
 var LoadedBazooka Bazooka
 
-// ContractCaller satisfies the IContractCaller interface and contains all the variables required to interact
-// With the ethereum chain along with contract addresses and ABI's
+// Bazooka contains everything needed to interact with smart contracts
 type Bazooka struct {
 	log       log.Logger
 	EthClient *ethclient.Client
 
 	RollupABI abi.ABI
+	LoggerABI abi.ABI
 	SC        Contracts
 }
 
@@ -71,7 +71,7 @@ type Contracts struct {
 	AccountRegistry *accountregistry.Accountregistry
 }
 
-// NewContractCaller contract caller
+// NewPreLoadedBazooka creates
 // NOTE: Reads configration from the config.toml file
 func NewPreLoadedBazooka() (bazooka Bazooka, err error) {
 	err = config.SetOperatorKeys(config.GlobalCfg.OperatorKey)
@@ -86,6 +86,11 @@ func NewPreLoadedBazooka() (bazooka Bazooka, err error) {
 	}
 
 	bazooka.RollupABI, err = abi.JSON(strings.NewReader(rollup.RollupABI))
+	if err != nil {
+		return
+	}
+
+	bazooka.LoggerABI, err = abi.JSON(strings.NewReader(logger.LoggerABI))
 	if err != nil {
 		return
 	}
@@ -117,7 +122,7 @@ func (b *Bazooka) TotalBatches() (uint64, error) {
 	return totalBatches.Uint64(), nil
 }
 
-func (b *Bazooka) GetTxDataByHash(txHash ethCmn.Hash) (data []byte, err error) {
+func (b *Bazooka) getTxDataByHash(txHash ethCmn.Hash) (data []byte, err error) {
 	tx, isPending, err := b.EthClient.TransactionByHash(context.Background(), txHash)
 	if err != nil {
 		b.log.Error("Cannot fetch transaction from hash", "Error", err)
@@ -150,7 +155,7 @@ func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash, batchType uint8) (txs 
 		return []byte{}, nil
 	}
 
-	data, err = b.GetTxDataByHash(txHash)
+	data, err = b.getTxDataByHash(txHash)
 	if err != nil {
 		return nil, err
 	}
@@ -261,8 +266,8 @@ func (b *Bazooka) processTransferTx(balanceTreeRoot ByteArray, tx Tx, fromMerkle
 		balanceTreeRoot,
 		tx.Data,
 		fromMP.State.TokenType,
-		fromMP,
-		toMP,
+		transfer.TypesStateMerkleProof{State: transfer.TypesUserState(fromMP.State), Witness: fromMP.Witness},
+		transfer.TypesStateMerkleProof{State: transfer.TypesUserState(toMP.State), Witness: toMP.Witness},
 	)
 	if err != nil {
 		return
