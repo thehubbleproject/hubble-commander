@@ -17,7 +17,7 @@ require (
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/jinzhu/gorm v1.9.12
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
-	github.com/kilic/bn254 v0.0.0-20201103073307-dd29157ef4fd
+	github.com/kilic/bn254 v0.0.0-20201116081810-790649bc68fe
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/olekukonko/tablewriter v0.0.3 // indirect
 	github.com/pelletier/go-toml v1.6.0 // indirect
@@ -37,6 +37,7 @@ require (
 	github.com/tyler-smith/go-bip39 v1.0.2 // indirect
 	github.com/willf/pad v0.0.0-20200313202418-172aa767f2a4
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/sys v0.0.0-20201113233024-12cec1faf1ba // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 	gorm.io/driver/sqlite v1.1.3 // indirect
