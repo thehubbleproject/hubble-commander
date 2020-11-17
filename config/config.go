@@ -17,7 +17,6 @@ import (
 
 const (
 	DATABASENAME                = "hubble"
-	DefaultMongoDB              = "mongodb://localhost:27017"
 	DefaultDB                   = "mysql"
 	DefaultDbUrlPrefix          = "mysql://root:root@(localhost:3306)"
 	DefaultEthRPC               = "http://localhost:8545"
@@ -50,6 +49,9 @@ type Configuration struct {
 	RollupAddress   string `mapstructure:"rollup_address"`
 	LoggerAddress   string `mapstructure:"logger_address"`
 	FrontendAddress string `mapstructure:"frontend_address"`
+	Transfer        string `mapstructure:"transfer_address"`
+	MassMigration   string `mapstructure:"mass_migration_address"`
+	Create2Transfer string `mapstructure:"create2transfer_address"`
 
 	OperatorKey       string `mapstructure:"operator_key"`
 	OperatorAddress   string `mapstructure:"operator_address"`
