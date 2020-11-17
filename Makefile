@@ -9,6 +9,9 @@ contracts:
 	abigen --abi=contracts/registry/registry.abi --pkg=registry --out=contracts/registry/registry.go
 	abigen --abi=contracts/logger/logger.abi --pkg=logger --out=contracts/logger/logger.go
 	abigen --abi=contracts/rollupclient/rollupclient.abi --pkg=rollupclient --out=contracts/rollupclient/rollupclient.go
+	abigen --abi=contracts/transfer/transfer.abi --pkg=transfer --out=contracts/transfer/transfer
+	abigen --abi=contracts/massmigration/massmigration.abi --pkg=massmigration --out=contracts/massmigration/massmigration
+	abigen --abi=contracts/create2transfer/create2transfer.abi --pkg=create2transfer --out=contracts/create2transfer/create2transfer
 
 clean:
 	rm -rf build
