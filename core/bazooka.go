@@ -545,13 +545,13 @@ func (b *Bazooka) EncodeMassMigrationTx(from, to, fee, nonce, amount, txType int
 	return b.SC.Transfer.Encode(&opts, tx)
 }
 
-func (b *Bazooka) DecodeMassMigrationTx(txBytes []byte) (from, to, nonce, txType, amount, fee *big.Int, err error) {
+func (b *Bazooka) DecodeMassMigrationTx(txBytes []byte) (from, toSpoke, nonce, txType, amount, fee *big.Int, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	tx, err := b.SC.Transfer.Decode(&opts, txBytes)
+	tx, err := b.SC.MassMigration.Decode(&opts, txBytes)
 	if err != nil {
 		return
 	}
-	return tx.FromIndex, tx.ToIndex, tx.Nonce, tx.TxType, tx.Amount, tx.Fee, nil
+	return tx.FromIndex, tx.SpokeID, tx.Nonce, tx.TxType, tx.Amount, tx.Fee, nil
 }
 
 //
@@ -603,10 +603,37 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err erro
 		return "", nil
 	}
 
+	switch txType := commitments[0].BatchType; txType {
+	case TX_TRANSFER_TYPE:
+		txHash, err := b.submitTransferBatch(commitments)
+		if err != nil {
+			return "", err
+		}
+		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", TX_TRANSFER_TYPE)
+	case TX_MASS_MIGRATIONS:
+		txHash, err := b.submitMassMigrationBatch(commitments)
+		if err != nil {
+			return "", err
+		}
+		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", TX_TRANSFER_TYPE)
+	default:
+		b.log.Error("Tx not indentified", "txType", commitments[0].BatchType)
+	}
+
+	return txHash, nil
+}
+
+func (b *Bazooka) submitTransferBatch(commitments []Commitment) (string, error) {
 	var txs [][]byte
 	var updatedRoots [][32]byte
 	var aggregatedSig [][2]*big.Int
 	var totalTxs int
+	var feeReceivers []*big.Int
+
+	dummyReceivers := big.NewInt(0)
+	for i := 0; i <= len(commitments); i++ {
+		feeReceivers = append(feeReceivers, dummyReceivers)
+	}
 
 	for _, commitment := range commitments {
 		compressedTxs, err := b.CompressTxs(commitment.Txs)
@@ -624,69 +651,136 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err erro
 		}
 		aggregatedSig = append(aggregatedSig, sig)
 	}
+	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
+
+	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
+
+	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
+	stakeAmount := big.NewInt(100000000000000000)
+
+	data, err := b.RollupABI.Pack("submitTransfer", updatedRoots, aggregatedSig, feeReceivers, txs)
+	if err != nil {
+		b.log.Error("Error packing data for submitBatch", "err", err)
+		return "", nil
+	}
+
+	auth, err := b.generateAuthObj(b.EthClient, rollupAddress, stakeAmount, data)
+	if err != nil {
+		b.log.Error("Estimate gas failed, tx reverting", "error", err)
+		return "", nil
+	}
+
+	tx, err := b.SC.RollupContract.SubmitTransfer(auth, updatedRoots, aggregatedSig, feeReceivers, txs)
+	if err != nil {
+		b.log.Error("Error submitting batch", "err", err)
+		return "", nil
+	}
+
+	return tx.Hash().String(), nil
+}
+
+func (b *Bazooka) submitMassMigrationBatch(commitments []Commitment) (string, error) {
+	var txs [][]byte
+	var updatedRoots [][32]byte
+	var aggregatedSig [][2]*big.Int
+	var totalTxs int
+
+	var meta [][4]*big.Int
+	var withdrawRoots [][32]byte
+
+	dummyReceiver := big.NewInt(0)
+
+	for _, commitment := range commitments {
+		compressedTxs, err := b.CompressTxs(commitment.Txs)
+		if err != nil {
+			b.log.Error("Unable to compress txs", "error", err)
+			return "", err
+		}
+		txs = append(txs, compressedTxs)
+		updatedRoots = append(updatedRoots, commitment.UpdatedRoot)
+		totalTxs += len(commitment.Txs)
+
+		sig, err := BytesToSolSignature(commitment.AggregatedSignature)
+		if err != nil {
+			return "", err
+		}
+
+		aggregatedSig = append(aggregatedSig, sig)
+
+		var spokeID = big.NewInt(0)
+		var tokenID = big.NewInt(0)
+		var totalAmount = big.NewInt(0)
+
+		for i, tx := range commitment.Txs {
+			from, spoke, _, _, amount, _, err := b.DecodeMassMigrationTx(tx.Data)
+			if err != nil {
+				return "", err
+			}
+
+			if i == 0 {
+				spokeID = spoke
+				state, err := DBInstance.GetStateByIndex(from.Uint64())
+				if err != nil {
+					return "", err
+				}
+				_, _, _, token, err := b.DecodeState(state.Data)
+				if err != nil {
+					return "", err
+				}
+				tokenID = token
+			}
+
+			totalAmount.Add(amount, totalAmount)
+		}
+
+		var metaValues [4]*big.Int
+		metaValues[0] = spokeID
+		metaValues[1] = tokenID
+		metaValues[2] = totalAmount
+		metaValues[3] = dummyReceiver
+
+		meta = append(meta, metaValues)
+	}
 
 	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
 
 	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
+
 	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
 	stakeAmount := big.NewInt(100000000000000000)
 
-	// TODO fix
-	var feeReceivers []*big.Int
-	dummyReceivers := big.NewInt(0)
-	for i := 0; i <= len(commitments); i++ {
-		feeReceivers = append(feeReceivers, dummyReceivers)
+	data, err := b.RollupABI.Pack("submitMassMigration", updatedRoots, aggregatedSig, meta, withdrawRoots, txs)
+	if err != nil {
+		b.log.Error("Error packing data for submitBatch", "err", err)
+		return "", nil
 	}
 
-	switch txType := commitments[0].BatchType; txType {
-	case TX_TRANSFER_TYPE:
-		data, err := b.RollupABI.Pack("submitTransfer", updatedRoots, aggregatedSig, feeReceivers, txs)
-		if err != nil {
-			b.log.Error("Error packing data for submitBatch", "err", err)
-			return "", nil
-		}
-
-		// generate call msg
-		callMsg := ethereum.CallMsg{
-			To:    &rollupAddress,
-			Data:  data,
-			Value: stakeAmount,
-		}
-
-		// generate auth
-		auth, err := b.generateAuthObj(b.EthClient, callMsg)
-		if err != nil {
-			b.log.Error("Estimate gas failed, tx reverting", "error", err)
-			return "", nil
-		}
-
-		tx, err := b.SC.RollupContract.SubmitTransfer(auth, updatedRoots, aggregatedSig, feeReceivers, txs)
-		if err != nil {
-			b.log.Error("Error submitting batch", "err", err)
-			return "", nil
-		}
-
-		txHash = tx.Hash().String()
-		b.log.Info("Sent a new batch!", "TxHash", txHash)
-	default:
-		b.log.Error("Tx not indentified", "txType", commitments[0].BatchType)
+	auth, err := b.generateAuthObj(b.EthClient, rollupAddress, stakeAmount, data)
+	if err != nil {
+		b.log.Error("Estimate gas failed, tx reverting", "error", err)
+		return "", nil
 	}
 
-	return txHash, nil
+	tx, err := b.SC.RollupContract.SubmitMassMigration(auth, updatedRoots, aggregatedSig, meta, withdrawRoots, txs)
+	if err != nil {
+		b.log.Error("Error submitting batch", "err", err)
+		return "", nil
+	}
+
+	return tx.Hash().String(), nil
 }
 
 func (b *Bazooka) FireDepositFinalisation(TBreplaced UserState, siblings []UserState, subTreeHeight uint64) (err error) {
-	// b.log.Info(
-	// 	"Attempting to finalise deposits",
-	// 	"NodeToBeReplaced",
-	// 	TBreplaced.String(),
-	// 	"NumberOfSiblings",
-	// 	len(siblings),
-	// 	"atDepth",
-	// 	subTreeHeight,
-	// )
+	b.log.Info(
+		"Attempting to finalise deposits",
+		"NodeToBeReplaced",
+		TBreplaced.String(),
+		"NumberOfSiblings",
+		len(siblings),
+		"atDepth",
+		subTreeHeight,
+	)
 
-	// // TODO check latest batch on-chain nd if we need to push new batch
 	// depositSubTreeHeight := big.NewInt(0)
 	// depositSubTreeHeight.SetUint64(subTreeHeight)
 	// var siblingData [][32]byte
@@ -726,17 +820,9 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced UserState, siblings []UserS
 	// 	Value: stakeAmount,
 	// }
 
-	// auth, err := b.GenerateAuthObj(b.EthClient, callMsg)
+	// auth, err := b.generateAuthObj(b.EthClient, callMsg)
 	// if err != nil {
 	// 	return err
-	// }
-	// lastTxBroadcasted, err := DBInstance.GetLastTransaction()
-	// if err != nil {
-	// 	return err
-	// }
-	// if lastTxBroadcasted.Nonce+1 != auth.Nonce.Uint64() {
-	// 	b.log.Info("Replacing nonce", "nonceEstimated", auth.Nonce.String(), "replacedBy", lastTxBroadcasted.Nonce+1)
-	// 	auth.Nonce = big.NewInt(int64(lastTxBroadcasted.Nonce + 1))
 	// }
 	// b.log.Info("Broadcasting deposit finalisation transaction")
 
@@ -744,16 +830,11 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced UserState, siblings []UserS
 	// if err != nil {
 	// 	return err
 	// }
-	// // TODO change this to deposit type
-	// err = DBInstance.LogBatch(auth.Nonce.Uint64(), 100, "", []byte(""))
-	// if err != nil {
-	// 	return err
-	// }
 	// b.log.Info("Deposits successfully finalized!", "TxHash", tx.Hash())
 	return nil
 }
 
-func (b *Bazooka) generateAuthObj(client *ethclient.Client, callMsg ethereum.CallMsg) (auth *bind.TransactOpts, err error) {
+func (b *Bazooka) generateAuthObj(client *ethclient.Client, toAddr ethCmn.Address, value *big.Int, data []byte) (auth *bind.TransactOpts, err error) {
 	// from address
 	fromAddress := config.OperatorAddress
 
@@ -767,6 +848,12 @@ func (b *Bazooka) generateAuthObj(client *ethclient.Client, callMsg ethereum.Cal
 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
 	if err != nil {
 		return
+	}
+
+	callMsg := ethereum.CallMsg{
+		To:    &toAddr,
+		Data:  data,
+		Value: value,
 	}
 
 	// fetch gas limit

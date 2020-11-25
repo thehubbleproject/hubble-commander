@@ -13,6 +13,7 @@ func (db *DB) GetDepositNodeAndSiblings() (NodeToBeReplaced UserState, siblings 
 	}
 
 	// get the deposit node
+	// it fetches empty node according to the deposit tree height and its hash
 	expectedHash := defaultHashes[params.MaxDepositSubTreeHeight]
 
 	// getNode with the expectedHash
