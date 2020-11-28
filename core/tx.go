@@ -61,7 +61,7 @@ func NewPendingTx(from, to, txType uint64, sig, data []byte) (tx Tx, err error) 
 }
 
 // GetSignBytes returns the transaction data that has to be signed
-func (tx Tx) GetSignBytes() (signBytes []byte) {
+func (tx *Tx) GetSignBytes() (signBytes []byte) {
 	return tx.Data
 }
 
@@ -107,8 +107,12 @@ func (t *Tx) String() string {
 }
 
 // Insert tx into the DB
-func (db *DB) InsertTx(t *Tx) error {
-	return db.Instance.Create(t).Error
+func (db *DB) InsertTx(tx *Tx) error {
+	// if tx is a create2transfer tx add it to the relayer pool
+	if tx.Type == TX_CREATE_2_TRANSFER {
+		return db.InsertRelayPacket(tx.Data, tx.Signature)
+	}
+	return db.Instance.Create(tx).Error
 }
 
 func (db *DB) PopTxs() (txs []Tx, err error) {

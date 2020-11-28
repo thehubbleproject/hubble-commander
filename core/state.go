@@ -64,7 +64,7 @@ func newStateNode(path, hash string) *UserState {
 	newUserState := &UserState{
 		AccountID: ZERO,
 		Path:      path,
-		Status:    STATUS_ACTIVE,
+		Status:    STATUS_INACTIVE,
 		Type:      TYPE_NON_TERMINAL,
 	}
 	newUserState.UpdatePath(newUserState.Path)
@@ -250,6 +250,23 @@ func (db *DB) UpdateState(state UserState) error {
 
 	db.Logger.Debug("Updating account", "Hash", state.Hash, "Path", state.Path, "countOfSiblings", len(siblings))
 	return db.StoreLeaf(state, state.Path, siblings)
+}
+
+// ReserveEmptyLeaf reserve an empty leaf
+func (db *DB) ReserveEmptyLeaf() (id uint64, err error) {
+	var state UserState
+	// find empty state leaf
+	if err := db.Instance.Where("hash ? AND type = ? AND status = ?", ZERO_VALUE_LEAF.String(), TYPE_TERMINAL, STATUS_INACTIVE).First(&state).Error; err != nil {
+		return 0, err
+	}
+
+	// update status to status_active
+	state.Status = STATUS_ACTIVE
+	if err := db.updateState(state, state.Path); err != nil {
+		return 0, err
+	}
+
+	return 0, nil
 }
 
 func (db *DB) StoreLeaf(state UserState, path string, siblings []UserState) error {

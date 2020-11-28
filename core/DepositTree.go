@@ -109,7 +109,7 @@ func (db *DB) GetAllTerminalNodes(pathToDepositSubTree string) (terminalNodes []
 	var accounts []UserState
 
 	// LIKE query with search for terminal nodes to DB
-	if err = db.Instance.Where("path LIKE ? AND type = ?", buf.String(), 1).Find(&accounts).Error; err != nil {
+	if err = db.Instance.Where("path LIKE ? AND type = ?", buf.String(), TYPE_TERMINAL).Find(&accounts).Error; err != nil {
 		return
 	}
 

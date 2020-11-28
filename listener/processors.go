@@ -57,6 +57,11 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 	if err := s.DBInstance.AddNewAccount(*newAcc); err != nil {
 		panic(err)
 	}
+
+	// if pubkey was added by relayer mark the packet processed
+	if err := s.DBInstance.MarkPacketDone(pubKeyStr); err != nil {
+		panic(err)
+	}
 }
 
 func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {

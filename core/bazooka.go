@@ -532,6 +532,28 @@ func (b *Bazooka) DecodeCreate2Transfer(txBytes []byte) (from, to, toAccID, nonc
 	return tx.FromIndex, tx.ToIndex, tx.ToAccID, tx.Nonce, tx.TxType, tx.Amount, tx.Fee, nil
 }
 
+func (b *Bazooka) EncodeCreate2TransferTxWithPub(from int64, toPub Pubkey, fee, nonce, amount, txType int64) ([]byte, error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	tx := struct {
+		TxType    *big.Int
+		FromIndex *big.Int
+		ToPubkey  [4]*big.Int
+		Amount    *big.Int
+		Fee       *big.Int
+		Nonce     *big.Int
+	}{big.NewInt(txType), big.NewInt(from), toPub, big.NewInt(amount), big.NewInt(fee), big.NewInt(nonce)}
+	return b.SC.Create2Transfer.EncodeWithPub(&opts, tx)
+}
+
+func (b *Bazooka) DecodeCreate2TransferWithPub(txBytes []byte) (fromIndex *big.Int, toPub Pubkey, nonce, txType, amount, fee *big.Int, err error) {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	tx, err := b.SC.Create2Transfer.DecodeWithPub(&opts, txBytes)
+	if err != nil {
+		return
+	}
+	return tx.FromIndex, tx.ToPubkey, tx.Nonce, tx.TxType, tx.Amount, tx.Fee, nil
+}
+
 func (b *Bazooka) EncodeMassMigrationTx(from, to, fee, nonce, amount, txType int64) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	tx := struct {
@@ -589,6 +611,30 @@ func (b *Bazooka) DecodeState(stateBytes []byte) (ID, balance, nonce, token *big
 //
 // Transactions
 //
+
+// RegisterPubkeys registers pubkeys in a batch
+func (b *Bazooka) RegisterPubkeys(pubkeys [1024][4]*big.Int) (txHash string, err error) {
+	data, err := b.RollupABI.Pack("registerBatch", pubkeys)
+	if err != nil {
+		b.log.Error("Error packing data for register batch", "err", err)
+		return
+	}
+
+	auth, err := b.generateAuthObj(b.EthClient, ethCmn.HexToAddress(config.GlobalCfg.AccountRegistry), big.NewInt(0), data)
+	if err != nil {
+		b.log.Error("Estimate gas failed, tx reverting", "error", err)
+		return
+	}
+
+	tx, err := b.SC.AccountRegistry.RegisterBatch(auth, pubkeys)
+	if err != nil {
+		return
+	}
+
+	b.log.Info("Registered pubkeys", "count", len(pubkeys), "txHash", tx.Hash().String())
+
+	return tx.Hash().String(), nil
+}
 
 // SubmitBatch submits the batch on chain with updated root and compressed transactions
 func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err error) {

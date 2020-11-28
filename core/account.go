@@ -108,6 +108,16 @@ func (db *DB) GetAccountLeafByPath(path string) (Account, error) {
 	return pdaLeaf, nil
 }
 
+// GetAccountByPubkey gets the account of the given pubkey
+func (db *DB) GetAccountByPubkey(pubkey string) (Account, error) {
+	var leaf Account
+	err := db.Instance.Where("pubkey= ?", pubkey).Find(&leaf).GetErrors()
+	if len(err) != 0 {
+		return leaf, ErrRecordNotFound(fmt.Sprintf("unable to find record for pubkey: %v err:%v", leaf, err))
+	}
+	return leaf, nil
+}
+
 func (db *DB) GetAccountLeafByID(ID uint64) (Account, error) {
 	var account Account
 	if err := db.Instance.Where("account_id = ?", ID).Find(&account).Error; err != nil {
