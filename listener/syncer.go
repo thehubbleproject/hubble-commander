@@ -3,11 +3,17 @@ package listener
 import (
 	"context"
 	"encoding/hex"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
+	"github.com/BOPR/contracts/accountregistry"
+	"github.com/BOPR/contracts/burnauction"
+	"github.com/BOPR/contracts/depositmanager"
+	"github.com/BOPR/contracts/rollup"
+	"github.com/BOPR/contracts/tokenregistry"
 
 	"github.com/BOPR/core"
 	"github.com/ethereum/go-ethereum"
@@ -42,7 +48,8 @@ type Syncer struct {
 	wg sync.WaitGroup
 }
 
-func NewSyncer() Syncer {
+// NewSyncer creates a new syncer object
+func NewSyncer() *Syncer {
 	// create logger
 	logger := common.Logger.With("module", SyncerServiceName)
 
@@ -56,7 +63,23 @@ func NewSyncer() Syncer {
 		panic(err)
 	}
 	var abis []abi.ABI
-	abis = append(abis, loadedBazooka.LoggerABI)
+
+	rollupABI, err := abi.JSON(strings.NewReader(rollup.RollupABI))
+	common.PanicIfError(err)
+	depositManagerABI, err := abi.JSON(strings.NewReader(depositmanager.DepositmanagerABI))
+	common.PanicIfError(err)
+	trABI, err := abi.JSON(strings.NewReader(tokenregistry.TokenregistryABI))
+	common.PanicIfError(err)
+	baABI, err := abi.JSON(strings.NewReader(burnauction.BurnauctionABI))
+	common.PanicIfError(err)
+	arABI, err := abi.JSON(strings.NewReader(accountregistry.AccountregistryABI))
+	common.PanicIfError(err)
+
+	abis = append(abis, rollupABI)
+	abis = append(abis, depositManagerABI)
+	abis = append(abis, trABI)
+	abis = append(abis, baABI)
+	abis = append(abis, arABI)
 
 	// abis for all the events
 	syncerService.abis = abis
@@ -67,7 +90,7 @@ func NewSyncer() Syncer {
 		panic(err)
 	}
 	//nolint:govet // will fix later in #76
-	return *syncerService
+	return syncerService
 }
 
 // OnStart starts new block subscription
@@ -98,7 +121,7 @@ func (s *Syncer) OnStart() error {
 		// start go routine to listen new header using subscription
 		go s.startSubscription(ctx, subscription)
 	}
-	s.Logger.Info("Starting syncer", "LoggingContract", config.GlobalCfg.LoggerAddress)
+	s.Logger.Info("Starting syncer")
 	return nil
 }
 
@@ -191,7 +214,11 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 		FromBlock: syncStatus.LastEthBlockBigInt(),
 		ToBlock:   header.Number,
 		Addresses: []ethCmn.Address{
-			ethCmn.HexToAddress(config.GlobalCfg.LoggerAddress),
+			ethCmn.HexToAddress(config.GlobalCfg.RollupAddress),
+			ethCmn.HexToAddress(config.GlobalCfg.TokenRegistry),
+			ethCmn.HexToAddress(config.GlobalCfg.AccountRegistry),
+			ethCmn.HexToAddress(config.GlobalCfg.DepositManager),
+			ethCmn.HexToAddress(config.GlobalCfg.BurnAuction),
 		},
 		Topics: [][]ethCmn.Hash{},
 	}

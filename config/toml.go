@@ -32,13 +32,19 @@ last_recorded_block = "{{ .LastRecordedBlock }}"
 confirmation_blocks = "{{ .ConfirmationBlocks }}"
 
 ##### Contract Addresses #####
+
+### Main contracts ###
 rollup_address = "{{ .RollupAddress }}"
-logger_address = "{{ .LoggerAddress }}"
+token_registry_address = "{{ .TokenRegistry }}"
+account_registry_address = "{{ .AccountRegistry }}"
+deposit_manager_address = "{{ .DepositManager }}"
+burn_auction_address = "{{ .BurnAuction }}"
+
+### Client contracts ###
 frontend_generic_address = "{{ .State }}"
 transfer_address = "{{ .Transfer }}"
 mass_migration_address = "{{ .MassMigration }}"
 create2transfer_address = "{{ .Create2Transfer }}"
-account_registry_address = "{{ .AccountRegistry }}"
 `
 
 var configTemplate *template.Template

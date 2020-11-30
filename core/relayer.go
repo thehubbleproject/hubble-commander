@@ -104,6 +104,13 @@ func (db *DB) GetPacketByPubkey(pubkey string) (rp RelayPacket, err error) {
 }
 
 func (db *DB) MarkPacketDone(pubkey string) error {
+	rp, err := db.GetPacketByPubkey(pubkey)
+	if err != nil {
+		if err != gorm.ErrRecordNotFound {
+			return err
+		}
+	}
+
 	// update all records with pubkey as status done
 	toAcc, err := db.GetAccountByPubkey(pubkey)
 	if err != nil {
@@ -111,11 +118,6 @@ func (db *DB) MarkPacketDone(pubkey string) error {
 	}
 
 	toStateID, err := db.ReserveEmptyLeaf()
-	if err != nil {
-		return err
-	}
-
-	rp, err := db.GetPacketByPubkey(pubkey)
 	if err != nil {
 		return err
 	}

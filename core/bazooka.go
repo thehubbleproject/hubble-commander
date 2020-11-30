@@ -17,7 +17,6 @@ import (
 
 	"github.com/BOPR/contracts/accountregistry"
 	"github.com/BOPR/contracts/create2transfer"
-	"github.com/BOPR/contracts/logger"
 	"github.com/BOPR/contracts/massmigration"
 	"github.com/BOPR/contracts/rollup"
 	"github.com/BOPR/contracts/state"
@@ -57,13 +56,11 @@ type Bazooka struct {
 	EthClient *ethclient.Client
 
 	RollupABI abi.ABI
-	LoggerABI abi.ABI
 	SC        Contracts
 }
 
 type Contracts struct {
 	RollupContract  *rollup.Rollup
-	EventLogger     *logger.Logger
 	State           *state.State
 	Transfer        *transfer.Transfer
 	Create2Transfer *create2transfer.Create2transfer
@@ -90,11 +87,6 @@ func NewPreLoadedBazooka() (bazooka Bazooka, err error) {
 		return
 	}
 
-	bazooka.LoggerABI, err = abi.JSON(strings.NewReader(logger.LoggerABI))
-	if err != nil {
-		return
-	}
-
 	bazooka.SC, err = getContractInstances(bazooka.EthClient)
 	if err != nil {
 		return bazooka, err
@@ -115,7 +107,7 @@ func (b *Bazooka) GetMainChainBlock(blockNum *big.Int) (header *ethTypes.Header,
 
 // TotalBatches returns the total number of batches that have been submitted on chain
 func (b *Bazooka) TotalBatches() (uint64, error) {
-	totalBatches, err := b.SC.RollupContract.NumOfBatchesSubmitted(nil)
+	totalBatches, err := b.SC.RollupContract.NextBatchID(nil)
 	if err != nil {
 		return 0, err
 	}
@@ -918,9 +910,6 @@ func (b *Bazooka) generateAuthObj(client *ethclient.Client, toAddr ethCmn.Addres
 
 func getContractInstances(client *ethclient.Client) (contracts Contracts, err error) {
 	if contracts.RollupContract, err = rollup.NewRollup(ethCmn.HexToAddress(config.GlobalCfg.RollupAddress), client); err != nil {
-		return contracts, err
-	}
-	if contracts.EventLogger, err = logger.NewLogger(ethCmn.HexToAddress(config.GlobalCfg.LoggerAddress), client); err != nil {
 		return contracts, err
 	}
 	if contracts.AccountRegistry, err = accountregistry.NewAccountregistry(ethCmn.HexToAddress(config.GlobalCfg.AccountRegistry), client); err != nil {
