@@ -349,7 +349,7 @@ func (tx *Tx) authenticate(bz Bazooka) error {
 
 	fmt.Println("fromAcc", fromAcc)
 
-	toState, err := DBInstance.GetStateByIndex(tx.From)
+	toState, err := DBInstance.GetStateByIndex(tx.To)
 	if err != nil {
 		return err
 	}

@@ -196,11 +196,6 @@ func dummyCreate2Transfer() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			user2, err := wallet.NewWallet()
-			if err != nil {
-				return err
-			}
-
 			secretBytes, publicKeyBytes := user1.Bytes()
 			publicKey, err := core.NewPubkeyFromBytes(publicKeyBytes)
 			if err != nil {
@@ -210,13 +205,12 @@ func dummyCreate2Transfer() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
+			// TODO fetch the empty account from the DB
 			pubkeyIndex := uint64(2)
 			path, err := core.SolidityPathToNodePath(uint64(pubkeyIndex), params.MaxDepth)
 			if err != nil {
 				return err
 			}
-
 			// add accounts to tree
 			acc, err := core.NewAccount(pubkeyIndex, pubkeyStr, path)
 			if err != nil {
@@ -237,7 +231,10 @@ func dummyCreate2Transfer() *cobra.Command {
 				return err
 			}
 
-			secretBytes, publicKeyBytes = user1.Bytes()
+			// user2, err := wallet.NewWallet()
+			// if err != nil {
+			// 	return err
+			// }
 
 			// send a transfer tx between 2
 			txHash, err := validateAndTransfer(db, bazooka, 2, 3, 1, 0, hex.EncodeToString(secretBytes), hex.EncodeToString(publicKeyBytes))

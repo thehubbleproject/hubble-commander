@@ -233,7 +233,7 @@ func (b *Bazooka) authenticateTx(tx Tx, pubkeySender, pubkeyReceiver string) err
 	if err != nil {
 		return err
 	}
-	solPubkeyReceiver, err := StrToPubkey(pubkeySender)
+	solPubkeyReceiver, err := StrToPubkey(pubkeyReceiver)
 	if err != nil {
 		return err
 	}
