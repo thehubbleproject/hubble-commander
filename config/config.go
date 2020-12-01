@@ -137,8 +137,7 @@ func WriteConfigFile(configFilePath string, config *Configuration) {
 	cmn.MustWriteFile(configFilePath, buffer.Bytes(), 0644)
 }
 
-// SetOperatorKey sets the operatorKeys which include
-// the private key and pubkey globally
+// SetOperatorKeys sets the operator key
 func SetOperatorKeys(privKeyStr string) error {
 	privKeyBytes, err := hex.DecodeString(privKeyStr)
 	if err != nil {
@@ -164,7 +163,7 @@ func GenOperatorKey() ([]byte, error) {
 	return crypto.FromECDSA(privKey), nil
 }
 
-// PrivKeyToPubKey convert private key to public key
+// PrivKeyStringToAddress convert private key to public key
 func PrivKeyStringToAddress(privKey string) (ethCmn.Address, error) {
 	privKeyBytes, err := hex.DecodeString(privKey)
 	if err != nil {

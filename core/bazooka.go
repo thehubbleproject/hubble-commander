@@ -9,6 +9,7 @@ import (
 
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
+	"github.com/BOPR/wallet"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
@@ -243,7 +244,7 @@ func (b *Bazooka) authenticateTx(tx Tx, pubkeySender, pubkeyReceiver string) err
 
 	switch tx.Type {
 	case TX_TRANSFER_TYPE:
-		err = b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, DOMAIN)
+		err = b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
 		if err != nil {
 			return err
 		}
@@ -406,21 +407,18 @@ func (b *Bazooka) compressMassMigrationTxs(opts bind.CallOpts, data [][]byte) ([
 	return b.SC.MassMigration.Compress(&opts, data)
 }
 
-func (b *Bazooka) TransferSignBytes(tx Tx) ([]byte, error) {
+func (b *Bazooka) TransferSignBytes(tx *Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	// TODO hook to tx.SignBytes
 	return b.SC.Transfer.SignBytes(&opts, tx.Data)
 }
 
-func (b *Bazooka) Create2TransferSignBytes(tx Tx) ([]byte, error) {
+func (b *Bazooka) Create2TransferSignBytesWithPub(tx *Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	// TODO hook to tx.SignBytes
-	return b.SC.Transfer.SignBytes(&opts, tx.Data)
+	return b.SC.Create2Transfer.SignBytes(&opts, tx.Data)
 }
 
-func (b *Bazooka) MassMigrationSignBytes(tx Tx) ([]byte, error) {
+func (b *Bazooka) MassMigrationSignBytes(tx *Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	// TODO hook to tx.SignBytes
 	return b.SC.MassMigration.SignBytes(&opts, tx.Data)
 }
 
@@ -694,7 +692,7 @@ func (b *Bazooka) submitTransferBatch(commitments []Commitment) (string, error) 
 	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
 
 	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
-	stakeAmount := big.NewInt(100000000000000000)
+	stakeAmount := big.NewInt(1000000000000000000)
 
 	data, err := b.RollupABI.Pack("submitTransfer", updatedRoots, aggregatedSig, feeReceivers, txs)
 	if err != nil {

@@ -509,18 +509,8 @@
       "inputs": [
         {
           "internalType": "bytes",
-          "name": "encodedTx",
+          "name": "encodedTxWithPub",
           "type": "bytes"
-        },
-        {
-          "internalType": "uint256[4]",
-          "name": "pubkeySender",
-          "type": "uint256[4]"
-        },
-        {
-          "internalType": "uint256[4]",
-          "name": "pubkeyReceiver",
-          "type": "uint256[4]"
         }
       ],
       "name": "signBytes",

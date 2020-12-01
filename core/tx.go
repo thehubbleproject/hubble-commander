@@ -61,8 +61,18 @@ func NewPendingTx(from, to, txType uint64, sig, data []byte) (tx Tx, err error) 
 }
 
 // GetSignBytes returns the transaction data that has to be signed
-func (tx *Tx) GetSignBytes() (signBytes []byte) {
-	return tx.Data
+func (tx *Tx) GetSignBytes(b Bazooka) (signBytes []byte, err error) {
+	switch txType := tx.Type; txType {
+	case TX_TRANSFER_TYPE:
+		return b.TransferSignBytes(tx)
+	case TX_CREATE_2_TRANSFER:
+		return b.Create2TransferSignBytesWithPub(tx)
+	case TX_MASS_MIGRATIONS:
+		return b.MassMigrationSignBytes(tx)
+	default:
+		fmt.Println("TxType didnt match any options", tx.Type)
+		return []byte(""), errors.New("Did not match any options")
+	}
 }
 
 // SignTx returns the transaction data that has to be signed
@@ -90,23 +100,23 @@ func (tx *Tx) SignTx(key string, pubkey string, txBytes [32]byte) (err error) {
 }
 
 // AssignHash creates a tx hash and add it to the tx
-func (t *Tx) AssignHash() (err error) {
-	if t.TxHash != "" {
+func (tx *Tx) AssignHash() (err error) {
+	if tx.TxHash != "" {
 		return nil
 	}
-	hash, err := common.RlpHash(t)
+	hash, err := common.RlpHash(tx)
 	if err != nil {
 		return
 	}
-	t.TxHash = hash.String()
+	tx.TxHash = hash.String()
 	return nil
 }
 
-func (t *Tx) String() string {
-	return fmt.Sprintf("To: %v From: %v Status:%v Hash: %v Data: %v", t.To, t.From, t.Status, t.TxHash, hex.EncodeToString(t.Data))
+func (tx *Tx) String() string {
+	return fmt.Sprintf("To: %v From: %v Status:%v Hash: %v Data: %v", tx.To, tx.From, tx.Status, tx.TxHash, hex.EncodeToString(tx.Data))
 }
 
-// Insert tx into the DB
+// InsertTx tx into the DB
 func (db *DB) InsertTx(tx *Tx) error {
 	// if tx is a create2transfer tx add it to the relayer pool
 	if tx.Type == TX_CREATE_2_TRANSFER {
@@ -115,6 +125,7 @@ func (db *DB) InsertTx(tx *Tx) error {
 	return db.Instance.Create(tx).Error
 }
 
+// PopTxs
 func (db *DB) PopTxs() (txs []Tx, err error) {
 	txType, err := db.FetchTxType()
 	tx := db.Instance.Begin()
@@ -322,30 +333,41 @@ func (tx *Tx) authenticate(bz Bazooka) error {
 		return err
 	}
 
+	fmt.Println("fromState", fromState)
+
 	accID, _, _, _, err := bz.DecodeState(fromState.Data)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("accID", accID)
 
 	fromAcc, err := DBInstance.GetAccountLeafByID(accID.Uint64())
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("fromAcc", fromAcc)
+
 	toState, err := DBInstance.GetStateByIndex(tx.From)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("toState", toState)
 
 	accID, _, _, _, err = bz.DecodeState(toState.Data)
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("accID 2", accID)
 	toAcc, err := DBInstance.GetAccountLeafByID(accID.Uint64())
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("toAcc", toAcc)
 
 	err = bz.authenticateTx(*tx, fromAcc.PublicKey, toAcc.PublicKey)
 	if err != nil {
