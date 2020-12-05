@@ -18,16 +18,20 @@ func TestGetParentPath(t *testing.T) {
 }
 
 func TestBasicPathMutations(t *testing.T) {
-	path := UintToString(2)
-	fmt.Println("path generated", path)
-	newPath, err := SolidityPathToNodePath(2, 10)
+	// index 1024 in binary is the path below
+	index := uint64(1024)
+	depth := uint64(10)
+
+	newPath, err := SolidityPathToNodePath(index, depth)
 	if err != nil {
 		panic(err)
 	}
+
 	data, err := StringToUint(newPath)
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Println("path generated", newPath, "data", data)
 }
 

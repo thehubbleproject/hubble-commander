@@ -407,17 +407,17 @@ func (b *Bazooka) compressMassMigrationTxs(opts bind.CallOpts, data [][]byte) ([
 	return b.SC.MassMigration.Compress(&opts, data)
 }
 
-func (b *Bazooka) TransferSignBytes(tx *Tx) ([]byte, error) {
+func (b *Bazooka) TransferSignBytes(tx Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	return b.SC.Transfer.SignBytes(&opts, tx.Data)
 }
 
-func (b *Bazooka) Create2TransferSignBytesWithPub(tx *Tx) ([]byte, error) {
+func (b *Bazooka) Create2TransferSignBytesWithPub(tx Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	return b.SC.Create2Transfer.SignBytes(&opts, tx.Data)
 }
 
-func (b *Bazooka) MassMigrationSignBytes(tx *Tx) ([]byte, error) {
+func (b *Bazooka) MassMigrationSignBytes(tx Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	return b.SC.MassMigration.SignBytes(&opts, tx.Data)
 }
@@ -603,8 +603,12 @@ func (b *Bazooka) DecodeState(stateBytes []byte) (ID, balance, nonce, token *big
 //
 
 // RegisterPubkeys registers pubkeys in a batch
-func (b *Bazooka) RegisterPubkeys(pubkeys [1024][4]*big.Int) (txHash string, err error) {
-	data, err := b.RollupABI.Pack("registerBatch", pubkeys)
+func (b *Bazooka) RegisterPubkeys(pubkeys [16][4]*big.Int) (txHash string, err error) {
+	registryABI, err := abi.JSON(strings.NewReader(accountregistry.AccountregistryABI))
+	if err != nil {
+		return
+	}
+	data, err := registryABI.Pack("registerBatch", pubkeys)
 	if err != nil {
 		b.log.Error("Error packing data for register batch", "err", err)
 		return

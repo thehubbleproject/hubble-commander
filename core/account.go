@@ -111,7 +111,7 @@ func (db *DB) GetAccountLeafByPath(path string) (Account, error) {
 // GetAccountByPubkey gets the account of the given pubkey
 func (db *DB) GetAccountByPubkey(pubkey string) (Account, error) {
 	var leaf Account
-	err := db.Instance.Where("pubkey= ?", pubkey).Find(&leaf).GetErrors()
+	err := db.Instance.Where("public_key = ?", pubkey).Find(&leaf).GetErrors()
 	if len(err) != 0 {
 		return leaf, ErrRecordNotFound(fmt.Sprintf("unable to find record for pubkey: %v err:%v", leaf, err))
 	}
@@ -146,21 +146,11 @@ func (db *DB) GetAccountByDepth(depth uint64) ([]Account, error) {
 }
 
 func (db *DB) AddNewAccount(acc Account) error {
-	// check if the account already exists
-	currAcc, err := db.GetAccountLeafByID(acc.ID)
-	if err != nil {
-		return err
-	}
-
-	if currAcc.PublicKey != "" {
-		return ErrAccAlreadyExists
-	}
 	return db.UpdateAccount(acc)
 }
 
 // UpdateAccount updates the account
 func (db *DB) UpdateAccount(leaf Account) error {
-	db.Logger.Info("Updated account pubkey", "ID", leaf.ID)
 	err := leaf.PopulateHash()
 	if err != nil {
 		return err

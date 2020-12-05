@@ -40,6 +40,7 @@ var DBInstance DB
 
 type DB struct {
 	Instance *gorm.DB
+	Bazooka  Bazooka
 	Logger   log.Logger
 }
 
@@ -57,7 +58,12 @@ func NewDB() (DB, error) {
 	db.LogMode(config.GlobalCfg.DBLogMode)
 	// create logger
 	logger := common.Logger.With("module", "DB")
-	return DB{Instance: db, Logger: logger}, nil
+
+	bz, err := NewPreLoadedBazooka()
+	if err != nil {
+		return DB{}, err
+	}
+	return DB{Instance: db, Logger: logger, Bazooka: bz}, nil
 }
 
 func (db *DB) Close() {

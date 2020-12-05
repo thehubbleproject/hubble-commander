@@ -241,14 +241,13 @@ func (db *DB) GetStatesAtDepth(depth uint64) ([]UserState, error) {
 }
 
 func (db *DB) UpdateState(state UserState) error {
-	db.Logger.Info("Updated state", "PATH", state.Path)
 	state.CreateAccountHash()
 	siblings, err := db.GetSiblings(state.Path)
 	if err != nil {
 		return err
 	}
 
-	db.Logger.Debug("Updating account", "Hash", state.Hash, "Path", state.Path, "countOfSiblings", len(siblings))
+	db.Logger.Debug("Updating state", "Hash", state.Hash, "Path", state.Path, "countOfSiblings", len(siblings))
 	return db.StoreLeaf(state, state.Path, siblings)
 }
 
@@ -256,7 +255,7 @@ func (db *DB) UpdateState(state UserState) error {
 func (db *DB) ReserveEmptyLeaf() (id uint64, err error) {
 	var state UserState
 	// find empty state leaf
-	if err := db.Instance.Where("hash ? AND type = ? AND status = ?", ZERO_VALUE_LEAF.String(), TYPE_TERMINAL, STATUS_INACTIVE).First(&state).Error; err != nil {
+	if err := db.Instance.Where("type = ? AND status = ?", TYPE_TERMINAL, STATUS_INACTIVE).First(&state).Error; err != nil {
 		return 0, err
 	}
 

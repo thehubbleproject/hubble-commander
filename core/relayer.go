@@ -1,25 +1,36 @@
 package core
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/jinzhu/gorm"
+	uuid "github.com/satori/go.uuid"
 )
 
 const (
 	statusPackedReceived   = 1
 	statusPackedProcessing = 2
-	minPacketCount         = 1024
+	minPacketCount         = 16
 )
 
 // RelayPacket is the relay packet for some specific actions
 type RelayPacket struct {
-	DBModel
-	Data      []byte `json:"data"`
+	ID        string `json:"-" gorm:"primary_key;size:100;default:'6ba7b810-9dad-11d1-80b4-00c04fd430c8'"`
+	Data      []byte `gorm:"type:varbinary(1000)" json:"data"`
 	Signature []byte `json:"sig" gorm:"null"`
 	Pubkey    string `json:"pubkey" gorm:"null"`
 	TxHash    string `json:"txHash"`
 	Status    uint64 `json:"status"`
+}
+
+// BeforeCreate sets id
+func (rp *RelayPacket) BeforeCreate(scope *gorm.Scope) error {
+	err := scope.SetColumn("id", uuid.NewV4().String())
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (rp *RelayPacket) AfterCreate(tx *gorm.DB) (err error) {
@@ -37,8 +48,12 @@ func (rp *RelayPacket) AfterCreate(tx *gorm.DB) (err error) {
 	if err := query.Find(&packets).Error; err != nil {
 		return err
 	}
+	bz, err := NewPreLoadedBazooka()
+	if err != nil {
+		return err
+	}
 
-	pubkeys, err := decodePackets(packets)
+	pubkeys, err := decodePackets(packets, bz)
 	if err != nil {
 		return err
 	}
@@ -46,18 +61,15 @@ func (rp *RelayPacket) AfterCreate(tx *gorm.DB) (err error) {
 	var pubkeyArr [minPacketCount][4]*big.Int
 	copy(pubkeyArr[:], pubkeys)
 
-	txHash, err := LoadedBazooka.RegisterPubkeys(pubkeyArr)
+	txHash, err := bz.RegisterPubkeys(pubkeyArr)
 	if err != nil {
 		return err
 	}
 
-	var ids []string
 	for _, packet := range packets {
-		ids = append(ids, packet.ID)
-	}
-
-	if err := tx.Model(rp).Where("id IN = ?", ids).Update(RelayPacket{Status: statusPackedProcessing, TxHash: txHash}).Error; err != nil {
-		return err
+		if err := tx.Model(&packet).Where("id = ?", packet.ID).Updates(RelayPacket{Status: statusPackedProcessing, TxHash: txHash}).Error; err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -78,7 +90,7 @@ func NewRelayPacket(data, signature []byte, pubkey string, status uint64) *Relay
 // InsertRelayPacket inserts new relay packet
 func (db *DB) InsertRelayPacket(data, sig []byte) error {
 	// decode data to fetch pubkey
-	_, toPub, _, _, _, _, err := LoadedBazooka.DecodeCreate2TransferWithPub(data)
+	_, toPub, _, _, _, _, err := db.Bazooka.DecodeCreate2TransferWithPub(data)
 	if err != nil {
 		return err
 	}
@@ -91,12 +103,16 @@ func (db *DB) InsertRelayPacket(data, sig []byte) error {
 		return err
 	}
 	rp := NewRelayPacket(data, sig, pubkey, statusPackedReceived)
-	// check if the ToPubkey exists already, send error if true
-	return db.Instance.Create(rp).Error
+
+	if err := db.Instance.Create(rp).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (db *DB) GetPacketByPubkey(pubkey string) (rp RelayPacket, err error) {
-	if err := db.Instance.Model(rp).Where("pubkey = ?", pubkey).Find(&rp).Error; err != nil {
+	if err := db.Instance.Model(&rp).Where("pubkey = ?", pubkey).Find(&rp).Error; err != nil {
 		return rp, err
 	}
 
@@ -108,6 +124,9 @@ func (db *DB) MarkPacketDone(pubkey string) error {
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
 			return err
+		}
+		if err == gorm.ErrRecordNotFound {
+			return nil
 		}
 	}
 
@@ -122,12 +141,12 @@ func (db *DB) MarkPacketDone(pubkey string) error {
 		return err
 	}
 
-	fromIndex, _, nonce, txType, amount, fee, err := LoadedBazooka.DecodeCreate2TransferWithPub(rp.Data)
+	fromIndex, _, nonce, txType, amount, fee, err := db.Bazooka.DecodeCreate2TransferWithPub(rp.Data)
 	if err != nil {
 		return err
 	}
 
-	txData, err := LoadedBazooka.EncodeCreate2TransferTx(
+	txData, err := db.Bazooka.EncodeCreate2TransferTx(
 		fromIndex.Int64(),
 		int64(toStateID),
 		int64(toAcc.ID),
@@ -137,6 +156,7 @@ func (db *DB) MarkPacketDone(pubkey string) error {
 		txType.Int64(),
 	)
 	if err != nil {
+		fmt.Println("error encoding", err)
 		return err
 	}
 
@@ -145,11 +165,7 @@ func (db *DB) MarkPacketDone(pubkey string) error {
 		return err
 	}
 
-	if err := db.InsertTx(&tx); err != nil {
-		return err
-	}
-
-	return nil
+	return db.Instance.Create(&tx).Error
 }
 
 //
@@ -157,10 +173,10 @@ func (db *DB) MarkPacketDone(pubkey string) error {
 //
 
 // decodes data in call packets and returns the pubkeys
-func decodePackets(packets []RelayPacket) ([][4]*big.Int, error) {
+func decodePackets(packets []RelayPacket, bz Bazooka) ([][4]*big.Int, error) {
 	var tos [][4]*big.Int
 	for _, packet := range packets {
-		_, to, _, _, _, _, err := LoadedBazooka.DecodeCreate2TransferWithPub(packet.Data)
+		_, to, _, _, _, _, err := bz.DecodeCreate2TransferWithPub(packet.Data)
 		if err != nil {
 			return tos, err
 		}

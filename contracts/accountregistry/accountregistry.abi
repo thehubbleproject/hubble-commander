@@ -221,9 +221,9 @@
       "constant": false,
       "inputs": [
         {
-          "internalType": "uint256[4][1024]",
+          "internalType": "uint256[4][16]",
           "name": "pubkeys",
-          "type": "uint256[4][1024]"
+          "type": "uint256[4][16]"
         }
       ],
       "name": "registerBatch",

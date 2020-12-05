@@ -8,7 +8,9 @@ import (
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/wallet"
+	"github.com/jinzhu/gorm"
 	"github.com/kilic/bn254/bls"
+	uuid "github.com/satori/go.uuid"
 )
 
 var (
@@ -22,7 +24,7 @@ const (
 
 // Tx represets the transaction on hubble
 type Tx struct {
-	DBModel
+	ID        string `json:"-" gorm:"primary_key;size:100;default:'6ba7b810-9dad-11d1-80b4-00c04fd430c8'"`
 	To        uint64 `json:"to"`
 	From      uint64 `json:"from"`
 	Data      []byte `json:"data"`
@@ -30,6 +32,15 @@ type Tx struct {
 	TxHash    string `json:"hash" gorm:"not null"`
 	Status    uint64 `json:"status"`
 	Type      uint64 `json:"type" gorm:"not null"`
+}
+
+// BeforeCreate sets id
+func (tx *Tx) BeforeCreate(scope *gorm.Scope) error {
+	err := scope.SetColumn("id", uuid.NewV4().String())
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // NewTx creates a new transaction
@@ -64,11 +75,11 @@ func NewPendingTx(from, to, txType uint64, sig, data []byte) (tx Tx, err error) 
 func (tx *Tx) GetSignBytes(b Bazooka) (signBytes []byte, err error) {
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
-		return b.TransferSignBytes(tx)
+		return b.TransferSignBytes(*tx)
 	case TX_CREATE_2_TRANSFER:
-		return b.Create2TransferSignBytesWithPub(tx)
+		return b.Create2TransferSignBytesWithPub(*tx)
 	case TX_MASS_MIGRATIONS:
-		return b.MassMigrationSignBytes(tx)
+		return b.MassMigrationSignBytes(*tx)
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return []byte(""), errors.New("Did not match any options")
@@ -139,7 +150,7 @@ func (db *DB) PopTxs() (txs []Tx, err error) {
 	}
 	var pendingTxs []Tx
 	// select N number of transactions which are pending in mempool and
-	if err := tx.Limit(config.GlobalCfg.TxsPerBatch).Order("created_at").Where(&Tx{Status: TX_STATUS_PENDING, Type: txType}).Find(&pendingTxs).Error; err != nil {
+	if err := tx.Limit(config.GlobalCfg.TxsPerBatch).Where(&Tx{Status: TX_STATUS_PENDING, Type: txType}).Find(&pendingTxs).Error; err != nil {
 		db.Logger.Error("error while fetching pending transactions", err)
 		return txs, err
 	}

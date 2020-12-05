@@ -248,7 +248,7 @@ func (s *Syncer) processEvents(logs []ethTypes.Log, header ethTypes.Header) {
 					s.processRegisteredToken(selectedEvent.Name, &abiObject, &vLog)
 				case "NewBatch":
 					s.processNewBatch(selectedEvent.Name, &abiObject, &vLog)
-				case "NewPubkeyAdded":
+				case "PubkeyRegistered":
 					s.processNewPubkeyAddition(selectedEvent.Name, &abiObject, &vLog)
 				case "DepositQueued":
 					s.processDepositQueued(selectedEvent.Name, &abiObject, &vLog)

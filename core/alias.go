@@ -44,17 +44,25 @@ func BytesToByteArray(bz []byte) ByteArray {
 // Pubkey is an alias for public key
 type Pubkey [4]*big.Int
 
+const pubkeyLength = 128
+
 // NewPubkeyFromBytes creates a pubkey from bytes
 func NewPubkeyFromBytes(bz []byte) (pubkey Pubkey, err error) {
-	if len(bz) != 128 {
+	if len(bz) != pubkeyLength {
 		return pubkey, ErrInvalidPubkeyLen
 	}
-
-	for i := 0; i < 4; i++ {
-		pubkeyPart := bz[i : i+32]
+	chunkSize := 32
+	for i := 0; i < pubkeyLength; i += chunkSize {
+		end := i + chunkSize
+		// necessary check to avoid slicing beyond
+		// slice capacity
+		if end > len(bz) {
+			end = len(bz)
+		}
+		pubkeyPart := bz[i:end]
 		tempPubkeyPart := big.NewInt(0)
 		tempPubkeyPart = tempPubkeyPart.SetBytes(pubkeyPart)
-		pubkey[i] = tempPubkeyPart
+		pubkey[i/chunkSize] = tempPubkeyPart
 	}
 	return pubkey, nil
 }
