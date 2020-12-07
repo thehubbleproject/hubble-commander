@@ -650,6 +650,12 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err erro
 			return "", err
 		}
 		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", TX_TRANSFER_TYPE)
+	case TX_CREATE_2_TRANSFER:
+		txHash, err := b.submitTransferBatch(commitments)
+		if err != nil {
+			return "", err
+		}
+		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", TX_TRANSFER_TYPE)
 	case TX_MASS_MIGRATIONS:
 		txHash, err := b.submitMassMigrationBatch(commitments)
 		if err != nil {

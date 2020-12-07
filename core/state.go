@@ -253,19 +253,17 @@ func (db *DB) UpdateState(state UserState) error {
 
 // ReserveEmptyLeaf reserve an empty leaf
 func (db *DB) ReserveEmptyLeaf() (id uint64, err error) {
-	var state UserState
+	var states []UserState
 	// find empty state leaf
-	if err := db.Instance.Where("type = ? AND status = ?", TYPE_TERMINAL, STATUS_INACTIVE).First(&state).Error; err != nil {
+	if err := db.Instance.Where("type = ? AND status = ?", TYPE_TERMINAL, STATUS_INACTIVE).Find(&states).Error; err != nil {
 		return 0, err
 	}
-
 	// update status to status_active
-	state.Status = STATUS_ACTIVE
-	if err := db.updateState(state, state.Path); err != nil {
+	states[1].Status = STATUS_ACTIVE
+	if err := db.updateState(states[1], states[1].Path); err != nil {
 		return 0, err
 	}
-
-	return 0, nil
+	return StringToUint(states[1].Path)
 }
 
 func (db *DB) StoreLeaf(state UserState, path string, siblings []UserState) error {
@@ -436,7 +434,7 @@ func (db *DB) InsertCoordinatorAccounts(acc *UserState, depth uint64) error {
 
 // updateState will simply replace all the changed fields
 func (db *DB) updateState(newAcc UserState, path string) error {
-	return db.Instance.Model(&newAcc).Where("path = ?", path).Updates(UserState{AccountID: newAcc.AccountID, Status: newAcc.Status, Data: newAcc.Data, Hash: newAcc.Hash}).Error
+	return db.Instance.Model(&newAcc).Where("path = ?", path).Updates(newAcc).Error
 }
 
 func (db *DB) GetAccountCount() (int, error) {

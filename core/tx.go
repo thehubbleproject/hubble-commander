@@ -209,6 +209,8 @@ func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof StateMerkleP
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
 		return tx.GetWitnessTranfer()
+	case TX_CREATE_2_TRANSFER:
+		return tx.GetWitnessTranfer()
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return
@@ -266,15 +268,6 @@ func (tx *Tx) GetWitnessTranfer() (fromMerkleProof, toMerkleProof StateMerklePro
 
 	return fromMerkleProof, toMerkleProof, dbCopy, nil
 }
-
-func ConcatTxs(txs [][]byte) []byte {
-	var concatenatedTxs []byte
-	for _, tx := range txs {
-		concatenatedTxs = append(concatenatedTxs, tx[:]...)
-	}
-	return concatenatedTxs
-}
-
 func (db *DB) FetchAccountProofWithID(id uint64, pdaProof *AccountMerkleProof) (err error) {
 	leaf, err := DBInstance.GetAccountLeafByID(id)
 	if err != nil {
@@ -323,12 +316,12 @@ func (tx *Tx) Validate(bz Bazooka, currentRoot ByteArray) (newRoot ByteArray, er
 		return
 	}
 
-	err = tx.authenticate(bz)
-	if err != nil {
-		txDBConn.Instance.Rollback()
-		txDBConn.Close()
-		return
-	}
+	// err = tx.authenticate(bz)
+	// if err != nil {
+	// 	txDBConn.Instance.Rollback()
+	// 	txDBConn.Close()
+	// 	return
+	// }
 
 	if txDBConn.Instance != nil {
 		txDBConn.Instance.Commit()
@@ -344,41 +337,30 @@ func (tx *Tx) authenticate(bz Bazooka) error {
 		return err
 	}
 
-	fmt.Println("fromState", fromState)
-
 	accID, _, _, _, err := bz.DecodeState(fromState.Data)
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("accID", accID)
 
 	fromAcc, err := DBInstance.GetAccountLeafByID(accID.Uint64())
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("fromAcc", fromAcc)
-
 	toState, err := DBInstance.GetStateByIndex(tx.To)
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("toState", toState)
 
 	accID, _, _, _, err = bz.DecodeState(toState.Data)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("accID 2", accID)
 	toAcc, err := DBInstance.GetAccountLeafByID(accID.Uint64())
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("toAcc", toAcc)
 
 	err = bz.authenticateTx(*tx, fromAcc.PublicKey, toAcc.PublicKey)
 	if err != nil {
