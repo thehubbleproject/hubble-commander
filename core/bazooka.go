@@ -392,7 +392,7 @@ func (b *Bazooka) applyMassMigrationTx(sender, receiver []byte, tx Tx) (updatedS
 		return
 	}
 
-	return updates.NewSender, updatedReceiver, nil
+	return updates.NewSender, receiver, nil
 }
 
 func (b *Bazooka) compressTransferTxs(opts bind.CallOpts, data [][]byte) ([]byte, error) {
@@ -544,17 +544,17 @@ func (b *Bazooka) DecodeCreate2TransferWithPub(txBytes []byte) (fromIndex *big.I
 	return tx.FromIndex, tx.ToPubkey, tx.Nonce, tx.TxType, tx.Amount, tx.Fee, nil
 }
 
-func (b *Bazooka) EncodeMassMigrationTx(from, to, fee, nonce, amount, txType int64) ([]byte, error) {
+func (b *Bazooka) EncodeMassMigrationTx(from, toSpoke, fee, nonce, amount, txType int64) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	tx := struct {
 		TxType    *big.Int
 		FromIndex *big.Int
-		ToIndex   *big.Int
 		Amount    *big.Int
 		Fee       *big.Int
+		SpokeID   *big.Int
 		Nonce     *big.Int
-	}{big.NewInt(txType), big.NewInt(from), big.NewInt(to), big.NewInt(amount), big.NewInt(fee), big.NewInt(nonce)}
-	return b.SC.Transfer.Encode(&opts, tx)
+	}{big.NewInt(txType), big.NewInt(from), big.NewInt(amount), big.NewInt(fee), big.NewInt(toSpoke), big.NewInt(nonce)}
+	return b.SC.MassMigration.Encode(&opts, tx)
 }
 
 func (b *Bazooka) DecodeMassMigrationTx(txBytes []byte) (from, toSpoke, nonce, txType, amount, fee *big.Int, err error) {
@@ -787,6 +787,8 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []Commitment) (string, er
 
 		meta = append(meta, metaValues)
 	}
+
+	withdrawRoots = updatedRoots
 
 	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
 

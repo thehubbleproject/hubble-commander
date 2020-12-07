@@ -258,7 +258,6 @@ func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txType uint64, isSyncing boo
 		return newRoot, nil
 	}
 	var transactions []core.Tx
-
 	switch txType {
 	case core.TX_TRANSFER_TYPE:
 		transactions, err = s.decompressTransfers(txsBytes)

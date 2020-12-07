@@ -275,6 +275,97 @@ func dummyCreate2Transfer() *cobra.Command {
 	return cmd
 }
 
+func dummyMassMigrate() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "dummy-massmigrate",
+		Short: "Creates 2 accounts and creates a mass migrate",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			db, err := core.NewDB()
+			if err != nil {
+				return err
+			}
+			defer db.Close()
+
+			bazooka, err := core.NewPreLoadedBazooka()
+			if err != nil {
+				return err
+			}
+			params, err := db.GetParams()
+			if err != nil {
+				return err
+			}
+
+			// create 2 accounts
+			var users []wallet.Wallet
+			for i := 0; i < 2; i++ {
+				user, err := wallet.NewWallet()
+				if err != nil {
+					return err
+				}
+				users = append(users, user)
+
+				secretBytes, publicKeyBytes := user.Bytes()
+				publicKey, err := core.NewPubkeyFromBytes(publicKeyBytes)
+				if err != nil {
+					return err
+				}
+				pubkeyStr, err := publicKey.String()
+				if err != nil {
+					return err
+				}
+				fmt.Println("Adding new account", "privkey", hex.EncodeToString(secretBytes), "publickey", publicKey)
+
+				pubkeyIndex := uint64(i + 2)
+				path, err := core.SolidityPathToNodePath(uint64(pubkeyIndex), params.MaxDepth)
+				if err != nil {
+					return err
+				}
+
+				// add accounts to tree
+				acc, err := core.NewAccount(pubkeyIndex, pubkeyStr, path)
+				if err != nil {
+					return err
+				}
+				err = db.UpdateAccount(*acc)
+				if err != nil {
+					return err
+				}
+				// add accounts to state tree
+				userState, err := bazooka.EncodeState(pubkeyIndex, 10, 0, 1)
+				if err != nil {
+					return err
+				}
+				newUser := core.NewUserState(pubkeyIndex, core.STATUS_ACTIVE, path, userState)
+				err = db.UpdateState(*newUser)
+				if err != nil {
+					return err
+				}
+			}
+
+			toSpoke := 10
+			secretBytes, publicKeyBytes := users[0].Bytes()
+			txData, err := bazooka.EncodeMassMigrationTx(int64(2), int64(toSpoke), int64(0), 0, int64(1), core.TX_MASS_MIGRATIONS)
+			if err != nil {
+				return err
+			}
+
+			tx, err := core.NewPendingTx(2, 0, core.TX_MASS_MIGRATIONS, []byte(""), txData)
+			if err != nil {
+				return err
+			}
+
+			if err = signAndBroadcast(tx, hex.EncodeToString(secretBytes), hex.EncodeToString(publicKeyBytes), bazooka, db); err != nil {
+				return err
+			}
+
+			fmt.Println("Transaction sent!", "Hash", tx.TxHash)
+
+			return nil
+		},
+	}
+	return cmd
+}
+
 // validateAndTransfer creates and sends a transfer transaction
 func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, amount, fee uint64, priv, pub string) (txHash string, err error) {
 	from, err := db.GetStateByIndex(fromIndex)
