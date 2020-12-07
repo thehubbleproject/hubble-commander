@@ -50,7 +50,7 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 	if err != nil {
 		return
 	}
-	newAcc, err := core.NewAccount(event.PubkeyID.Uint64()-1, pubKeyStr, pathToNode)
+	newAcc, err := core.NewAccount(event.PubkeyID.Uint64(), pubKeyStr, pathToNode)
 	if err != nil {
 		fmt.Println("unable to create new account")
 		panic(err)
