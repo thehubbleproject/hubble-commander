@@ -316,7 +316,7 @@ func (tx *Tx) Validate(bz Bazooka, currentRoot ByteArray) (newRoot ByteArray, er
 		return
 	}
 
-	// err = tx.authenticate(bz)
+	err = tx.authenticate(bz)
 	// if err != nil {
 	// 	txDBConn.Instance.Rollback()
 	// 	txDBConn.Close()
