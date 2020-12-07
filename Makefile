@@ -40,4 +40,4 @@ start:
 	touch ./logs/node.log
 	./build/hubble start > ./logs/node.log & 
 
-.PHONY: contracts dep start-simulator build clean start buidl
+.PHONY: contracts dep start-simulator build clean start buidl lint

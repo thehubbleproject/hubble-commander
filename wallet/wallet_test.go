@@ -41,7 +41,7 @@ func TestVerifyAggregated(t *testing.T) {
 		signatures[i] = &accountSignature
 	}
 
-	verifier := blswallet.NewBLSVerifier(defaultDomain)
+	verifier := blswallet.NewBLSVerifier(DefaultDomain[:])
 	aggregatedSignature := verifier.AggregateSignatures(signatures)
 	aggregatedSignatureWallet, err := NewAggregateSignature(signatures)
 	if err != nil {
