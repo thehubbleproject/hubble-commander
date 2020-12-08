@@ -170,6 +170,111 @@ func dummyTransfer() *cobra.Command {
 	return cmd
 }
 
+func dummyCreate2Transfer() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "dummy-create2transfer",
+		Short: "Sends a create2transfer transaction",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			db, err := core.NewDB()
+			if err != nil {
+				return err
+			}
+			defer db.Close()
+
+			bazooka, err := core.NewPreLoadedBazooka()
+			if err != nil {
+				return err
+			}
+
+			params, err := db.GetParams()
+			if err != nil {
+				return err
+			}
+
+			for i := 0; i < 16; i++ {
+				fmt.Println("Sending another tx", i)
+				user1, err := wallet.NewWallet()
+				if err != nil {
+					return err
+				}
+				secretBytes, publicKeyBytes := user1.Bytes()
+				publicKey, err := core.NewPubkeyFromBytes(publicKeyBytes)
+				if err != nil {
+					return err
+				}
+				pubkeyStr, err := publicKey.String()
+				if err != nil {
+					return err
+				}
+
+				pubkeyIndex := uint64(i + 2)
+				path, err := core.SolidityPathToNodePath(uint64(pubkeyIndex), params.MaxDepth)
+				if err != nil {
+					return err
+				}
+
+				// add accounts to tree
+				user1Acc, err := core.NewAccount(pubkeyIndex, pubkeyStr, path)
+				if err != nil {
+					return err
+				}
+
+				err = db.UpdateAccount(*user1Acc)
+				if err != nil {
+					return err
+				}
+
+				// add accounts to state tree
+				user1state, err := bazooka.EncodeState(pubkeyIndex, 10, 0, 1)
+				if err != nil {
+					return err
+				}
+				newUser := core.NewUserState(pubkeyIndex, core.STATUS_ACTIVE, path, user1state)
+				err = db.UpdateState(*newUser)
+				if err != nil {
+					return err
+				}
+
+				user2, err := wallet.NewWallet()
+				if err != nil {
+					return err
+				}
+
+				_, publicKeyBytes2 := user2.Bytes()
+				publicKey2, err := core.NewPubkeyFromBytes(publicKeyBytes2)
+				if err != nil {
+					return err
+				}
+
+				// pubkey2Str, err := publicKey2.String()
+				// if err != nil {
+				// 	return err
+				// }
+
+				// send a transfer tx between 2
+				txData, err := bazooka.EncodeCreate2TransferTxWithPub(int64(newUser.AccountID), publicKey2, 0, 1, 1, core.TX_CREATE_2_TRANSFER)
+				if err != nil {
+					return err
+				}
+
+				tx, err := core.NewPendingTx(newUser.AccountID, 0, core.TX_CREATE_2_TRANSFER, []byte(""), txData)
+				if err != nil {
+					return err
+				}
+
+				if err := signAndBroadcast(tx, hex.EncodeToString(secretBytes), hex.EncodeToString(publicKeyBytes), bazooka, db); err != nil {
+					return err
+				}
+
+				fmt.Println("Transaction sent!", "Hash", tx.TxHash)
+			}
+
+			return nil
+		},
+	}
+	return cmd
+}
+
 // validateAndTransfer creates and sends a transfer transaction
 func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, amount, fee uint64, priv, pub string) (txHash string, err error) {
 	from, err := db.GetStateByIndex(fromIndex)
@@ -208,7 +313,21 @@ func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 	if err != nil {
 		return
 	}
-	err = tx.SignTx(priv, pub, common.Keccak256(tx.GetSignBytes()))
+
+	if err = signAndBroadcast(tx, priv, pub, bazooka, db); err != nil {
+		return
+	}
+
+	return tx.TxHash, nil
+}
+
+func signAndBroadcast(tx core.Tx, priv, pub string, bazooka core.Bazooka, db core.DB) (err error) {
+	txBytes, err := tx.GetSignBytes(bazooka)
+	if err != nil {
+		return
+	}
+
+	err = tx.SignTx(priv, pub, common.Keccak256(txBytes))
 	if err != nil {
 		return
 	}
@@ -221,8 +340,7 @@ func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 
 	err = db.InsertTx(&tx)
 	if err != nil {
-		return
+		return err
 	}
-
-	return tx.TxHash, nil
+	return nil
 }

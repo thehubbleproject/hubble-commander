@@ -17,7 +17,6 @@ import (
 
 const (
 	DATABASENAME                = "hubble"
-	DefaultMongoDB              = "mongodb://localhost:27017"
 	DefaultDB                   = "mysql"
 	DefaultDbUrlPrefix          = "mysql://root:root@(localhost:3306)"
 	DefaultEthRPC               = "http://localhost:8545"
@@ -48,8 +47,14 @@ type Configuration struct {
 	ConfirmationBlocks uint64        `mapstructure:"confirmation_blocks"` // Number of blocks for confirmation
 
 	RollupAddress   string `mapstructure:"rollup_address"`
-	LoggerAddress   string `mapstructure:"logger_address"`
-	FrontendAddress string `mapstructure:"frontend_address"`
+	TokenRegistry   string `mapstructure:"token_registry_address"`
+	AccountRegistry string `mapstructure:"account_registry_address"`
+	DepositManager  string `mapstructure:"deposit_manager_address"`
+	BurnAuction     string `mapstructure:"burn_auction_address"`
+	State           string `mapstructure:"frontend_generic_address"`
+	Transfer        string `mapstructure:"transfer_address"`
+	MassMigration   string `mapstructure:"mass_migration_address"`
+	Create2Transfer string `mapstructure:"create2transfer_address"`
 
 	OperatorKey       string `mapstructure:"operator_key"`
 	OperatorAddress   string `mapstructure:"operator_address"`
@@ -68,12 +73,20 @@ func GetDefaultConfig() Configuration {
 		PollingInterval:    DefaultPollingInterval,
 		ServerPort:         DefaultSeverPort,
 		ConfirmationBlocks: DefaultConfirmationBlocks,
-		RollupAddress:      ethCmn.Address{}.String(),
-		LoggerAddress:      ethCmn.Address{}.String(),
-		FrontendAddress:    ethCmn.Address{}.String(),
-		OperatorKey:        "",
-		OperatorAddress:    "",
-		LastRecordedBlock:  "0",
+
+		RollupAddress:   ethCmn.Address{}.String(),
+		BurnAuction:     ethCmn.Address{}.String(),
+		TokenRegistry:   ethCmn.Address{}.String(),
+		AccountRegistry: ethCmn.Address{}.String(),
+		DepositManager:  ethCmn.Address{}.String(),
+		State:           ethCmn.Address{}.String(),
+		Transfer:        ethCmn.Address{}.String(),
+		MassMigration:   ethCmn.Address{}.String(),
+		Create2Transfer: ethCmn.Address{}.String(),
+
+		OperatorKey:       "",
+		OperatorAddress:   "",
+		LastRecordedBlock: "0",
 	}
 }
 
@@ -124,8 +137,7 @@ func WriteConfigFile(configFilePath string, config *Configuration) {
 	cmn.MustWriteFile(configFilePath, buffer.Bytes(), 0644)
 }
 
-// SetOperatorKey sets the operatorKeys which include
-// the private key and pubkey globally
+// SetOperatorKeys sets the operator key
 func SetOperatorKeys(privKeyStr string) error {
 	privKeyBytes, err := hex.DecodeString(privKeyStr)
 	if err != nil {
@@ -151,7 +163,7 @@ func GenOperatorKey() ([]byte, error) {
 	return crypto.FromECDSA(privKey), nil
 }
 
-// PrivKeyToPubKey convert private key to public key
+// PrivKeyStringToAddress convert private key to public key
 func PrivKeyStringToAddress(privKey string) (ethCmn.Address, error) {
 	privKeyBytes, err := hex.DecodeString(privKey)
 	if err != nil {

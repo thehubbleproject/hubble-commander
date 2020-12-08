@@ -1,9 +1,5 @@
 package core
 
-import (
-	"github.com/BOPR/contracts/rollupclient"
-)
-
 type StateMerkleProof struct {
 	State    UserState
 	Siblings []UserState
@@ -13,7 +9,7 @@ func NewStateMerkleProof(account UserState, siblings []UserState) StateMerklePro
 	return StateMerkleProof{State: account, Siblings: siblings}
 }
 
-func (m *StateMerkleProof) ToABIVersion() (stateMP rollupclient.TypesStateMerkleProof, err error) {
+func (m *StateMerkleProof) ToABIVersion() (stateMP TypesStateMerkleProof, err error) {
 	var witnesses [][32]byte
 	for _, s := range m.Siblings {
 		witnesses = append(witnesses, s.HashToByteArray())
@@ -24,7 +20,7 @@ func (m *StateMerkleProof) ToABIVersion() (stateMP rollupclient.TypesStateMerkle
 		return
 	}
 
-	stateMP = rollupclient.TypesStateMerkleProof{
+	stateMP = TypesStateMerkleProof{
 		State:   state,
 		Witness: witnesses,
 	}

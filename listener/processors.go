@@ -6,17 +6,19 @@ import (
 	"fmt"
 
 	"github.com/BOPR/common"
+	"github.com/BOPR/contracts/accountregistry"
+	"github.com/BOPR/contracts/depositmanager"
+	"github.com/BOPR/contracts/rollup"
+	"github.com/BOPR/contracts/tokenregistry"
 	"github.com/BOPR/core"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/jinzhu/gorm"
-
-	"github.com/BOPR/contracts/logger"
 )
 
 func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
 	// unpack event
-	event := new(logger.LoggerPubkeyRegistered)
+	event := new(accountregistry.AccountregistryPubkeyRegistered)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
 		// TODO do something with this error
@@ -57,12 +59,17 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 	if err := s.DBInstance.AddNewAccount(*newAcc); err != nil {
 		panic(err)
 	}
+
+	// if pubkey was added by relayer mark the packet processed
+	if err := s.DBInstance.MarkPacketDone(pubKeyStr); err != nil {
+		panic(err)
+	}
 }
 
 func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
 	s.Logger.Info("New deposit found")
 	// unpack event
-	event := new(logger.LoggerDepositQueued)
+	event := new(depositmanager.DepositmanagerDepositQueued)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
 		fmt.Println("Unable to unpack log:", err)
@@ -84,7 +91,7 @@ func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog
 func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
 	s.Logger.Info("New deposit subtree created")
 	// unpack event
-	event := new(logger.LoggerDepositSubTreeReady)
+	event := new(depositmanager.DepositmanagerDepositSubTreeReady)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
 		// TODO do something with this error
@@ -116,7 +123,7 @@ func (s *Syncer) processDepositFinalised(eventName string, abiObject *abi.ABI, v
 	s.Logger.Info("Deposit batch finalised!")
 
 	// unpack event
-	event := new(logger.LoggerDepositsFinalised)
+	event := new(rollup.RollupDepositsFinalised)
 
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
@@ -147,7 +154,7 @@ func (s *Syncer) processDepositFinalised(eventName string, abiObject *abi.ABI, v
 func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
 	s.Logger.Info("New batch found!")
 
-	event := new(logger.LoggerNewBatch)
+	event := new(rollup.RollupNewBatch)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
 		s.Logger.Error("Unable to unpack log:", "error", err)
@@ -208,7 +215,7 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 
 func (s *Syncer) processRegisteredToken(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
 	s.Logger.Info("New token registered")
-	event := new(logger.LoggerRegisteredToken)
+	event := new(tokenregistry.TokenregistryRegisteredToken)
 
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {

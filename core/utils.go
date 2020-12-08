@@ -107,10 +107,17 @@ func SolidityPathToNodePath(path uint64, depth uint64) (string, error) {
 	pathWithoutPrefix := UintToString(path)
 	// pad path with 0's to make it fit depth
 	var pathToNode []rune
-	for i := uint64(0); i < depth-uint64(len(pathWithoutPrefix)); i++ {
+
+	if depth < uint64(len(pathWithoutPrefix)) {
+		return "", errors.New("Path should be greater or equal to depth")
+	}
+
+	for i := uint64(0); i < (depth)-uint64(len(pathWithoutPrefix)); i++ {
 		pathToNode = append(pathToNode, 48)
 	}
+
 	generatedPath := strings.Join([]string{string(pathToNode), pathWithoutPrefix}, "")
+
 	return generatedPath, nil
 }
 

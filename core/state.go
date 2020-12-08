@@ -6,7 +6,6 @@ import (
 	"math"
 
 	"github.com/BOPR/common"
-	"github.com/BOPR/contracts/rollupclient"
 	"github.com/jinzhu/gorm"
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
 )
@@ -65,7 +64,7 @@ func newStateNode(path, hash string) *UserState {
 	newUserState := &UserState{
 		AccountID: ZERO,
 		Path:      path,
-		Status:    STATUS_ACTIVE,
+		Status:    STATUS_INACTIVE,
 		Type:      TYPE_NON_TERMINAL,
 	}
 	newUserState.UpdatePath(newUserState.Path)
@@ -98,7 +97,7 @@ func (s *UserState) String() string {
 	return fmt.Sprintf("ID: %d Bal: %d Nonce: %d Token: %v", id, balance, nonce, token)
 }
 
-func (s *UserState) ToABIAccount() (solState rollupclient.TypesUserState, err error) {
+func (s *UserState) ToABIAccount() (solState TypesUserState, err error) {
 	solState.PubkeyIndex, solState.Balance, solState.Nonce, solState.TokenType, err = LoadedBazooka.DecodeState(s.Data)
 	if err != nil {
 		return
@@ -242,15 +241,29 @@ func (db *DB) GetStatesAtDepth(depth uint64) ([]UserState, error) {
 }
 
 func (db *DB) UpdateState(state UserState) error {
-	db.Logger.Info("Updated state", "PATH", state.Path)
 	state.CreateAccountHash()
 	siblings, err := db.GetSiblings(state.Path)
 	if err != nil {
 		return err
 	}
 
-	db.Logger.Debug("Updating account", "Hash", state.Hash, "Path", state.Path, "countOfSiblings", len(siblings))
+	db.Logger.Debug("Updating state", "Hash", state.Hash, "Path", state.Path, "countOfSiblings", len(siblings))
 	return db.StoreLeaf(state, state.Path, siblings)
+}
+
+// ReserveEmptyLeaf reserve an empty leaf
+func (db *DB) ReserveEmptyLeaf() (id uint64, err error) {
+	var states []UserState
+	// find empty state leaf
+	if err := db.Instance.Where("type = ? AND status = ?", TYPE_TERMINAL, STATUS_INACTIVE).Find(&states).Error; err != nil {
+		return 0, err
+	}
+	// update status to status_active
+	states[1].Status = STATUS_ACTIVE
+	if err := db.updateState(states[1], states[1].Path); err != nil {
+		return 0, err
+	}
+	return StringToUint(states[1].Path)
 }
 
 func (db *DB) StoreLeaf(state UserState, path string, siblings []UserState) error {
@@ -421,7 +434,7 @@ func (db *DB) InsertCoordinatorAccounts(acc *UserState, depth uint64) error {
 
 // updateState will simply replace all the changed fields
 func (db *DB) updateState(newAcc UserState, path string) error {
-	return db.Instance.Model(&newAcc).Where("path = ?", path).Updates(UserState{AccountID: newAcc.AccountID, Status: newAcc.Status, Data: newAcc.Data, Hash: newAcc.Hash}).Error
+	return db.Instance.Model(&newAcc).Where("path = ?", path).Updates(newAcc).Error
 }
 
 func (db *DB) GetAccountCount() (int, error) {

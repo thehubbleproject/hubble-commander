@@ -13,6 +13,7 @@ func (db *DB) GetDepositNodeAndSiblings() (NodeToBeReplaced UserState, siblings 
 	}
 
 	// get the deposit node
+	// it fetches empty node according to the deposit tree height and its hash
 	expectedHash := defaultHashes[params.MaxDepositSubTreeHeight]
 
 	// getNode with the expectedHash
@@ -108,7 +109,7 @@ func (db *DB) GetAllTerminalNodes(pathToDepositSubTree string) (terminalNodes []
 	var accounts []UserState
 
 	// LIKE query with search for terminal nodes to DB
-	if err = db.Instance.Where("path LIKE ? AND type = ?", buf.String(), 1).Find(&accounts).Error; err != nil {
+	if err = db.Instance.Where("path LIKE ? AND type = ?", buf.String(), TYPE_TERMINAL).Find(&accounts).Error; err != nil {
 		return
 	}
 

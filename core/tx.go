@@ -8,7 +8,9 @@ import (
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/wallet"
+	"github.com/jinzhu/gorm"
 	"github.com/kilic/bn254/bls"
+	uuid "github.com/satori/go.uuid"
 )
 
 var (
@@ -22,7 +24,7 @@ const (
 
 // Tx represets the transaction on hubble
 type Tx struct {
-	DBModel
+	ID        string `json:"-" gorm:"primary_key;size:100;default:'6ba7b810-9dad-11d1-80b4-00c04fd430c8'"`
 	To        uint64 `json:"to"`
 	From      uint64 `json:"from"`
 	Data      []byte `json:"data"`
@@ -30,6 +32,15 @@ type Tx struct {
 	TxHash    string `json:"hash" gorm:"not null"`
 	Status    uint64 `json:"status"`
 	Type      uint64 `json:"type" gorm:"not null"`
+}
+
+// BeforeCreate sets id
+func (tx *Tx) BeforeCreate(scope *gorm.Scope) error {
+	err := scope.SetColumn("id", uuid.NewV4().String())
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // NewTx creates a new transaction
@@ -61,8 +72,18 @@ func NewPendingTx(from, to, txType uint64, sig, data []byte) (tx Tx, err error) 
 }
 
 // GetSignBytes returns the transaction data that has to be signed
-func (tx Tx) GetSignBytes() (signBytes []byte) {
-	return tx.Data
+func (tx *Tx) GetSignBytes(b Bazooka) (signBytes []byte, err error) {
+	switch txType := tx.Type; txType {
+	case TX_TRANSFER_TYPE:
+		return b.TransferSignBytes(*tx)
+	case TX_CREATE_2_TRANSFER:
+		return b.Create2TransferSignBytesWithPub(*tx)
+	case TX_MASS_MIGRATIONS:
+		return b.MassMigrationSignBytes(*tx)
+	default:
+		fmt.Println("TxType didnt match any options", tx.Type)
+		return []byte(""), errors.New("Did not match any options")
+	}
 }
 
 // SignTx returns the transaction data that has to be signed
@@ -90,27 +111,32 @@ func (tx *Tx) SignTx(key string, pubkey string, txBytes [32]byte) (err error) {
 }
 
 // AssignHash creates a tx hash and add it to the tx
-func (t *Tx) AssignHash() (err error) {
-	if t.TxHash != "" {
+func (tx *Tx) AssignHash() (err error) {
+	if tx.TxHash != "" {
 		return nil
 	}
-	hash, err := common.RlpHash(t)
+	hash, err := common.RlpHash(tx)
 	if err != nil {
 		return
 	}
-	t.TxHash = hash.String()
+	tx.TxHash = hash.String()
 	return nil
 }
 
-func (t *Tx) String() string {
-	return fmt.Sprintf("To: %v From: %v Status:%v Hash: %v Data: %v", t.To, t.From, t.Status, t.TxHash, hex.EncodeToString(t.Data))
+func (tx *Tx) String() string {
+	return fmt.Sprintf("To: %v From: %v Status:%v Hash: %v Data: %v", tx.To, tx.From, tx.Status, tx.TxHash, hex.EncodeToString(tx.Data))
 }
 
-// Insert tx into the DB
-func (db *DB) InsertTx(t *Tx) error {
-	return db.Instance.Create(t).Error
+// InsertTx tx into the DB
+func (db *DB) InsertTx(tx *Tx) error {
+	// if tx is a create2transfer tx add it to the relayer pool
+	if tx.Type == TX_CREATE_2_TRANSFER {
+		return db.InsertRelayPacket(tx.Data, tx.Signature)
+	}
+	return db.Instance.Create(tx).Error
 }
 
+// PopTxs
 func (db *DB) PopTxs() (txs []Tx, err error) {
 	txType, err := db.FetchTxType()
 	tx := db.Instance.Begin()
@@ -124,7 +150,7 @@ func (db *DB) PopTxs() (txs []Tx, err error) {
 	}
 	var pendingTxs []Tx
 	// select N number of transactions which are pending in mempool and
-	if err := tx.Limit(config.GlobalCfg.TxsPerBatch).Order("created_at").Where(&Tx{Status: TX_STATUS_PENDING, Type: txType}).Find(&pendingTxs).Error; err != nil {
+	if err := tx.Limit(config.GlobalCfg.TxsPerBatch).Where(&Tx{Status: TX_STATUS_PENDING, Type: txType}).Find(&pendingTxs).Error; err != nil {
 		db.Logger.Error("error while fetching pending transactions", err)
 		return txs, err
 	}
@@ -183,6 +209,8 @@ func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof StateMerkleP
 	switch txType := tx.Type; txType {
 	case TX_TRANSFER_TYPE:
 		return tx.GetWitnessTranfer()
+	case TX_CREATE_2_TRANSFER:
+		return tx.GetWitnessTranfer()
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return
@@ -240,15 +268,6 @@ func (tx *Tx) GetWitnessTranfer() (fromMerkleProof, toMerkleProof StateMerklePro
 
 	return fromMerkleProof, toMerkleProof, dbCopy, nil
 }
-
-func ConcatTxs(txs [][]byte) []byte {
-	var concatenatedTxs []byte
-	for _, tx := range txs {
-		concatenatedTxs = append(concatenatedTxs, tx[:]...)
-	}
-	return concatenatedTxs
-}
-
 func (db *DB) FetchAccountProofWithID(id uint64, pdaProof *AccountMerkleProof) (err error) {
 	leaf, err := DBInstance.GetAccountLeafByID(id)
 	if err != nil {
@@ -298,11 +317,11 @@ func (tx *Tx) Validate(bz Bazooka, currentRoot ByteArray) (newRoot ByteArray, er
 	}
 
 	err = tx.authenticate(bz)
-	if err != nil {
-		txDBConn.Instance.Rollback()
-		txDBConn.Close()
-		return
-	}
+	// if err != nil {
+	// 	txDBConn.Instance.Rollback()
+	// 	txDBConn.Close()
+	// 	return
+	// }
 
 	if txDBConn.Instance != nil {
 		txDBConn.Instance.Commit()
@@ -323,12 +342,27 @@ func (tx *Tx) authenticate(bz Bazooka) error {
 		return err
 	}
 
-	acc, err := DBInstance.GetAccountLeafByID(accID.Uint64())
+	fromAcc, err := DBInstance.GetAccountLeafByID(accID.Uint64())
 	if err != nil {
 		return err
 	}
 
-	err = bz.authenticateTx(*tx, acc.PublicKey)
+	toState, err := DBInstance.GetStateByIndex(tx.To)
+	if err != nil {
+		return err
+	}
+
+	accID, _, _, _, err = bz.DecodeState(toState.Data)
+	if err != nil {
+		return err
+	}
+
+	toAcc, err := DBInstance.GetAccountLeafByID(accID.Uint64())
+	if err != nil {
+		return err
+	}
+
+	err = bz.authenticateTx(*tx, fromAcc.PublicKey, toAcc.PublicKey)
 	if err != nil {
 		return err
 	}
