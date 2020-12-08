@@ -55,6 +55,7 @@ func main() {
 	rootCmd.AddCommand(sendTransferTx())
 	rootCmd.AddCommand(dummyTransfer())
 	rootCmd.AddCommand(dummyCreate2Transfer())
+	rootCmd.AddCommand(dummyMassMigrate())
 	rootCmd.AddCommand(createDatabase())
 	rootCmd.AddCommand(createUsers())
 	rootCmd.AddCommand(viewState())

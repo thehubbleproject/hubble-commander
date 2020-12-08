@@ -211,6 +211,8 @@ func (tx *Tx) GetVerificationData() (fromMerkleProof, toMerkleProof StateMerkleP
 		return tx.GetWitnessTranfer()
 	case TX_CREATE_2_TRANSFER:
 		return tx.GetWitnessTranfer()
+	case TX_MASS_MIGRATIONS:
+		return tx.GetWitnessTranfer()
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return
@@ -316,7 +318,7 @@ func (tx *Tx) Validate(bz Bazooka, currentRoot ByteArray) (newRoot ByteArray, er
 		return
 	}
 
-	err = tx.authenticate(bz)
+	// err = tx.authenticate(bz)
 	// if err != nil {
 	// 	txDBConn.Instance.Rollback()
 	// 	txDBConn.Close()
