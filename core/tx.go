@@ -87,7 +87,7 @@ func (tx *Tx) GetSignBytes(b Bazooka) (signBytes []byte, err error) {
 }
 
 // SignTx returns the transaction data that has to be signed
-func (tx *Tx) SignTx(secret, pubkey []byte, txBytes [32]byte) (err error) {
+func (tx *Tx) SignTx(secret, pubkey []byte, txBytes []byte) (err error) {
 	wallet, err := wallet.SecretToWallet(secret, pubkey)
 	if err != nil {
 		return err

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/wallet"
 	blswallet "github.com/kilic/bn254/bls"
@@ -44,7 +43,7 @@ func TestVerifySingle(t *testing.T) {
 	}
 
 	secret, pubkey := newWallet.Bytes()
-	err = tx.SignTx(secret, pubkey, common.Keccak256(txBytes))
+	err = tx.SignTx(secret, pubkey, txBytes)
 	if err != nil {
 		return
 	}
@@ -70,7 +69,7 @@ func TestVerifySingle(t *testing.T) {
 		return
 	}
 
-	valid, err := newWallet.VerifySignature(common.Keccak256(txBytes).Bytes(), *sig, *pubkeyObj)
+	valid, err := newWallet.VerifySignature(txBytes, *sig, *pubkeyObj)
 	fmt.Println(valid, err)
 
 	err = bazooka.SC.Transfer.VerifySingle(nil, txBytes, pubkeyInt, solSignature, wallet.DefaultDomain)
