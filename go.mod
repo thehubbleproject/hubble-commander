@@ -24,7 +24,7 @@ require (
 	github.com/jinzhu/gorm v1.9.12
 	github.com/jirfag/go-printf-func-name v0.0.0-20200119135958-7558a9eaa5af // indirect
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
-	github.com/kilic/bn254 v0.0.0-20201103073307-dd29157ef4fd
+	github.com/kilic/bn254 v0.0.0-20201116081810-790649bc68fe
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/matoous/godox v0.0.0-20200801072554-4fb83dc2941e // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect

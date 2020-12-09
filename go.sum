@@ -422,6 +422,8 @@ github.com/kilic/bn254 v0.0.0-20200815091300-20e90d5cc039 h1:Achp0Sim7C9CxZieEDv
 github.com/kilic/bn254 v0.0.0-20200815091300-20e90d5cc039/go.mod h1:FM45JaqbTy44zH8GHHKGJ6QgYPoteEH3ntBUXg9fSjo=
 github.com/kilic/bn254 v0.0.0-20201103073307-dd29157ef4fd h1:ivsvBMTVVGn1iKRxPQZonQ3SvceJeuU2gYLnNB5BSs4=
 github.com/kilic/bn254 v0.0.0-20201103073307-dd29157ef4fd/go.mod h1:WaQDkJxIYbLEekqiB/BrBcz/47ngsniuLydNUUko5Ic=
+github.com/kilic/bn254 v0.0.0-20201116081810-790649bc68fe h1:npNsRlugw0ozK5qgYXl1NcZdq4hhjnPXwom7+/u1JAs=
+github.com/kilic/bn254 v0.0.0-20201116081810-790649bc68fe/go.mod h1:WaQDkJxIYbLEekqiB/BrBcz/47ngsniuLydNUUko5Ic=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0 h1:AV2c/EiW3KqPNT9ZKl07ehoAGi4C5/01Cfbblndcapg=

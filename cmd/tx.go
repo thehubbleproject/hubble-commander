@@ -418,7 +418,7 @@ func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 		return
 	}
 
-	sig, err := blswallet.SignatureKeyFromBytes(tx.Signature)
+	sig, err := blswallet.SignatureFromBytes(tx.Signature)
 	if err != nil {
 		fmt.Println("error while getting signature", err)
 		return

@@ -146,22 +146,11 @@ func encodeChildren(left, right ByteArray) (result []byte, err error) {
 	return bz, nil
 }
 
-func BytesToSolSignature(sig []byte) (BLSSignature [2]*big.Int, err error) {
-	if len(sig) != 64 {
-		return BLSSignature, errors.New("Invalid signature length")
+func BytesToSolSignature(in []byte) (out [2]*big.Int, err error) {
+	if len(in) != 64 {
+		return out, errors.New("Invalid signature length")
 	}
-	chunkSize := 32
-	for i := 0; i < len(sig); i += chunkSize {
-		end := i + chunkSize
-		// necessary check to avoid slicing beyond
-		// slice capacity
-		if end > len(sig) {
-			end = len(sig)
-		}
-		sigPart := sig[i:end]
-		tempSigPart := big.NewInt(0)
-		tempSigPart = tempSigPart.SetBytes(sigPart)
-		BLSSignature[i/chunkSize] = tempSigPart
-	}
-	return BLSSignature, nil
+	out[0] = new(big.Int).SetBytes(in[:32])
+	out[1] = new(big.Int).SetBytes(in[32:64])
+	return out, nil
 }

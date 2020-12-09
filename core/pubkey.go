@@ -21,18 +21,10 @@ func (p Pubkey) ToSol() (pubkey [4]*big.Int, err error) {
 	if len(p) != pubkeyLength {
 		return pubkey, ErrInvalidPubkeyLen
 	}
-	chunkSize := 32
-	for i := 0; i < pubkeyLength; i += chunkSize {
-		end := i + chunkSize
-		// necessary check to avoid slicing beyond
-		// slice capacity
-		if end > len(p) {
-			end = len(p)
-		}
-		pubkeyPart := p[i:end]
-		tempPubkeyPart := big.NewInt(0)
-		tempPubkeyPart = tempPubkeyPart.SetBytes(pubkeyPart)
-		pubkey[i/chunkSize] = tempPubkeyPart
-	}
+	pubkey[1] = new(big.Int).SetBytes(p[:32])
+	pubkey[0] = new(big.Int).SetBytes(p[32:64])
+	pubkey[3] = new(big.Int).SetBytes(p[64:96])
+	pubkey[2] = new(big.Int).SetBytes(p[96:128])
+
 	return pubkey, nil
 }
