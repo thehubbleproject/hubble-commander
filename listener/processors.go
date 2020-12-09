@@ -45,12 +45,8 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 		panic(err)
 	}
 
-	pubkey := core.Pubkey(event.Pubkey)
-	pubKeyStr, err := pubkey.String()
-	if err != nil {
-		return
-	}
-	newAcc, err := core.NewAccount(event.PubkeyID.Uint64(), pubKeyStr, pathToNode)
+	pubkey := core.NewPubkey(event.Pubkey)
+	newAcc, err := core.NewAccount(event.PubkeyID.Uint64(), pubkey, pathToNode)
 	if err != nil {
 		fmt.Println("unable to create new account")
 		panic(err)
@@ -61,7 +57,7 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 	}
 
 	// if pubkey was added by relayer mark the packet processed
-	if err := s.DBInstance.MarkPacketDone(pubKeyStr); err != nil {
+	if err := s.DBInstance.MarkPacketDone(pubkey); err != nil {
 		panic(err)
 	}
 }

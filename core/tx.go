@@ -87,18 +87,8 @@ func (tx *Tx) GetSignBytes(b Bazooka) (signBytes []byte, err error) {
 }
 
 // SignTx returns the transaction data that has to be signed
-func (tx *Tx) SignTx(key string, pubkey string, txBytes [32]byte) (err error) {
-	privKeyBytes, err := hex.DecodeString(key)
-	if err != nil {
-		fmt.Println("unable to decode string", err)
-		return
-	}
-	pubkeyBytes, err := hex.DecodeString(pubkey)
-	if err != nil {
-		fmt.Println("unable to decode string", err)
-		return
-	}
-	wallet, err := wallet.SecretToWallet(privKeyBytes, pubkeyBytes)
+func (tx *Tx) SignTx(secret, pubkey []byte, txBytes [32]byte) (err error) {
+	wallet, err := wallet.SecretToWallet(secret, pubkey)
 	if err != nil {
 		return err
 	}
@@ -270,21 +260,22 @@ func (tx *Tx) GetWitnessTranfer() (fromMerkleProof, toMerkleProof StateMerklePro
 
 	return fromMerkleProof, toMerkleProof, dbCopy, nil
 }
-func (db *DB) FetchAccountProofWithID(id uint64, pdaProof *AccountMerkleProof) (err error) {
-	leaf, err := DBInstance.GetAccountLeafByID(id)
-	if err != nil {
-		fmt.Println("error while getting pda leaf", err)
-		return
-	}
-	siblings, err := DBInstance.GetAccountSiblings(leaf.Path)
-	if err != nil {
-		fmt.Println("error while getting pda siblings", err)
-		return
-	}
-	pdaMP := NewAccountMerkleProof(leaf.Path, leaf.PublicKey, siblings)
-	*pdaProof = pdaMP
-	return nil
-}
+
+// func (db *DB) FetchAccountProofWithID(id uint64, pdaProof *AccountMerkleProof) (err error) {
+// 	leaf, err := DBInstance.GetAccountLeafByID(id)
+// 	if err != nil {
+// 		fmt.Println("error while getting pda leaf", err)
+// 		return
+// 	}
+// 	siblings, err := DBInstance.GetAccountSiblings(leaf.Path)
+// 	if err != nil {
+// 		fmt.Println("error while getting pda siblings", err)
+// 		return
+// 	}
+// 	pdaMP := NewAccountMerkleProof(leaf.Path, leaf.PublicKey, siblings)
+// 	*pdaProof = pdaMP
+// 	return nil
+// }
 
 func (db *DB) FetchMPWithID(id uint64, stateMP *StateMerkleProof) (err error) {
 	leaf, err := DBInstance.GetStateByIndex(id)
@@ -318,12 +309,12 @@ func (tx *Tx) Validate(bz Bazooka, currentRoot ByteArray) (newRoot ByteArray, er
 		return
 	}
 
-	// err = tx.authenticate(bz)
-	// if err != nil {
-	// 	txDBConn.Instance.Rollback()
-	// 	txDBConn.Close()
-	// 	return
-	// }
+	err = tx.authenticate(bz)
+	if err != nil {
+		txDBConn.Instance.Rollback()
+		txDBConn.Close()
+		return
+	}
 
 	if txDBConn.Instance != nil {
 		txDBConn.Instance.Commit()

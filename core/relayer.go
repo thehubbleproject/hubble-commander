@@ -19,7 +19,7 @@ type RelayPacket struct {
 	ID        string `json:"-" gorm:"primary_key;size:100;default:'6ba7b810-9dad-11d1-80b4-00c04fd430c8'"`
 	Data      []byte `gorm:"type:varbinary(1000)" json:"data"`
 	Signature []byte `json:"sig" gorm:"null"`
-	Pubkey    string `json:"pubkey" gorm:"null"`
+	Pubkey    []byte `json:"pubkey" gorm:"null"`
 	TxHash    string `json:"txHash"`
 	Status    uint64 `json:"status"`
 }
@@ -76,7 +76,7 @@ func (rp *RelayPacket) AfterCreate(tx *gorm.DB) (err error) {
 }
 
 // NewRelayPacket creates a new relay packet to be transmitted on-chain
-func NewRelayPacket(data, signature []byte, pubkey string, status uint64) *RelayPacket {
+func NewRelayPacket(data, signature []byte, pubkey []byte, status uint64) *RelayPacket {
 	return &RelayPacket{
 		Data:      data,
 		Pubkey:    pubkey,
@@ -98,10 +98,7 @@ func (db *DB) InsertRelayPacket(data, sig []byte) error {
 	// TODO check if to account exists
 
 	// create a new relay packet with status received
-	pubkey, err := toPub.String()
-	if err != nil {
-		return err
-	}
+	pubkey := NewPubkey(toPub)
 	rp := NewRelayPacket(data, sig, pubkey, statusPackedReceived)
 
 	if err := db.Instance.Create(rp).Error; err != nil {
@@ -111,7 +108,7 @@ func (db *DB) InsertRelayPacket(data, sig []byte) error {
 	return nil
 }
 
-func (db *DB) GetPacketByPubkey(pubkey string) (rp RelayPacket, err error) {
+func (db *DB) GetPacketByPubkey(pubkey []byte) (rp RelayPacket, err error) {
 	if err := db.Instance.Model(&rp).Where("pubkey = ?", pubkey).Find(&rp).Error; err != nil {
 		return rp, err
 	}
@@ -119,7 +116,7 @@ func (db *DB) GetPacketByPubkey(pubkey string) (rp RelayPacket, err error) {
 	return rp, nil
 }
 
-func (db *DB) MarkPacketDone(pubkey string) error {
+func (db *DB) MarkPacketDone(pubkey []byte) error {
 	rp, err := db.GetPacketByPubkey(pubkey)
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {

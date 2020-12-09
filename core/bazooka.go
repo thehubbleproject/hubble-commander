@@ -227,13 +227,13 @@ func (b *Bazooka) CompressTxs(txs []Tx) ([]byte, error) {
 	}
 }
 
-func (b *Bazooka) authenticateTx(tx Tx, pubkeySender, pubkeyReceiver string) error {
+func (b *Bazooka) authenticateTx(tx Tx, pubkeySender, pubkeyReceiver []byte) error {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	solPubkeySender, err := StrToPubkey(pubkeySender)
+	solPubkeySender, err := Pubkey(pubkeySender).ToSol()
 	if err != nil {
 		return err
 	}
-	solPubkeyReceiver, err := StrToPubkey(pubkeyReceiver)
+	solPubkeyReceiver, err := Pubkey(pubkeyReceiver).ToSol()
 	if err != nil {
 		return err
 	}
@@ -249,12 +249,12 @@ func (b *Bazooka) authenticateTx(tx Tx, pubkeySender, pubkeyReceiver string) err
 			return err
 		}
 	case TX_CREATE_2_TRANSFER:
-		err = b.SC.Create2Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, solPubkeyReceiver, DOMAIN)
+		err = b.SC.Create2Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, solPubkeyReceiver, wallet.DefaultDomain)
 		if err != nil {
 			return err
 		}
 	case TX_MASS_MIGRATIONS:
-		err = b.SC.MassMigration.Validate(&opts, tx.Data, signature, solPubkeySender, DOMAIN)
+		err = b.SC.MassMigration.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
 		if err != nil {
 			return err
 		}
@@ -522,7 +522,7 @@ func (b *Bazooka) DecodeCreate2Transfer(txBytes []byte) (from, to, toAccID, nonc
 	return tx.FromIndex, tx.ToIndex, tx.ToAccID, tx.Nonce, tx.TxType, tx.Amount, tx.Fee, nil
 }
 
-func (b *Bazooka) EncodeCreate2TransferTxWithPub(from int64, toPub Pubkey, fee, nonce, amount, txType int64) ([]byte, error) {
+func (b *Bazooka) EncodeCreate2TransferTxWithPub(from int64, toPub [4]*big.Int, fee, nonce, amount, txType int64) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	tx := struct {
 		TxType    *big.Int
@@ -535,7 +535,7 @@ func (b *Bazooka) EncodeCreate2TransferTxWithPub(from int64, toPub Pubkey, fee, 
 	return b.SC.Create2Transfer.EncodeWithPub(&opts, tx)
 }
 
-func (b *Bazooka) DecodeCreate2TransferWithPub(txBytes []byte) (fromIndex *big.Int, toPub Pubkey, nonce, txType, amount, fee *big.Int, err error) {
+func (b *Bazooka) DecodeCreate2TransferWithPub(txBytes []byte) (fromIndex *big.Int, toPub [4]*big.Int, nonce, txType, amount, fee *big.Int, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	tx, err := b.SC.Create2Transfer.DecodeWithPub(&opts, txBytes)
 	if err != nil {
