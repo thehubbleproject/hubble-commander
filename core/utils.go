@@ -150,12 +150,18 @@ func BytesToSolSignature(sig []byte) (BLSSignature [2]*big.Int, err error) {
 	if len(sig) != 64 {
 		return BLSSignature, errors.New("Invalid signature length")
 	}
-	sig1 := sig[0:32]
-	sig2 := sig[32:64]
-	sig1bigInt := big.NewInt(0)
-	sig1bigInt.SetBytes(sig1)
-	sig2bigInt := big.NewInt(0)
-	sig2bigInt.SetBytes(sig2)
-	blsSig := [2]*big.Int{sig1bigInt, sig2bigInt}
-	return blsSig, nil
+	chunkSize := 32
+	for i := 0; i < len(sig); i += chunkSize {
+		end := i + chunkSize
+		// necessary check to avoid slicing beyond
+		// slice capacity
+		if end > len(sig) {
+			end = len(sig)
+		}
+		sigPart := sig[i:end]
+		tempSigPart := big.NewInt(0)
+		tempSigPart = tempSigPart.SetBytes(sigPart)
+		BLSSignature[i/chunkSize] = tempSigPart
+	}
+	return BLSSignature, nil
 }

@@ -6,8 +6,11 @@ import (
 	"fmt"
 
 	"github.com/BOPR/common"
+	"github.com/BOPR/config"
 	"github.com/BOPR/core"
 	"github.com/BOPR/wallet"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	blswallet "github.com/kilic/bn254/bls"
 	"github.com/spf13/cobra"
 )
 
@@ -36,7 +39,15 @@ func sendTransferTx() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			privKeyBytes, err := hex.DecodeString(privKey)
+			if err != nil {
+				return err
+			}
 			pubKey, err := flags.GetString(FlagPubKey)
+			if err != nil {
+				return err
+			}
+			pubkeyBytes, err := hex.DecodeString(pubKey)
 			if err != nil {
 				return err
 			}
@@ -60,7 +71,7 @@ func sendTransferTx() *cobra.Command {
 				return err
 			}
 
-			txHash, err := validateAndTransfer(db, bazooka, fromIndex, toIndex, amount, fee, privKey, pubKey)
+			txHash, err := validateAndTransfer(db, bazooka, fromIndex, toIndex, amount, fee, privKeyBytes, pubkeyBytes)
 			if err != nil {
 				return err
 			}
@@ -114,18 +125,12 @@ func dummyTransfer() *cobra.Command {
 				if err != nil {
 					return err
 				}
+
 				users = append(users, user)
 
 				secretBytes, publicKeyBytes := user.Bytes()
-				publicKey, err := core.NewPubkeyFromBytes(publicKeyBytes)
-				if err != nil {
-					return err
-				}
-				pubkeyStr, err := publicKey.String()
-				if err != nil {
-					return err
-				}
-				fmt.Println("Adding new account", "privkey", hex.EncodeToString(secretBytes), "publickey", publicKey)
+
+				fmt.Println("Adding new account", "privkey", hex.EncodeToString(secretBytes), "publickey", hex.EncodeToString(publicKeyBytes))
 
 				pubkeyIndex := uint64(i + 2)
 				path, err := core.SolidityPathToNodePath(uint64(pubkeyIndex), params.MaxDepth)
@@ -134,7 +139,7 @@ func dummyTransfer() *cobra.Command {
 				}
 
 				// add accounts to tree
-				acc, err := core.NewAccount(pubkeyIndex, pubkeyStr, path)
+				acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path)
 				if err != nil {
 					return err
 				}
@@ -157,7 +162,7 @@ func dummyTransfer() *cobra.Command {
 			secretBytes, publicKeyBytes := users[0].Bytes()
 
 			// send a transfer tx between 2
-			txHash, err := validateAndTransfer(db, bazooka, 2, 3, 1, 0, hex.EncodeToString(secretBytes), hex.EncodeToString(publicKeyBytes))
+			txHash, err := validateAndTransfer(db, bazooka, 2, 3, 1, 0, secretBytes, publicKeyBytes)
 			if err != nil {
 				return err
 			}
@@ -198,15 +203,6 @@ func dummyCreate2Transfer() *cobra.Command {
 					return err
 				}
 				secretBytes, publicKeyBytes := user1.Bytes()
-				publicKey, err := core.NewPubkeyFromBytes(publicKeyBytes)
-				if err != nil {
-					return err
-				}
-				pubkeyStr, err := publicKey.String()
-				if err != nil {
-					return err
-				}
-
 				pubkeyIndex := uint64(i + 2)
 				path, err := core.SolidityPathToNodePath(uint64(pubkeyIndex), params.MaxDepth)
 				if err != nil {
@@ -214,7 +210,7 @@ func dummyCreate2Transfer() *cobra.Command {
 				}
 
 				// add accounts to tree
-				user1Acc, err := core.NewAccount(pubkeyIndex, pubkeyStr, path)
+				user1Acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path)
 				if err != nil {
 					return err
 				}
@@ -241,18 +237,13 @@ func dummyCreate2Transfer() *cobra.Command {
 				}
 
 				_, publicKeyBytes2 := user2.Bytes()
-				publicKey2, err := core.NewPubkeyFromBytes(publicKeyBytes2)
+				pubkey2, err := core.Pubkey(publicKeyBytes2).ToSol()
 				if err != nil {
 					return err
 				}
 
-				// pubkey2Str, err := publicKey2.String()
-				// if err != nil {
-				// 	return err
-				// }
-
 				// send a transfer tx between 2
-				txData, err := bazooka.EncodeCreate2TransferTxWithPub(int64(newUser.AccountID), publicKey2, 0, 1, 1, core.TX_CREATE_2_TRANSFER)
+				txData, err := bazooka.EncodeCreate2TransferTxWithPub(int64(newUser.AccountID), pubkey2, 0, 1, 1, core.TX_CREATE_2_TRANSFER)
 				if err != nil {
 					return err
 				}
@@ -262,7 +253,7 @@ func dummyCreate2Transfer() *cobra.Command {
 					return err
 				}
 
-				if err := signAndBroadcast(tx, hex.EncodeToString(secretBytes), hex.EncodeToString(publicKeyBytes), bazooka, db); err != nil {
+				if err := signAndBroadcast(tx, secretBytes, publicKeyBytes, bazooka, db); err != nil {
 					return err
 				}
 
@@ -305,15 +296,7 @@ func dummyMassMigrate() *cobra.Command {
 				users = append(users, user)
 
 				secretBytes, publicKeyBytes := user.Bytes()
-				publicKey, err := core.NewPubkeyFromBytes(publicKeyBytes)
-				if err != nil {
-					return err
-				}
-				pubkeyStr, err := publicKey.String()
-				if err != nil {
-					return err
-				}
-				fmt.Println("Adding new account", "privkey", hex.EncodeToString(secretBytes), "publickey", publicKey)
+				fmt.Println("Adding new account", "privkey", hex.EncodeToString(secretBytes), "publickey", publicKeyBytes)
 
 				pubkeyIndex := uint64(i + 2)
 				path, err := core.SolidityPathToNodePath(uint64(pubkeyIndex), params.MaxDepth)
@@ -322,7 +305,7 @@ func dummyMassMigrate() *cobra.Command {
 				}
 
 				// add accounts to tree
-				acc, err := core.NewAccount(pubkeyIndex, pubkeyStr, path)
+				acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path)
 				if err != nil {
 					return err
 				}
@@ -354,7 +337,7 @@ func dummyMassMigrate() *cobra.Command {
 				return err
 			}
 
-			if err = signAndBroadcast(tx, hex.EncodeToString(secretBytes), hex.EncodeToString(publicKeyBytes), bazooka, db); err != nil {
+			if err = signAndBroadcast(tx, secretBytes, publicKeyBytes, bazooka, db); err != nil {
 				return err
 			}
 
@@ -367,7 +350,7 @@ func dummyMassMigrate() *cobra.Command {
 }
 
 // validateAndTransfer creates and sends a transfer transaction
-func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, amount, fee uint64, priv, pub string) (txHash string, err error) {
+func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, amount, fee uint64, priv, pub []byte) (txHash string, err error) {
 	from, err := db.GetStateByIndex(fromIndex)
 	if err != nil {
 		return
@@ -405,14 +388,79 @@ func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 		return
 	}
 
-	if err = signAndBroadcast(tx, priv, pub, bazooka, db); err != nil {
+	opts := bind.CallOpts{From: config.OperatorAddress}
+	txBytes, err := tx.GetSignBytes(bazooka)
+	if err != nil {
 		return
 	}
+	err = tx.SignTx(priv, pub, common.Keccak256(txBytes))
+	if err != nil {
+		return
+	}
+
+	// signature, err := core.BytesToSolSignature(tx.Signature)
+	// if err != nil {
+	// 	return
+	// }
+
+	pubkeyInt, err := core.Pubkey(pub).ToSol()
+	if err != nil {
+		return
+	}
+
+	newWallet, err := wallet.NewWallet()
+	if err != nil {
+		return
+	}
+	secret, pubkey := newWallet.Bytes()
+	err = tx.SignTx(secret, pubkey, common.Keccak256(txBytes))
+	if err != nil {
+		return
+	}
+
+	sig, err := blswallet.SignatureKeyFromBytes(tx.Signature)
+	if err != nil {
+		fmt.Println("error while getting signature", err)
+		return
+	}
+
+	pubkeyObj, err := blswallet.PublicKeyFromBytes(pubkey)
+	if err != nil {
+		fmt.Println("error while getting public key", err)
+		return
+	}
+	pubkeyInt, err = core.Pubkey(pubkey).ToSol()
+	if err != nil {
+		return
+	}
+
+	solSignature, err := core.BytesToSolSignature(tx.Signature)
+	if err != nil {
+		return
+	}
+
+	valid, err := newWallet.VerifySignature(common.Keccak256(txBytes).Bytes(), *sig, *pubkeyObj)
+	fmt.Println(valid, err)
+
+	err = bazooka.SC.Transfer.VerifySingle(&opts, txBytes, pubkeyInt, solSignature, wallet.DefaultDomain)
+	if err != nil {
+		fmt.Println("error on validate", err)
+		return
+	}
+
+	// err = bazooka.SC.Transfer.Validate(&opts, tx.Data, solSignature, pubkeyInt, wallet.DefaultDomain)
+	// if err != nil {
+	// 	return
+	// }
+
+	// if err = signAndBroadcast(tx, priv, pub, bazooka, db); err != nil {
+	// 	return
+	// }
 
 	return tx.TxHash, nil
 }
 
-func signAndBroadcast(tx core.Tx, priv, pub string, bazooka core.Bazooka, db core.DB) (err error) {
+func signAndBroadcast(tx core.Tx, priv, pub []byte, bazooka core.Bazooka, db core.DB) (err error) {
 	txBytes, err := tx.GetSignBytes(bazooka)
 	if err != nil {
 		return
