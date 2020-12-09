@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"math/big"
 )
 
@@ -31,7 +30,6 @@ func (p Pubkey) ToSol() (pubkey [4]*big.Int, err error) {
 			end = len(p)
 		}
 		pubkeyPart := p[i:end]
-		fmt.Println("here", pubkeyPart)
 		tempPubkeyPart := big.NewInt(0)
 		tempPubkeyPart = tempPubkeyPart.SetBytes(pubkeyPart)
 		pubkey[i/chunkSize] = tempPubkeyPart
