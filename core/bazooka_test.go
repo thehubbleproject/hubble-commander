@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/BOPR/config"
@@ -44,8 +43,11 @@ func TestVerifySingle(t *testing.T) {
 	pubkeyObj, err := blswallet.PublicKeyFromBytes(pubkey)
 	require.Nil(t, err)
 
+	// verify signature using go-lib
 	valid, err := newWallet.VerifySignature(txBytes, *sig, *pubkeyObj)
-	fmt.Println(valid, err)
+	// this passes
+	require.True(t, valid)
+	require.Nil(t, err)
 
 	pubkeyInt, err := Pubkey(pubkey).ToSol()
 	require.Nil(t, err)
@@ -53,6 +55,8 @@ func TestVerifySingle(t *testing.T) {
 	solSignature, err := BytesToSolSignature(tx.Signature)
 	require.Nil(t, err)
 
-	err = bazooka.SC.Transfer.VerifySingle(nil, txBytes, pubkeyInt, solSignature, wallet.DefaultDomain)
+	// verify single
+	err = bazooka.SC.Transfer.Validate(nil, txData, solSignature, pubkeyInt, wallet.DefaultDomain)
+	// this doesnt
 	require.Nil(t, err)
 }

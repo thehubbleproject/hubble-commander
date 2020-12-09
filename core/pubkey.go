@@ -1,6 +1,9 @@
 package core
 
-import "math/big"
+import (
+	"fmt"
+	"math/big"
+)
 
 // Pubkey is an alias for public key
 type Pubkey []byte
@@ -28,6 +31,7 @@ func (p Pubkey) ToSol() (pubkey [4]*big.Int, err error) {
 			end = len(p)
 		}
 		pubkeyPart := p[i:end]
+		fmt.Println("here", pubkeyPart)
 		tempPubkeyPart := big.NewInt(0)
 		tempPubkeyPart = tempPubkeyPart.SetBytes(pubkeyPart)
 		pubkey[i/chunkSize] = tempPubkeyPart
