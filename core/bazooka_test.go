@@ -22,59 +22,37 @@ func TestVerifySingle(t *testing.T) {
 	bazooka, err := NewPreLoadedBazooka()
 	require.Nil(t, err, "error should be nil")
 
-	txData, err := bazooka.EncodeTransferTx(1, 2, 0, 0, 0, TX_TRANSFER_TYPE)
-	if err != nil {
-		return
-	}
-
-	tx, err := NewPendingTx(1, 2, TX_TRANSFER_TYPE, []byte(""), txData)
-	if err != nil {
-		return
-	}
-
-	txBytes, err := tx.GetSignBytes(bazooka)
-	if err != nil {
-		return
-	}
-
 	newWallet, err := wallet.NewWallet()
-	if err != nil {
-		return
-	}
+	require.Nil(t, err)
 
 	secret, pubkey := newWallet.Bytes()
+	txData, err := bazooka.EncodeTransferTx(1, 2, 0, 0, 0, TX_TRANSFER_TYPE)
+	require.Nil(t, err)
+
+	tx, err := NewPendingTx(1, 2, TX_TRANSFER_TYPE, []byte(""), txData)
+	require.Nil(t, err)
+
+	txBytes, err := tx.GetSignBytes(bazooka)
+	require.Nil(t, err)
+
 	err = tx.SignTx(secret, pubkey, txBytes)
-	if err != nil {
-		return
-	}
+	require.Nil(t, err)
 
 	sig, err := blswallet.SignatureKeyFromBytes(tx.Signature)
-	if err != nil {
-		fmt.Println("error while getting signature", err)
-		return
-	}
+	require.Nil(t, err)
 
 	pubkeyObj, err := blswallet.PublicKeyFromBytes(pubkey)
-	if err != nil {
-		fmt.Println("error while getting public key", err)
-		return
-	}
-	pubkeyInt, err := Pubkey(pubkey).ToSol()
-	if err != nil {
-		return
-	}
-
-	solSignature, err := BytesToSolSignature(tx.Signature)
-	if err != nil {
-		return
-	}
+	require.Nil(t, err)
 
 	valid, err := newWallet.VerifySignature(txBytes, *sig, *pubkeyObj)
 	fmt.Println(valid, err)
 
+	pubkeyInt, err := Pubkey(pubkey).ToSol()
+	require.Nil(t, err)
+
+	solSignature, err := BytesToSolSignature(tx.Signature)
+	require.Nil(t, err)
+
 	err = bazooka.SC.Transfer.VerifySingle(nil, txBytes, pubkeyInt, solSignature, wallet.DefaultDomain)
-	if err != nil {
-		fmt.Println("error on validate", err)
-		return
-	}
+	require.Nil(t, err)
 }
