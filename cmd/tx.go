@@ -393,7 +393,7 @@ func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 	if err != nil {
 		return
 	}
-	err = tx.SignTx(priv, pub, common.Keccak256(txBytes))
+	err = tx.SignTx(priv, pub, txBytes)
 	if err != nil {
 		return
 	}
@@ -413,7 +413,7 @@ func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 		return
 	}
 	secret, pubkey := newWallet.Bytes()
-	err = tx.SignTx(secret, pubkey, common.Keccak256(txBytes))
+	err = tx.SignTx(secret, pubkey, txBytes)
 	if err != nil {
 		return
 	}
@@ -466,7 +466,7 @@ func signAndBroadcast(tx core.Tx, priv, pub []byte, bazooka core.Bazooka, db cor
 		return
 	}
 
-	err = tx.SignTx(priv, pub, common.Keccak256(txBytes))
+	err = tx.SignTx(priv, pub, txBytes)
 	if err != nil {
 		return
 	}

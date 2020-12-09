@@ -51,6 +51,7 @@ func main() {
 
 	rootCmd.AddCommand(initCmd())
 	rootCmd.AddCommand(startCmd())
+	rootCmd.AddCommand(startRestServerCmd())
 	rootCmd.AddCommand(addGenesisAcccountsCmd())
 	rootCmd.AddCommand(sendTransferTx())
 	rootCmd.AddCommand(dummyTransfer())

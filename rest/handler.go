@@ -3,8 +3,8 @@ package rest
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/BOPR/core"
 	"github.com/gorilla/mux"
@@ -12,6 +12,10 @@ import (
 
 var (
 	ErrInvalidTxType = errors.New("Invalid transaction type")
+)
+
+const (
+	KeyID = "id"
 )
 
 type TxReceiver struct {
@@ -55,9 +59,55 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(output)
 }
 
+type stateExporter struct {
+	Balance   uint64 `json:"balance"`
+	AccountID uint64 `json:"account_id"`
+	StateID   uint64 `json:"state_id"`
+	Token     uint64 `json:"token_id"`
+	Nonce     uint64 `json:"nonce"`
+}
+
 func stateDecoderHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	fmt.Println("params", params)
+	id := params[KeyID]
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
+	}
+
+	parameters, err := db.GetParams()
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
+	}
+
+	path, err := core.SolidityPathToNodePath(uint64(idInt), parameters.MaxDepth)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
+	}
+
+	state, err := db.GetStateByPath(path)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable toID")
+	}
+	ID, balance, nonce, token, err := bazooka.DecodeState(state.Data)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable toID")
+	}
+	var stateData stateExporter
+	stateData.AccountID = ID.Uint64()
+	stateData.Balance = balance.Uint64()
+	stateData.Nonce = nonce.Uint64()
+	stateData.StateID = uint64(idInt)
+	stateData.Token = token.Uint64()
+
+	output, err := json.Marshal(stateData)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
+	}
+
+	// write headers and data
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(output)
 }
 
 func decodeTx(tx []byte, txType uint64) (to, from uint64, err error) {
