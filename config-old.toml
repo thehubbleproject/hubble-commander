@@ -1,0 +1,39 @@
+# This is a TOML config file.
+
+##### RPC configrations #####
+# RPC endpoint for ethereum chain
+eth_RPC_URL = "http://localhost:8545"
+
+##### DB configrations #####
+db_type = "mysql"
+db_url = "mysql://root:Vaibhav@1997@/hubble?charset=utf8&parseTime=True&loc=Local"
+trace = "false"
+db_log_mode = "false"
+
+##### Server configrations #####
+server_port = "8080"
+polling_interval = "5s"
+txs_per_batch = "2"
+
+#### Keystore #####
+operator_key = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+operator_address = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+
+#### Syncer settings #####
+last_recorded_block = "0"
+confirmation_blocks = "5"
+
+##### Contract Addresses #####
+
+### Main contracts ###
+rollup_address = "0xc5a5C42992dECbae36851359345FE25997F5C42d"
+token_registry_address = "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
+account_registry_address = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
+deposit_manager_address = "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F"
+burn_auction_address = "0x0165878a594ca255338adfa4d48449f69242eb8f"
+
+### Client contracts ###
+frontend_generic_address = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+transfer_address = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+mass_migration_address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+create2transfer_address = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
