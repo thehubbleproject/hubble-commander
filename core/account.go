@@ -1,7 +1,6 @@
 package core
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"math"
@@ -14,6 +13,7 @@ import (
 var (
 	ErrAccAlreadyExists     = errors.New("Account already exists")
 	ErrUnableToInsertLeaves = errors.New("Unable to insert leaves")
+	EmptyByteSlice          = []byte{}
 )
 
 // Account is the copy of the accounts tree
@@ -23,7 +23,7 @@ type Account struct {
 	ID uint64 `gorm:"not null;column:account_id"`
 
 	// Public key for the user
-	PublicKey string `gorm:"type:varchar(1000)"`
+	PublicKey []byte `gorm:"type:varbinary(255)"`
 
 	// Path from root to leaf
 	// Path is a string to that we can run LIKE queries
@@ -40,7 +40,7 @@ type Account struct {
 }
 
 // NewAccount creates a new account
-func NewAccount(id uint64, pubkey, path string) (*Account, error) {
+func NewAccount(id uint64, pubkey []byte, path string) (*Account, error) {
 	newAccount := &Account{
 		ID:        id,
 		PublicKey: pubkey,
@@ -67,7 +67,7 @@ func newAccountNode(path, hash string) *Account {
 
 // NewEmptyAccount creates new empty account which generates zero hash
 func NewEmptyAccount() *Account {
-	return &Account{ID: ZERO, PublicKey: "", Type: TYPE_TERMINAL}
+	return &Account{ID: ZERO, PublicKey: EmptyByteSlice, Type: TYPE_TERMINAL}
 }
 
 func (p *Account) UpdatePath(path string) {
@@ -84,7 +84,7 @@ func (p *Account) HashToByteArray() ByteArray {
 }
 
 func (p *Account) PopulateHash() error {
-	if p.PublicKey == "" {
+	if len(p.PublicKey) == 0 {
 		p.Hash = ZERO_VALUE_LEAF.String()
 		return nil
 	}
@@ -109,7 +109,7 @@ func (db *DB) GetAccountLeafByPath(path string) (Account, error) {
 }
 
 // GetAccountByPubkey gets the account of the given pubkey
-func (db *DB) GetAccountByPubkey(pubkey string) (Account, error) {
+func (db *DB) GetAccountByPubkey(pubkey []byte) (Account, error) {
 	var leaf Account
 	err := db.Instance.Where("public_key = ?", pubkey).Find(&leaf).GetErrors()
 	if len(err) != 0 {
@@ -357,11 +357,7 @@ func (db *DB) updateAccountRootNodes(newRoot ByteArray) error {
 	tempAccountLeaf.Hash = newRoot.String()
 	return db.updateSingleAccount(tempAccountLeaf, tempAccountLeaf.Path)
 }
-func encodePubkey(pubkey string) ([]byte, error) {
-	pubkeyBytes, err := hex.DecodeString(pubkey)
-	if err != nil {
-		panic(err)
-	}
+func encodePubkey(pubkey []byte) ([]byte, error) {
 	uint256Ty, err := abi.NewType("bytes", "bytes", nil)
 	if err != nil {
 		return []byte(""), err
@@ -374,7 +370,7 @@ func encodePubkey(pubkey string) ([]byte, error) {
 	}
 
 	bytes, err := arguments.Pack(
-		pubkeyBytes,
+		pubkey,
 	)
 
 	if err != nil {

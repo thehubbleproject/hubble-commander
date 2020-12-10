@@ -1,18 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"math"
-	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 
 	agg "github.com/BOPR/aggregator"
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/listener"
-	"github.com/BOPR/rest"
 
 	"github.com/BOPR/core"
 	"github.com/jinzhu/gorm"
@@ -79,15 +77,9 @@ func startCmd() *cobra.Command {
 			if err := aggregator.Start(); err != nil {
 				log.Fatalln("Unable to start aggregator", "error", err)
 			}
-			r := rest.LoadRouters()
-			http.Handle("/", &r)
 
-			// TODO replace this with port from config
-			err = http.ListenAndServe(":3000", &r)
-			if err != nil {
-				panic(err)
-			}
-			fmt.Println("Server started on port 3000 🎉")
+			runtime.Goexit()
+
 		},
 	}
 }

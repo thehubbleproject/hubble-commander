@@ -1,4 +1,4 @@
- [
+[
     {
       "constant": true,
       "inputs": [
@@ -13,12 +13,12 @@
               "components": [
                 {
                   "internalType": "uint256",
-                  "name": "pubkeyIndex",
+                  "name": "pubkeyID",
                   "type": "uint256"
                 },
                 {
                   "internalType": "uint256",
-                  "name": "tokenType",
+                  "name": "tokenID",
                   "type": "uint256"
                 },
                 {
@@ -274,7 +274,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "tokenType",
+          "name": "tokenID",
           "type": "uint256"
         },
         {
@@ -283,12 +283,12 @@
               "components": [
                 {
                   "internalType": "uint256",
-                  "name": "pubkeyIndex",
+                  "name": "pubkeyID",
                   "type": "uint256"
                 },
                 {
                   "internalType": "uint256",
-                  "name": "tokenType",
+                  "name": "tokenID",
                   "type": "uint256"
                 },
                 {
@@ -322,12 +322,12 @@
               "components": [
                 {
                   "internalType": "uint256",
-                  "name": "pubkeyIndex",
+                  "name": "pubkeyID",
                   "type": "uint256"
                 },
                 {
                   "internalType": "uint256",
-                  "name": "tokenType",
+                  "name": "tokenID",
                   "type": "uint256"
                 },
                 {
@@ -463,6 +463,36 @@
       ],
       "payable": false,
       "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "txMsg",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint256[4]",
+          "name": "pubkey",
+          "type": "uint256[4]"
+        },
+        {
+          "internalType": "uint256[2]",
+          "name": "signature",
+          "type": "uint256[2]"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "domain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "verifySingle",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "view",
       "type": "function"
     }
   ]

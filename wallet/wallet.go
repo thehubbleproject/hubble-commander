@@ -13,7 +13,7 @@ type Wallet struct {
 var DefaultDomain = [32]byte{0x00, 0x00, 0x00, 0x00}
 
 func BytesToSignature(b []byte) (blswallet.Signature, error) {
-	sig, err := blswallet.SignatureKeyFromBytes(b)
+	sig, err := blswallet.SignatureFromBytes(b)
 	return *sig, err
 }
 
@@ -64,7 +64,6 @@ func VerifyAggregatedSignature(data []blswallet.Message, pubkeys []*blswallet.Pu
 
 // NewAggregateSignature creates a new aggregated signature
 func NewAggregateSignature(signatures []*blswallet.Signature) (aggregatedSignature blswallet.Signature, err error) {
-	verifier := blswallet.NewBLSVerifier(DefaultDomain[:])
-	aggregatedSig := verifier.AggregateSignatures(signatures)
+	aggregatedSig := blswallet.AggregateSignatures(signatures)
 	return *aggregatedSig, nil
 }

@@ -13,12 +13,12 @@
               "components": [
                 {
                   "internalType": "uint256",
-                  "name": "pubkeyIndex",
+                  "name": "pubkeyID",
                   "type": "uint256"
                 },
                 {
                   "internalType": "uint256",
-                  "name": "tokenType",
+                  "name": "tokenID",
                   "type": "uint256"
                 },
                 {
@@ -150,7 +150,7 @@
             },
             {
               "internalType": "uint256",
-              "name": "toAccID",
+              "name": "toPubkeyID",
               "type": "uint256"
             },
             {
@@ -256,7 +256,7 @@
             },
             {
               "internalType": "uint256",
-              "name": "toAccID",
+              "name": "toPubkeyID",
               "type": "uint256"
             },
             {
@@ -301,7 +301,7 @@
             },
             {
               "internalType": "uint256",
-              "name": "toAccID",
+              "name": "toPubkeyID",
               "type": "uint256"
             },
             {
@@ -405,7 +405,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "tokenType",
+          "name": "tokenID",
           "type": "uint256"
         },
         {
@@ -414,12 +414,12 @@
               "components": [
                 {
                   "internalType": "uint256",
-                  "name": "pubkeyIndex",
+                  "name": "pubkeyID",
                   "type": "uint256"
                 },
                 {
                   "internalType": "uint256",
-                  "name": "tokenType",
+                  "name": "tokenID",
                   "type": "uint256"
                 },
                 {
@@ -453,12 +453,12 @@
               "components": [
                 {
                   "internalType": "uint256",
-                  "name": "pubkeyIndex",
+                  "name": "pubkeyID",
                   "type": "uint256"
                 },
                 {
                   "internalType": "uint256",
-                  "name": "tokenType",
+                  "name": "tokenID",
                   "type": "uint256"
                 },
                 {
@@ -566,11 +566,6 @@
         {
           "internalType": "bytes",
           "name": "senderEncoded",
-          "type": "bytes"
-        },
-        {
-          "internalType": "bytes",
-          "name": "receiverEncoded",
           "type": "bytes"
         },
         {

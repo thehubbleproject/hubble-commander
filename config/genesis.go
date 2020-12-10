@@ -43,7 +43,7 @@ type GenUserState struct {
 	Nonce     uint64 `json:"nonce"`
 	Balance   uint64 `json:"balance"`
 	TokenType uint64 `json:"token_type"`
-	PublicKey string `json:"public_key"`
+	PublicKey []byte `json:"public_key"`
 }
 
 func (acc *GenUserState) IsCoordinator() bool {
@@ -53,7 +53,7 @@ func (acc *GenUserState) IsCoordinator() bool {
 	return true
 }
 
-func NewGenUserState(_accountID, balance, tokenType, nonce uint64, publicKey string) GenUserState {
+func NewGenUserState(_accountID, balance, tokenType, nonce uint64, publicKey []byte) GenUserState {
 	return GenUserState{
 		AccountID: _accountID,
 		Balance:   balance,
@@ -72,15 +72,15 @@ func NewGenesisAccounts(accounts []GenUserState) GenesisAccounts {
 }
 
 func EmptyGenesisAccount() GenUserState {
-	return NewGenUserState(0, 0, 0, 0, "")
+	return NewGenUserState(0, 0, 0, 0, []byte{})
 }
 
 func DefaultGenesisAccounts() GenesisAccounts {
 	var accounts []GenUserState
 
 	// add coordinator accounts
-	acc1 := NewGenUserState(0, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, "")
-	acc2 := NewGenUserState(1, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, "")
+	acc1 := NewGenUserState(0, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, []byte{})
+	acc2 := NewGenUserState(1, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, []byte{})
 	accounts = append(accounts, acc1, acc2)
 
 	return NewGenesisAccounts(accounts)
