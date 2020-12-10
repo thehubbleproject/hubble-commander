@@ -340,22 +340,7 @@ func (tx *Tx) authenticate(bz Bazooka) error {
 		return err
 	}
 
-	toState, err := DBInstance.GetStateByIndex(tx.To)
-	if err != nil {
-		return err
-	}
-
-	accID, _, _, _, err = bz.DecodeState(toState.Data)
-	if err != nil {
-		return err
-	}
-
-	toAcc, err := DBInstance.GetAccountLeafByID(accID.Uint64())
-	if err != nil {
-		return err
-	}
-
-	err = bz.authenticateTx(*tx, fromAcc.PublicKey, toAcc.PublicKey)
+	err = bz.authenticateTx(DBInstance, *tx, fromAcc.PublicKey)
 	if err != nil {
 		return err
 	}

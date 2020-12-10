@@ -6,11 +6,8 @@ import (
 	"fmt"
 
 	"github.com/BOPR/common"
-	"github.com/BOPR/config"
 	"github.com/BOPR/core"
 	"github.com/BOPR/wallet"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	blswallet "github.com/kilic/bn254/bls"
 	"github.com/spf13/cobra"
 )
 
@@ -388,74 +385,9 @@ func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 		return
 	}
 
-	opts := bind.CallOpts{From: config.OperatorAddress}
-	txBytes, err := tx.GetSignBytes(bazooka)
-	if err != nil {
+	if err = signAndBroadcast(tx, priv, pub, bazooka, db); err != nil {
 		return
 	}
-	err = tx.SignTx(priv, pub, txBytes)
-	if err != nil {
-		return
-	}
-
-	// signature, err := core.BytesToSolSignature(tx.Signature)
-	// if err != nil {
-	// 	return
-	// }
-
-	pubkeyInt, err := core.Pubkey(pub).ToSol()
-	if err != nil {
-		return
-	}
-
-	newWallet, err := wallet.NewWallet()
-	if err != nil {
-		return
-	}
-	secret, pubkey := newWallet.Bytes()
-	err = tx.SignTx(secret, pubkey, txBytes)
-	if err != nil {
-		return
-	}
-
-	sig, err := blswallet.SignatureFromBytes(tx.Signature)
-	if err != nil {
-		fmt.Println("error while getting signature", err)
-		return
-	}
-
-	pubkeyObj, err := blswallet.PublicKeyFromBytes(pubkey)
-	if err != nil {
-		fmt.Println("error while getting public key", err)
-		return
-	}
-	pubkeyInt, err = core.Pubkey(pubkey).ToSol()
-	if err != nil {
-		return
-	}
-
-	solSignature, err := core.BytesToSolSignature(tx.Signature)
-	if err != nil {
-		return
-	}
-
-	valid, err := newWallet.VerifySignature(common.Keccak256(txBytes).Bytes(), *sig, *pubkeyObj)
-	fmt.Println(valid, err)
-
-	err = bazooka.SC.Transfer.VerifySingle(&opts, txBytes, pubkeyInt, solSignature, wallet.DefaultDomain)
-	if err != nil {
-		fmt.Println("error on validate", err)
-		return
-	}
-
-	// err = bazooka.SC.Transfer.Validate(&opts, tx.Data, solSignature, pubkeyInt, wallet.DefaultDomain)
-	// if err != nil {
-	// 	return
-	// }
-
-	// if err = signAndBroadcast(tx, priv, pub, bazooka, db); err != nil {
-	// 	return
-	// }
 
 	return tx.TxHash, nil
 }

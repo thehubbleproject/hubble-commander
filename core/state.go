@@ -98,7 +98,7 @@ func (s *UserState) String() string {
 }
 
 func (s *UserState) ToABIAccount() (solState TypesUserState, err error) {
-	solState.PubkeyIndex, solState.Balance, solState.Nonce, solState.TokenType, err = LoadedBazooka.DecodeState(s.Data)
+	solState.PubkeyID, solState.Balance, solState.Nonce, solState.TokenID, err = LoadedBazooka.DecodeState(s.Data)
 	if err != nil {
 		return
 	}

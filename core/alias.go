@@ -41,10 +41,10 @@ func BytesToByteArray(bz []byte) ByteArray {
 }
 
 type TypesUserState struct {
-	PubkeyIndex *big.Int
-	TokenType   *big.Int
-	Balance     *big.Int
-	Nonce       *big.Int
+	PubkeyID *big.Int
+	TokenID  *big.Int
+	Balance  *big.Int
+	Nonce    *big.Int
 }
 type TypesStateMerkleProof struct {
 	State   TypesUserState
