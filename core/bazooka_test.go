@@ -37,7 +37,7 @@ func TestVerifySingle(t *testing.T) {
 	err = tx.SignTx(secret, pubkey, txBytes)
 	require.Nil(t, err)
 
-	sig, err := blswallet.SignatureKeyFromBytes(tx.Signature)
+	sig, err := blswallet.SignatureFromBytes(tx.Signature)
 	require.Nil(t, err)
 
 	pubkeyObj, err := blswallet.PublicKeyFromBytes(pubkey)
