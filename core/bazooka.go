@@ -523,14 +523,12 @@ func (b *Bazooka) EncodeCreate2TransferTx(from, to, toAccID, fee, nonce, amount,
 }
 
 func (b *Bazooka) DecodeCreate2Transfer(txBytes []byte) (from, to, toAccID, nonce, txType, amount, fee *big.Int, err error) {
-	fmt.Println("data", txBytes)
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	tx, err := b.SC.Create2Transfer.Decode(&opts, txBytes)
 	if err != nil {
 		return
 	}
 
-	fmt.Println("post decode data", tx)
 	return tx.FromIndex, tx.ToIndex, tx.ToPubkeyID, tx.Nonce, tx.TxType, tx.Amount, tx.Fee, nil
 }
 
