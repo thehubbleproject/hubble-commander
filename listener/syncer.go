@@ -22,6 +22,10 @@ import (
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 )
 
+const (
+	SyncerServiceName = "syncer"
+)
+
 // Syncer to sync events from ethereum chain
 type Syncer struct {
 	// Base service

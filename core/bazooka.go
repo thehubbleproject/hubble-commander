@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
@@ -38,10 +39,13 @@ var (
 	ErrTxPending           = errors.New("Tx Pending, cannot read calldata")
 	ErrConvertingTxPayload = errors.New("Error converting tx payload")
 	ErrTxParamDoesntExist  = errors.New("Tx param does not exist")
+	ErrNoTxs               = errors.New("Error no transactions")
 )
 
 const (
-	TXS_PARAM = "txss"
+	TXS_PARAM      = "txss"
+	META_PARAM     = "meta"
+	WITHDRAW_ROOTS = "withdrawRoots"
 )
 
 var (
@@ -131,34 +135,59 @@ func (b *Bazooka) getTxDataByHash(txHash ethCmn.Hash) (data []byte, err error) {
 	return payload, nil
 }
 
-// FetchBatchInputData parses the calldata for transactions
-func (b *Bazooka) FetchBatchInputData(txHash ethCmn.Hash, batchType uint8) (txs []byte, err error) {
+func (b *Bazooka) getInputData(txHash ethCmn.Hash, batchType uint8) (map[string]interface{}, error) {
 	inputDataMap := make(map[string]interface{})
 	var method abi.Method
 	var data []byte
 
 	switch batchType {
 	case TX_GENESIS:
-		return []byte{}, nil
+		return inputDataMap, ErrNoTxs
 	case TX_DEPOSIT:
-		return []byte{}, nil
+		return inputDataMap, ErrNoTxs
 	case TX_TRANSFER_TYPE:
 		method = b.RollupABI.Methods["submitTransfer"]
 	case TX_CREATE_2_TRANSFER:
-		return []byte{}, nil
+		method = b.RollupABI.Methods["submitCreate2Transfer"]
+	case TX_MASS_MIGRATIONS:
+		method = b.RollupABI.Methods["submitMassMigration"]
 	}
 
-	data, err = b.getTxDataByHash(txHash)
+	data, err := b.getTxDataByHash(txHash)
 	if err != nil {
 		return nil, err
 	}
+
 	err = method.Inputs.UnpackIntoMap(inputDataMap, data)
 	if err != nil {
-		b.log.Error("Error unpacking payload", "Error", err)
+		b.log.Error("Error unpacking payload", "Error", err, "data", data)
+		return inputDataMap, err
+	}
+
+	return inputDataMap, nil
+}
+
+// FetchTxsFromBatch parses the calldata for transactions
+func (b *Bazooka) FetchTxsFromBatch(txHash ethCmn.Hash, batchType uint8) (txs []byte, err error) {
+	inputs, err := b.getInputData(txHash, batchType)
+	if err != nil {
+		if err == ErrNoTxs {
+			return txs, nil
+		}
+		return txs, err
+	}
+
+	return getTxsFromInput(inputs)
+}
+
+// FetchMetaInfoFromBatch parses the calldata for transactions
+func (b *Bazooka) FetchMetaInfoFromBatch(txHash ethCmn.Hash, batchType uint8) (withdrawRoots [][32]byte, toSpokeIDs, tokenIDs, amounts []*big.Int, err error) {
+	inputs, err := b.getInputData(txHash, batchType)
+	if err != nil {
 		return
 	}
 
-	return getTxsFromInput(inputDataMap)
+	return getMassMigrationInfo(inputs)
 }
 
 func getTxsFromInput(input map[string]interface{}) (txs []byte, err error) {
@@ -173,6 +202,22 @@ func getTxsFromInput(input map[string]interface{}) (txs []byte, err error) {
 		return nil, ErrTxParamDoesntExist
 	}
 	return txs, nil
+}
+
+func getMassMigrationInfo(input map[string]interface{}) (withdrawRoots [][32]byte, toSpokeIDs, tokenIDs, amounts []*big.Int, err error) {
+	fmt.Println("print input data", input)
+	if txPayload, ok := input[META_PARAM]; ok {
+		metaList, ok := txPayload.([][4]*big.Int)
+		if !ok {
+			return withdrawRoots, toSpokeIDs, tokenIDs, amounts, ErrConvertingTxPayload
+		}
+		fmt.Println("meta list", metaList)
+
+		// txs = metaList[0]
+	} else {
+		return withdrawRoots, toSpokeIDs, tokenIDs, amounts, ErrTxParamDoesntExist
+	}
+	return
 }
 
 // ProcessTx calls the ProcessTx function on the contract to verify the tx
@@ -661,7 +706,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err erro
 		}
 		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", TX_TRANSFER_TYPE)
 	case TX_CREATE_2_TRANSFER:
-		txHash, err := b.submitTransferBatch(commitments)
+		txHash, err := b.submitCreate2TransferBatch(commitments)
 		if err != nil {
 			return "", err
 		}
@@ -727,6 +772,62 @@ func (b *Bazooka) submitTransferBatch(commitments []Commitment) (string, error) 
 	}
 
 	tx, err := b.SC.RollupContract.SubmitTransfer(auth, updatedRoots, aggregatedSig, feeReceivers, txs)
+	if err != nil {
+		b.log.Error("Error submitting batch", "err", err)
+		return "", nil
+	}
+
+	return tx.Hash().String(), nil
+}
+
+func (b *Bazooka) submitCreate2TransferBatch(commitments []Commitment) (string, error) {
+	var txs [][]byte
+	var updatedRoots [][32]byte
+	var aggregatedSig [][2]*big.Int
+	var totalTxs int
+	var feeReceivers []*big.Int
+
+	dummyReceivers := big.NewInt(0)
+	for i := 0; i <= len(commitments); i++ {
+		feeReceivers = append(feeReceivers, dummyReceivers)
+	}
+
+	for _, commitment := range commitments {
+		compressedTxs, err := b.CompressTxs(commitment.Txs)
+		if err != nil {
+			b.log.Error("Unable to compress txs", "error", err)
+			return "", err
+		}
+		txs = append(txs, compressedTxs)
+		updatedRoots = append(updatedRoots, commitment.UpdatedRoot)
+		totalTxs += len(commitment.Txs)
+
+		sig, err := BytesToSolSignature(commitment.AggregatedSignature)
+		if err != nil {
+			return "", err
+		}
+		aggregatedSig = append(aggregatedSig, sig)
+	}
+	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
+
+	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
+
+	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
+	stakeAmount := big.NewInt(1000000000000000000)
+
+	data, err := b.RollupABI.Pack("submitCreate2Transfer", updatedRoots, aggregatedSig, feeReceivers, txs)
+	if err != nil {
+		b.log.Error("Error packing data for submitBatch", "err", err)
+		return "", nil
+	}
+
+	auth, err := b.generateAuthObj(b.EthClient, rollupAddress, stakeAmount, data)
+	if err != nil {
+		b.log.Error("Estimate gas failed, tx reverting", "error", err)
+		return "", nil
+	}
+
+	tx, err := b.SC.RollupContract.SubmitCreate2Transfer(auth, updatedRoots, aggregatedSig, feeReceivers, txs)
 	if err != nil {
 		b.log.Error("Error submitting batch", "err", err)
 		return "", nil
@@ -818,6 +919,8 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []Commitment) (string, er
 		b.log.Error("Estimate gas failed, tx reverting", "error", err)
 		return "", nil
 	}
+
+	fmt.Println("data here", hex.EncodeToString(data))
 
 	tx, err := b.SC.RollupContract.SubmitMassMigration(auth, updatedRoots, aggregatedSig, meta, withdrawRoots, txs)
 	if err != nil {
