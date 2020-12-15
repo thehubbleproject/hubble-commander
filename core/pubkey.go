@@ -10,10 +10,11 @@ type Pubkey []byte
 const pubkeyLength = 128
 
 func NewPubkey(p [4]*big.Int) Pubkey {
-	var pubkey []byte
-	for _, part := range p {
-		pubkey = append(pubkey, part.Bytes()...)
-	}
+	pubkey := make([]byte, pubkeyLength)
+	copy(pubkey[:32], p[1].Bytes())
+	copy(pubkey[32:64], p[0].Bytes())
+	copy(pubkey[64:96], p[3].Bytes())
+	copy(pubkey[96:128], p[2].Bytes())
 	return pubkey
 }
 

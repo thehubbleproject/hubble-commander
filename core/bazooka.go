@@ -278,7 +278,6 @@ func (b *Bazooka) authenticateTx(db DB, tx Tx, pubkeySender []byte) error {
 	if err != nil {
 		return err
 	}
-
 	signature, err := BytesToSolSignature(tx.Signature)
 	if err != nil {
 		return err

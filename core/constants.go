@@ -26,8 +26,8 @@ const (
 	// TODO make sure the types are correct
 	TX_GENESIS           = 0
 	TX_TRANSFER_TYPE     = 1
-	TX_CREATE_2_TRANSFER = 2
-	TX_MASS_MIGRATIONS   = 3
+	TX_CREATE_2_TRANSFER = 3
+	TX_MASS_MIGRATIONS   = 5
 	TX_DEPOSIT           = 4
 
 	CHUNK_SIZE = 3000

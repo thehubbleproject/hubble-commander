@@ -182,12 +182,10 @@ func dummyCreate2Transfer() *cobra.Command {
 				return err
 			}
 			defer db.Close()
-
 			bazooka, err := core.NewPreLoadedBazooka()
 			if err != nil {
 				return err
 			}
-
 			params, err := db.GetParams()
 			if err != nil {
 				return err

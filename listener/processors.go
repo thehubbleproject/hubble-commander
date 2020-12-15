@@ -267,7 +267,7 @@ func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txHash ethCmn.Hash, txType u
 			return newRoot, err
 		}
 	case core.TX_CREATE_2_TRANSFER:
-		transactions, err = s.decompressTransfers(txsBytes)
+		transactions, err = s.decompressCreate2Transfers(txsBytes)
 		if err != nil {
 			return newRoot, err
 		}
@@ -314,7 +314,6 @@ func (s *Syncer) decompressTransfers(decompressedTxs []byte) (txs []core.Tx, err
 	return transactions, nil
 }
 
-// decompressCreate2Transfers decompresses create2 bytes to TX
 func (s *Syncer) decompressCreate2Transfers(decompressedTxs []byte) (txs []core.Tx, err error) {
 	froms, tos, toAccIDs, amounts, fees, err := s.loadedBazooka.DecompressCreate2TransferTxs(decompressedTxs)
 	if err != nil {

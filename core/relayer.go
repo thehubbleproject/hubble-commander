@@ -162,8 +162,6 @@ func (db *DB) MarkPacketDone(pubkey []byte) error {
 		return err
 	}
 
-	fmt.Println("tx created", tx.Data, tx)
-
 	return db.Instance.Create(&tx).Error
 }
 
