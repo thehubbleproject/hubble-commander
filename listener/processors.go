@@ -167,25 +167,26 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		"TxHash", vLog.TxHash.String(),
 	)
 
-	// if the batch has some txs, parse them
-	var txs []byte
-
-	// pick the calldata for the batch
-	txs, err = s.loadedBazooka.FetchTxsFromBatch(vLog.TxHash, event.BatchType)
-	if err != nil {
-		s.Logger.Error("Error fetching input data from tx", "error", err)
-		return
-	}
-
 	// if we havent seen the batch, apply txs and store batch
 	batch, err := s.DBInstance.GetBatchByIndex(event.Index.Uint64())
 	if err != nil && gorm.IsRecordNotFoundError(err) {
 		s.Logger.Info("Found a new batch, applying transactions and adding new batch", "index", event.Index.Uint64)
-		newRoot, err := s.applyTxsFromBatch(txs, vLog.TxHash, uint64(event.BatchType), true)
+		newRoot, err := s.parseAndApplyBatch(vLog.TxHash, event.BatchType)
 		if err != nil {
-			s.Logger.Error("Error applying transactions from batch", "index", event.Index.String(), "error", err)
 			return
 		}
+		// var txs []byte
+
+		_, err = s.loadedBazooka.ParseCalldata(vLog.TxHash, event.BatchType)
+		// if err != nil {
+		// 	s.Logger.Error("Error fetching input data from tx", "error", err)
+		// 	return
+		// }
+		// newRoot, err := s.applyTxsFromBatch(txs, vLog.TxHash, uint64(event.BatchType), true)
+		// if err != nil {
+		// 	s.Logger.Error("Error applying transactions from batch", "index", event.Index.String(), "error", err)
+		// 	return
+		// }
 
 		newBatch := core.NewBatch(newRoot.String(), event.Committer.String(), vLog.TxHash.String(), uint64(event.BatchType), core.BATCH_COMMITTED)
 		err = s.DBInstance.AddNewBatch(newBatch)
@@ -377,4 +378,11 @@ func (s *Syncer) decompressMassMigrations(decompressedTxs []byte, txHash ethCmn.
 	}
 
 	return transactions, nil
+}
+
+func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoot core.ByteArray, err error) {
+	// parse input data according to the batch type
+
+	// apply transactions
+	return
 }
