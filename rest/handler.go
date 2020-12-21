@@ -20,9 +20,9 @@ const (
 )
 
 type TxReceiver struct {
+	Type      uint64 `json:"type"`
 	Message   []byte `json:"message"`
 	Signature []byte `json:"sig"`
-	Type      uint64 `json:"type"`
 }
 
 // TxReceiverHandler handles user txs
