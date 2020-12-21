@@ -25,7 +25,6 @@ func LoadRouters() (r *mux.Router, err error) {
 
 	r = mux.NewRouter()
 	r.HandleFunc("/tx", TxHandler).Methods("POST")
-	r.HandleFunc("/account", GetAccountHandler).Methods("GET")
 	r.HandleFunc("/state/{id}", stateDecoderHandler).Methods("GET")
 	return r, nil
 }
