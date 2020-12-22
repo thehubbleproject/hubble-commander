@@ -1,4 +1,4 @@
-package core
+package db
 
 type Token struct {
 	// Token Address on eth chain.

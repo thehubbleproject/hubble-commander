@@ -1,9 +1,11 @@
-package core
+package db
 
 import (
 	"fmt"
 	"math/big"
 
+	"github.com/BOPR/bazooka"
+	"github.com/BOPR/core"
 	"github.com/jinzhu/gorm"
 	uuid "github.com/satori/go.uuid"
 )
@@ -48,7 +50,7 @@ func (rp *RelayPacket) AfterCreate(tx *gorm.DB) (err error) {
 	if err := query.Find(&packets).Error; err != nil {
 		return err
 	}
-	bz, err := NewPreLoadedBazooka()
+	bz, err := bazooka.NewPreLoadedBazooka()
 	if err != nil {
 		return err
 	}
@@ -98,7 +100,7 @@ func (db *DB) InsertRelayPacket(data, sig []byte) error {
 	// TODO check if to account exists
 
 	// create a new relay packet with status received
-	pubkey := NewPubkey(toPub)
+	pubkey := core.NewPubkey(toPub)
 	rp := NewRelayPacket(data, sig, pubkey, statusPackedReceived)
 
 	if err := db.Instance.Create(rp).Error; err != nil {
@@ -157,7 +159,7 @@ func (db *DB) MarkPacketDone(pubkey []byte) error {
 		return err
 	}
 
-	tx, err := NewPendingTx(fromIndex.Uint64(), toStateID, txType.Uint64(), rp.Signature, txData)
+	tx, err := core.NewPendingTx(fromIndex.Uint64(), toStateID, txType.Uint64(), rp.Signature, txData)
 	if err != nil {
 		return err
 	}
@@ -170,7 +172,7 @@ func (db *DB) MarkPacketDone(pubkey []byte) error {
 //
 
 // decodes data in call packets and returns the pubkeys
-func decodePackets(packets []RelayPacket, bz Bazooka) ([][4]*big.Int, error) {
+func decodePackets(packets []RelayPacket, bz bazooka.Bazooka) ([][4]*big.Int, error) {
 	var tos [][4]*big.Int
 	for _, packet := range packets {
 		_, to, _, _, _, _, err := bz.DecodeCreate2TransferWithPub(packet.Data)

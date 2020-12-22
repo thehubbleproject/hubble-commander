@@ -6,9 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/BOPR/common"
+	"github.com/BOPR/bazooka"
 	"github.com/BOPR/config"
 	"github.com/BOPR/core"
+	"github.com/BOPR/db"
+	"github.com/BOPR/log"
 )
 
 const (
@@ -26,10 +28,12 @@ type Aggregator struct {
 	core.BaseService
 
 	// contract caller to interact with contracts
-	LoadedBazooka core.Bazooka
+	LoadedBazooka bazooka.Bazooka
 
 	// DB instance
-	DB core.DB
+	DB db.DB
+
+	Bazooka bazooka.Bazooka
 
 	// header listener subscription
 	cancelAggregating context.CancelFunc
@@ -41,17 +45,23 @@ type Aggregator struct {
 // NewAggregator returns new aggregator object
 func NewAggregator() *Aggregator {
 	// create logger
-	logger := common.Logger.With("module", AggregatingService)
-	LoadedBazooka, err := core.NewPreLoadedBazooka()
+	logger := log.Logger.With("module", AggregatingService)
+	LoadedBazooka, err := bazooka.NewPreLoadedBazooka()
 	if err != nil {
 		panic(err)
 	}
 	aggregator := &Aggregator{}
 	aggregator.BaseService = *core.NewBaseService(logger, AggregatingService, aggregator)
-	DB, err := core.NewDB()
+	DB, err := db.NewDB()
 	if err != nil {
 		panic(err)
 	}
+
+	bz, err := bazooka.NewPreLoadedBazooka()
+	if err != nil {
+		panic(err)
+	}
+	aggregator.Bazooka = bz
 	aggregator.DB = DB
 	aggregator.LoadedBazooka = LoadedBazooka
 	return aggregator
@@ -87,7 +97,7 @@ func (a *Aggregator) startAggregating(ctx context.Context, interval time.Duratio
 	for {
 		select {
 		case <-ticker.C:
-			if isCatchingUp, err := core.IsCatchingUp(); err != nil {
+			if isCatchingUp, err := IsCatchingUp(a.Bazooka, a.DB); err != nil {
 				return
 			} else if isCatchingUp {
 				a.Logger.Info("Commander catching up, aborting aggregation till next poll")
@@ -141,5 +151,25 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 }
 
 func (a *Aggregator) processTxs(txs []core.Tx) (commitments []core.Commitment, err error) {
-	return core.ProcessTxs(a.DB, a.LoadedBazooka, txs, false)
+	return db.ProcessTxs(&a.LoadedBazooka, &a.DB, txs, false)
+}
+
+// IsCatchingUp returns true/false according to the sync status of the node
+func IsCatchingUp(b bazooka.Bazooka, db db.DB) (bool, error) {
+	totalBatches, err := b.TotalBatches()
+	if err != nil {
+		return false, err
+	}
+
+	totalBatchedStored, err := db.GetBatchCount()
+	if err != nil {
+		return false, err
+	}
+
+	// if total batchse are greater than what we recorded we are still catching up
+	if totalBatches > uint64(totalBatchedStored) {
+		return true, err
+	}
+
+	return false, nil
 }

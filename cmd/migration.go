@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	db "github.com/BOPR/core"
+	db "github.com/BOPR/db"
 	"github.com/BOPR/migrations"
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/libs/common"
@@ -59,13 +59,13 @@ var upMigrateCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Run up migration",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		db, err := db.NewDB()
+		IDB, err := db.NewDB()
 		if err != nil {
 			return err
 		}
-		defer db.Close()
+		defer IDB.Close()
 		allMigrations := migrations.GetMigrations()
-		m := migrations.NewGormigrate(db.Instance, migrations.DefaultOptions, allMigrations)
+		m := migrations.NewGormigrate(IDB.Instance, migrations.DefaultOptions, allMigrations)
 		return m.Migrate()
 	},
 }

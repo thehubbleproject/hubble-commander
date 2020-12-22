@@ -1,6 +1,6 @@
 package core
 
-var defaultHashes []ByteArray
+var DefaultHashes []ByteArray
 
 // depicts the empty leaf in balance tree
 var ZERO_VALUE_LEAF ByteArray
@@ -12,7 +12,7 @@ func init() {
 		panic(err)
 	}
 
-	defaultHashes, err = GenDefaultHashes(100)
+	DefaultHashes, err = GenDefaultHashes(100)
 	if err != nil {
 		panic(err)
 	}

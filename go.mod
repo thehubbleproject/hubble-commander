@@ -50,6 +50,7 @@ require (
 	github.com/t-tiger/gorm-bulk-insert v1.3.0
 	github.com/tdakkota/asciicheck v0.0.0-20200416200610-e657995f937b // indirect
 	github.com/tendermint/tendermint v0.32.7
+	github.com/tendermint/tm-db v0.2.0
 	github.com/tetafro/godot v1.3.2 // indirect
 	github.com/timakin/bodyclose v0.0.0-20200424151742-cb6215831a94 // indirect
 	github.com/tomarrell/wrapcheck v0.0.0-20201130113247-1683564d9756 // indirect

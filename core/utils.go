@@ -1,15 +1,19 @@
 package core
 
 import (
+	"encoding/hex"
 	"errors"
 	"math/big"
 	"strconv"
 	"strings"
 	"unicode/utf8"
 
-	"github.com/BOPR/common"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	ethCmn "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/willf/pad"
+	"golang.org/x/crypto/sha3"
 )
 
 // GetParent takes in left and right children and returns the parent hash
@@ -18,7 +22,7 @@ func GetParent(left, right ByteArray) (parent ByteArray, err error) {
 	if err != nil {
 		return parent, err
 	}
-	leaf := common.Keccak256(data)
+	leaf := Keccak256(data)
 	return BytesToByteArray(leaf.Bytes()), nil
 }
 
@@ -153,4 +157,26 @@ func BytesToSolSignature(in []byte) (out [2]*big.Int, err error) {
 	out[0] = new(big.Int).SetBytes(in[:32])
 	out[1] = new(big.Int).SetBytes(in[32:64])
 	return out, nil
+}
+
+func Keccak256(data []byte) ethCmn.Hash {
+	return crypto.Keccak256Hash(data)
+}
+
+func KeccakFromString(data string) (hash ethCmn.Hash, err error) {
+	bz, err := hex.DecodeString(data)
+	if err != nil {
+		return
+	}
+	return Keccak256(bz), nil
+
+}
+
+func RlpHash(x interface{}) (h ethCmn.Hash, err error) {
+	hw := sha3.NewLegacyKeccak256()
+	if err = rlp.Encode(hw, x); err != nil {
+		return
+	}
+	hw.Sum(h[:0])
+	return h, nil
 }

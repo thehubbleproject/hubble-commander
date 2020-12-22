@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/BOPR/bazooka"
 	"github.com/BOPR/common"
 	"github.com/BOPR/contracts/accountregistry"
 	"github.com/BOPR/contracts/depositmanager"
 	"github.com/BOPR/contracts/rollup"
 	"github.com/BOPR/contracts/tokenregistry"
 	"github.com/BOPR/core"
+	"github.com/BOPR/db"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCmn "github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
@@ -103,7 +105,7 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 	}
 
 	// send deposit finalisation transction to ethereum chain
-	catchingup, err := core.IsCatchingUp()
+	catchingup, err := IsCatchingUp(s.loadedBazooka, s.DBInstance)
 	if err != nil {
 		panic(err)
 	}
@@ -227,7 +229,7 @@ func (s *Syncer) processRegisteredToken(eventName string, abiObject *abi.ABI, vL
 		"TokenAddress", event.TokenContract.String(),
 		"TokenID", event.TokenType,
 	)
-	newToken := core.Token{TokenID: event.TokenType.Uint64(), Address: event.TokenContract.String()}
+	newToken := db.Token{TokenID: event.TokenType.Uint64(), Address: event.TokenContract.String()}
 	if err := s.DBInstance.AddToken(newToken); err != nil {
 		panic(err)
 	}
@@ -277,7 +279,7 @@ func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txHash ethCmn.Hash, txType u
 		return newRoot, errors.New("Didn't match any options")
 	}
 
-	commitments, err := core.ProcessTxs(s.DBInstance, s.loadedBazooka, transactions, isSyncing)
+	commitments, err := db.ProcessTxs(&s.loadedBazooka, &s.DBInstance, transactions, isSyncing)
 	if err != nil {
 		return newRoot, err
 	}
@@ -385,4 +387,24 @@ func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoo
 
 	// apply transactions
 	return
+}
+
+// IsCatchingUp returns true/false according to the sync status of the node
+func IsCatchingUp(b bazooka.Bazooka, db db.DB) (bool, error) {
+	totalBatches, err := b.TotalBatches()
+	if err != nil {
+		return false, err
+	}
+
+	totalBatchedStored, err := db.GetBatchCount()
+	if err != nil {
+		return false, err
+	}
+
+	// if total batchse are greater than what we recorded we are still catching up
+	if totalBatches > uint64(totalBatchedStored) {
+		return true, err
+	}
+
+	return false, nil
 }

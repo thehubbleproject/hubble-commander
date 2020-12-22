@@ -8,9 +8,12 @@ import (
 	"runtime"
 
 	agg "github.com/BOPR/aggregator"
+	"github.com/BOPR/bazooka"
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
+	"github.com/BOPR/db"
 	"github.com/BOPR/listener"
+	hlog "github.com/BOPR/log"
 
 	"github.com/BOPR/core"
 	"github.com/jinzhu/gorm"
@@ -25,23 +28,29 @@ func startCmd() *cobra.Command {
 		Short: "Starts hubble daemon",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+			bz, err := bazooka.NewPreLoadedBazooka()
+			common.PanicIfError(err)
+
+			DBI, err := db.NewDB()
+			common.PanicIfError(err)
+
 			// populate global config objects
 			initConfigAndGlobals()
 
-			logger := common.Logger.With("module", "start")
+			logger := hlog.Logger.With("module", "start")
 			// create aggregator service
 			aggregator := agg.NewAggregator()
 			// create the syncer service
 			syncer := listener.NewSyncer()
 
 			// if no row is found then we are starting the node for the first time
-			syncStatus, err := core.DBInstance.GetSyncStatus()
+			syncStatus, err := DBI.GetSyncStatus()
 			if err != nil && gorm.IsRecordNotFoundError(err) {
 				// read genesis file
 				genesis, err := config.ReadGenesisFile()
 				common.PanicIfError(err)
 				// loads genesis data to the database
-				loadGenesisData(genesis)
+				loadGenesisData(&bz, &DBI, genesis)
 			} else if err != nil && !gorm.IsRecordNotFoundError(err) {
 				logger.Error("Error connecting to database", "error", err)
 				common.PanicIfError(err)
@@ -64,7 +73,7 @@ func startCmd() *cobra.Command {
 						log.Fatalln("Unable to stop syncer", "error", err)
 					}
 
-					core.DBInstance.Close()
+					DBI.Close()
 					// exit
 					os.Exit(1)
 				}
@@ -84,7 +93,7 @@ func startCmd() *cobra.Command {
 	}
 }
 
-func loadGenesisData(genesis config.Genesis) {
+func loadGenesisData(bz *bazooka.Bazooka, DBI *db.DB, genesis config.Genesis) {
 	err := genesis.Validate()
 	if err != nil {
 		common.PanicIfError(err)
@@ -104,7 +113,7 @@ func loadGenesisData(genesis config.Genesis) {
 		common.PanicIfError(err)
 
 		// use contracts to get coordinator state bytes
-		stateBytes, err := core.LoadedBazooka.EncodeState(acc.AccountID, acc.Balance, acc.Nonce, acc.TokenType)
+		stateBytes, err := bz.EncodeState(acc.AccountID, acc.Balance, acc.Nonce, acc.TokenType)
 		common.PanicIfError(err)
 
 		if i == 0 {
@@ -132,32 +141,30 @@ func loadGenesisData(genesis config.Genesis) {
 		accounts = append(accounts, *newAccount)
 	}
 
-	err = core.DBInstance.InitStateTree(genesis.MaxTreeDepth, states)
+	err = DBI.InitStateTree(genesis.MaxTreeDepth, states)
 	common.PanicIfError(err)
 
-	err = core.DBInstance.InitAccountTree(genesis.MaxTreeDepth, accounts)
+	err = DBI.InitAccountTree(genesis.MaxTreeDepth, accounts)
 	common.PanicIfError(err)
 
 	// load params
 	newParams := core.Params{StakeAmount: genesis.StakeAmount, MaxDepth: genesis.MaxTreeDepth, MaxDepositSubTreeHeight: genesis.MaxDepositSubTreeHeight}
-	err = core.DBInstance.UpdateStakeAmount(newParams.StakeAmount)
+	err = DBI.UpdateStakeAmount(newParams.StakeAmount)
 	common.PanicIfError(err)
-	err = core.DBInstance.UpdateMaxDepth(newParams.MaxDepth)
+	err = DBI.UpdateMaxDepth(newParams.MaxDepth)
 	common.PanicIfError(err)
-	err = core.DBInstance.UpdateDepositSubTreeHeight(newParams.MaxDepositSubTreeHeight)
+	err = DBI.UpdateDepositSubTreeHeight(newParams.MaxDepositSubTreeHeight)
 	common.PanicIfError(err)
-	err = core.DBInstance.UpdateFinalisationTimePerBatch(40320)
+	err = DBI.UpdateFinalisationTimePerBatch(40320)
 	common.PanicIfError(err)
 
 	// load sync status
-	err = core.DBInstance.InitSyncStatus(genesis.StartEthBlock)
+	err = DBI.InitSyncStatus(genesis.StartEthBlock)
 	common.PanicIfError(err)
 }
 
 func initConfigAndGlobals() {
 	readAndInitGlobalConfig()
-	initGlobalDBInstance()
-	initGlobalBazooka()
 }
 
 func readAndInitGlobalConfig() {
@@ -186,20 +193,4 @@ func readAndInitGlobalConfig() {
 	config.GlobalCfg = cfg
 	// TODO use a better way to handle priv keys post testnet
 	common.PanicIfError(config.SetOperatorKeys(config.GlobalCfg.OperatorKey))
-}
-
-func initGlobalDBInstance() {
-	// create db Instance
-	tempDB, err := core.NewDB()
-	common.PanicIfError(err)
-
-	// init global DB instance
-	core.DBInstance = tempDB
-}
-
-func initGlobalBazooka() {
-	var err error
-	// create and init global config object
-	core.LoadedBazooka, err = core.NewPreLoadedBazooka()
-	common.PanicIfError(err)
 }

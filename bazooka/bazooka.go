@@ -1,4 +1,4 @@
-package core
+package bazooka
 
 import (
 	"context"
@@ -6,12 +6,13 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/BOPR/common"
 	"github.com/BOPR/config"
+	"github.com/BOPR/core"
+	"github.com/BOPR/log"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/tendermint/tendermint/libs/log"
+	tmLog "github.com/tendermint/tendermint/libs/log"
 
 	"github.com/BOPR/contracts/accountregistry"
 	"github.com/BOPR/contracts/create2transfer"
@@ -45,14 +46,11 @@ const (
 	WITHDRAW_ROOTS = "withdrawRoots"
 )
 
-// Global bazooka Object
-var LoadedBazooka Bazooka
-
 type (
 
 	// Bazooka contains everything needed to interact with smart contracts
 	Bazooka struct {
-		log       log.Logger
+		log       tmLog.Logger
 		EthClient *ethclient.Client
 
 		RollupABI abi.ABI
@@ -93,7 +91,7 @@ func NewPreLoadedBazooka() (bazooka Bazooka, err error) {
 		return bazooka, err
 	}
 
-	bazooka.log = common.Logger.With("module", "bazooka")
+	bazooka.log = log.Logger.With("module", "bazooka")
 	return bazooka, nil
 }
 
@@ -115,13 +113,13 @@ func (b *Bazooka) TotalBatches() (uint64, error) {
 	return totalBatches.Uint64(), nil
 }
 
-func (b *Bazooka) processCreate2TransferTx(balanceTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof StateMerkleProof) (newBalanceRoot ByteArray, err error) {
+func (b *Bazooka) ProcessCreate2TransferTx(balanceTreeRoot core.ByteArray, tx core.Tx, fromMerkleProof, toMerkleProof StateMerkleProof) (newBalanceRoot core.ByteArray, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	fromMP, err := fromMerkleProof.ToABIVersion()
+	fromMP, err := fromMerkleProof.ToABIVersion(*b)
 	if err != nil {
 		return
 	}
-	toMP, err := toMerkleProof.ToABIVersion()
+	toMP, err := toMerkleProof.ToABIVersion(*b)
 	if err != nil {
 		return
 	}
@@ -137,23 +135,23 @@ func (b *Bazooka) processCreate2TransferTx(balanceTreeRoot ByteArray, tx Tx, fro
 	if err != nil {
 		return
 	}
-	if err = ParseResult(result.Result); err != nil {
+	if err = core.ParseResult(result.Result); err != nil {
 		return
 	}
 
-	b.log.Info("Processed transaction", "postTxRoot", ByteArray(result.NewRoot).String(), "resultCode", result.Result)
+	b.log.Info("Processed transaction", "postTxRoot", core.ByteArray(result.NewRoot).String(), "resultCode", result.Result)
 
 	// TOOD read result code and bubble up error messages
 	return result.NewRoot, nil
 }
 
-func (b *Bazooka) processTransferTx(balanceTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof StateMerkleProof) (newBalanceRoot ByteArray, err error) {
+func (b *Bazooka) ProcessTransferTx(balanceTreeRoot core.ByteArray, tx core.Tx, fromMerkleProof, toMerkleProof StateMerkleProof) (newBalanceRoot core.ByteArray, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	fromMP, err := fromMerkleProof.ToABIVersion()
+	fromMP, err := fromMerkleProof.ToABIVersion(*b)
 	if err != nil {
 		return
 	}
-	toMP, err := toMerkleProof.ToABIVersion()
+	toMP, err := toMerkleProof.ToABIVersion(*b)
 	if err != nil {
 		return
 	}
@@ -169,19 +167,19 @@ func (b *Bazooka) processTransferTx(balanceTreeRoot ByteArray, tx Tx, fromMerkle
 	if err != nil {
 		return
 	}
-	if err = ParseResult(result.Result); err != nil {
+	if err = core.ParseResult(result.Result); err != nil {
 		return
 	}
 
-	b.log.Info("Processed transaction", "postTxRoot", ByteArray(result.NewRoot).String(), "resultCode", result.Result)
+	b.log.Info("Processed transaction", "postTxRoot", core.ByteArray(result.NewRoot).String(), "resultCode", result.Result)
 
 	// TOOD read result code and bubble up error messages
 	return result.NewRoot, nil
 }
 
-func (b *Bazooka) processMassMigrationTx(balanceTreeRoot ByteArray, tx Tx, fromMerkleProof, toMerkleProof StateMerkleProof) (newBalanceRoot ByteArray, err error) {
+func (b *Bazooka) ProcessMassMigrationTx(balanceTreeRoot core.ByteArray, tx core.Tx, fromMerkleProof, toMerkleProof StateMerkleProof) (newBalanceRoot core.ByteArray, err error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
-	fromMP, err := fromMerkleProof.ToABIVersion()
+	fromMP, err := fromMerkleProof.ToABIVersion(*b)
 	if err != nil {
 		return
 	}
@@ -196,11 +194,11 @@ func (b *Bazooka) processMassMigrationTx(balanceTreeRoot ByteArray, tx Tx, fromM
 	if err != nil {
 		return
 	}
-	if err = ParseResult(result.Result); err != nil {
+	if err = core.ParseResult(result.Result); err != nil {
 		return
 	}
 
-	b.log.Info("Processed transaction", "postTxRoot", ByteArray(result.NewRoot).String(), "resultCode", result.Result)
+	b.log.Info("Processed transaction", "postTxRoot", core.ByteArray(result.NewRoot).String(), "resultCode", result.Result)
 
 	// TOOD read result code and bubble up error messages
 	return result.NewRoot, nil

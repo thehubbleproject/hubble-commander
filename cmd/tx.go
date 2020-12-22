@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/BOPR/bazooka"
 	"github.com/BOPR/common"
 	"github.com/BOPR/core"
+	db "github.com/BOPR/db"
 	"github.com/BOPR/wallet"
 	"github.com/spf13/cobra"
 )
@@ -57,18 +59,18 @@ func sendTransferTx() *cobra.Command {
 				return err
 			}
 
-			db, err := core.NewDB()
+			DBI, err := db.NewDB()
 			if err != nil {
 				return err
 			}
-			defer db.Close()
+			defer DBI.Close()
 
-			bazooka, err := core.NewPreLoadedBazooka()
+			bazooka, err := bazooka.NewPreLoadedBazooka()
 			if err != nil {
 				return err
 			}
 
-			txHash, err := validateAndTransfer(db, bazooka, fromIndex, toIndex, amount, fee, privKeyBytes, pubkeyBytes)
+			txHash, err := validateAndTransfer(&DBI, &bazooka, fromIndex, toIndex, amount, fee, privKeyBytes, pubkeyBytes)
 			if err != nil {
 				return err
 			}
@@ -100,17 +102,17 @@ func dummyTransfer() *cobra.Command {
 		Use:   "dummy-transfer",
 		Short: "Creates 2 accounts and creates a transfer between them",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			db, err := core.NewDB()
+			DBI, err := db.NewDB()
 			if err != nil {
 				return err
 			}
-			defer db.Close()
+			defer DBI.Close()
 
-			bazooka, err := core.NewPreLoadedBazooka()
+			bazooka, err := bazooka.NewPreLoadedBazooka()
 			if err != nil {
 				return err
 			}
-			params, err := db.GetParams()
+			params, err := DBI.GetParams()
 			if err != nil {
 				return err
 			}
@@ -140,7 +142,7 @@ func dummyTransfer() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				err = db.UpdateAccount(*acc)
+				err = DBI.UpdateAccount(*acc)
 				if err != nil {
 					return err
 				}
@@ -150,7 +152,7 @@ func dummyTransfer() *cobra.Command {
 					return err
 				}
 				newUser := core.NewUserState(pubkeyIndex, core.STATUS_ACTIVE, path, userState)
-				err = db.UpdateState(*newUser)
+				err = DBI.UpdateState(*newUser)
 				if err != nil {
 					return err
 				}
@@ -159,7 +161,7 @@ func dummyTransfer() *cobra.Command {
 			secretBytes, publicKeyBytes := users[0].Bytes()
 
 			// send a transfer tx between 2
-			txHash, err := validateAndTransfer(db, bazooka, 2, 3, 1, 0, secretBytes, publicKeyBytes)
+			txHash, err := validateAndTransfer(&DBI, &bazooka, 2, 3, 1, 0, secretBytes, publicKeyBytes)
 			if err != nil {
 				return err
 			}
@@ -177,16 +179,16 @@ func dummyCreate2Transfer() *cobra.Command {
 		Use:   "dummy-create2transfer",
 		Short: "Sends a create2transfer transaction",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			db, err := core.NewDB()
+			DBI, err := db.NewDB()
 			if err != nil {
 				return err
 			}
-			defer db.Close()
-			bazooka, err := core.NewPreLoadedBazooka()
+			defer DBI.Close()
+			bazooka, err := bazooka.NewPreLoadedBazooka()
 			if err != nil {
 				return err
 			}
-			params, err := db.GetParams()
+			params, err := DBI.GetParams()
 			if err != nil {
 				return err
 			}
@@ -210,7 +212,7 @@ func dummyCreate2Transfer() *cobra.Command {
 					return err
 				}
 
-				err = db.UpdateAccount(*user1Acc)
+				err = DBI.UpdateAccount(*user1Acc)
 				if err != nil {
 					return err
 				}
@@ -221,7 +223,7 @@ func dummyCreate2Transfer() *cobra.Command {
 					return err
 				}
 				newUser := core.NewUserState(pubkeyIndex, core.STATUS_ACTIVE, path, user1state)
-				err = db.UpdateState(*newUser)
+				err = DBI.UpdateState(*newUser)
 				if err != nil {
 					return err
 				}
@@ -248,7 +250,7 @@ func dummyCreate2Transfer() *cobra.Command {
 					return err
 				}
 
-				if err := signAndBroadcast(tx, secretBytes, publicKeyBytes, bazooka, db); err != nil {
+				if err := signAndBroadcast(&bazooka, &DBI, tx, secretBytes, publicKeyBytes); err != nil {
 					return err
 				}
 
@@ -266,17 +268,17 @@ func dummyMassMigrate() *cobra.Command {
 		Use:   "dummy-massmigrate",
 		Short: "Creates 2 accounts and creates a mass migrate",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			db, err := core.NewDB()
+			DBI, err := db.NewDB()
 			if err != nil {
 				return err
 			}
-			defer db.Close()
+			defer DBI.Close()
 
-			bazooka, err := core.NewPreLoadedBazooka()
+			bazooka, err := bazooka.NewPreLoadedBazooka()
 			if err != nil {
 				return err
 			}
-			params, err := db.GetParams()
+			params, err := DBI.GetParams()
 			if err != nil {
 				return err
 			}
@@ -304,7 +306,7 @@ func dummyMassMigrate() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				err = db.UpdateAccount(*acc)
+				err = DBI.UpdateAccount(*acc)
 				if err != nil {
 					return err
 				}
@@ -314,7 +316,7 @@ func dummyMassMigrate() *cobra.Command {
 					return err
 				}
 				newUser := core.NewUserState(pubkeyIndex, core.STATUS_ACTIVE, path, userState)
-				err = db.UpdateState(*newUser)
+				err = DBI.UpdateState(*newUser)
 				if err != nil {
 					return err
 				}
@@ -332,7 +334,7 @@ func dummyMassMigrate() *cobra.Command {
 				return err
 			}
 
-			if err = signAndBroadcast(tx, secretBytes, publicKeyBytes, bazooka, db); err != nil {
+			if err = signAndBroadcast(&bazooka, &DBI, tx, secretBytes, publicKeyBytes); err != nil {
 				return err
 			}
 
@@ -345,8 +347,8 @@ func dummyMassMigrate() *cobra.Command {
 }
 
 // validateAndTransfer creates and sends a transfer transaction
-func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, amount, fee uint64, priv, pub []byte) (txHash string, err error) {
-	from, err := db.GetStateByIndex(fromIndex)
+func validateAndTransfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toIndex, amount, fee uint64, priv, pub []byte) (txHash string, err error) {
+	from, err := DBI.GetStateByIndex(fromIndex)
 	if err != nil {
 		return
 	}
@@ -355,7 +357,7 @@ func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 		return "", ErrStateInActive
 	}
 
-	to, err := db.GetStateByIndex(toIndex)
+	to, err := DBI.GetStateByIndex(toIndex)
 	if err != nil {
 		return
 	}
@@ -383,15 +385,15 @@ func validateAndTransfer(db core.DB, bazooka core.Bazooka, fromIndex, toIndex, a
 		return
 	}
 
-	if err = signAndBroadcast(tx, priv, pub, bazooka, db); err != nil {
+	if err = signAndBroadcast(bazooka, DBI, tx, priv, pub); err != nil {
 		return
 	}
 
 	return tx.TxHash, nil
 }
 
-func signAndBroadcast(tx core.Tx, priv, pub []byte, bazooka core.Bazooka, db core.DB) (err error) {
-	txBytes, err := tx.GetSignBytes(bazooka)
+func signAndBroadcast(b *bazooka.Bazooka, DBI *db.DB, tx core.Tx, priv, pub []byte) (err error) {
+	txBytes, err := bazooka.GetSignBytes(*b, &tx)
 	if err != nil {
 		return
 	}
@@ -407,7 +409,7 @@ func signAndBroadcast(tx core.Tx, priv, pub []byte, bazooka core.Bazooka, db cor
 
 	fmt.Println("Sending new tx", tx.String())
 
-	err = db.InsertTx(&tx)
+	err = DBI.InsertTx(&tx)
 	if err != nil {
 		return err
 	}

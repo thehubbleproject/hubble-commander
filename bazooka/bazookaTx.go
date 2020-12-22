@@ -1,4 +1,4 @@
-package core
+package bazooka
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/BOPR/config"
 	"github.com/BOPR/contracts/accountregistry"
+	"github.com/BOPR/core"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -100,7 +101,7 @@ func (c *MassMigrationCalldata) Method() string {
 }
 
 // SubmitBatch submits the batch on chain with updated root and compressed transactions
-func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err error) {
+func (b *Bazooka) SubmitBatch(commitments []core.Commitment) (txHash string, err error) {
 	b.log.Info(
 		"Attempting to submit a new batch",
 		"NumOfCommitments",
@@ -113,24 +114,24 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err erro
 	}
 
 	switch txType := commitments[0].BatchType; txType {
-	case TX_TRANSFER_TYPE:
+	case core.TX_TRANSFER_TYPE:
 		txHash, err := b.submitTransferBatch(commitments)
 		if err != nil {
 			return "", err
 		}
-		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", TX_TRANSFER_TYPE)
-	case TX_CREATE_2_TRANSFER:
+		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", core.TX_TRANSFER_TYPE)
+	case core.TX_CREATE_2_TRANSFER:
 		txHash, err := b.submitCreate2TransferBatch(commitments)
 		if err != nil {
 			return "", err
 		}
-		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", TX_TRANSFER_TYPE)
-	case TX_MASS_MIGRATIONS:
+		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", core.TX_CREATE_2_TRANSFER)
+	case core.TX_MASS_MIGRATIONS:
 		txHash, err := b.submitMassMigrationBatch(commitments)
 		if err != nil {
 			return "", err
 		}
-		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", TX_TRANSFER_TYPE)
+		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", core.TX_MASS_MIGRATIONS)
 	default:
 		b.log.Error("Tx not indentified", "txType", commitments[0].BatchType)
 	}
@@ -138,7 +139,7 @@ func (b *Bazooka) SubmitBatch(commitments []Commitment) (txHash string, err erro
 	return txHash, nil
 }
 
-func (b *Bazooka) submitTransferBatch(commitments []Commitment) (string, error) {
+func (b *Bazooka) submitTransferBatch(commitments []core.Commitment) (string, error) {
 	var txs [][]byte
 	var updatedRoots [][32]byte
 	var aggregatedSig [][2]*big.Int
@@ -151,7 +152,7 @@ func (b *Bazooka) submitTransferBatch(commitments []Commitment) (string, error) 
 	}
 
 	for _, commitment := range commitments {
-		compressedTxs, err := b.CompressTxs(commitment.Txs)
+		compressedTxs, err := CompressTxs(b, commitment.Txs)
 		if err != nil {
 			b.log.Error("Unable to compress txs", "error", err)
 			return "", err
@@ -160,7 +161,7 @@ func (b *Bazooka) submitTransferBatch(commitments []Commitment) (string, error) 
 		updatedRoots = append(updatedRoots, commitment.UpdatedRoot)
 		totalTxs += len(commitment.Txs)
 
-		sig, err := BytesToSolSignature(commitment.AggregatedSignature)
+		sig, err := core.BytesToSolSignature(commitment.AggregatedSignature)
 		if err != nil {
 			return "", err
 		}
@@ -201,7 +202,7 @@ func (b *Bazooka) submitTransferBatch(commitments []Commitment) (string, error) 
 	return tx.Hash().String(), nil
 }
 
-func (b *Bazooka) submitCreate2TransferBatch(commitments []Commitment) (string, error) {
+func (b *Bazooka) submitCreate2TransferBatch(commitments []core.Commitment) (string, error) {
 	var txs [][]byte
 	var updatedRoots [][32]byte
 	var aggregatedSig [][2]*big.Int
@@ -214,7 +215,7 @@ func (b *Bazooka) submitCreate2TransferBatch(commitments []Commitment) (string, 
 	}
 
 	for _, commitment := range commitments {
-		compressedTxs, err := b.CompressTxs(commitment.Txs)
+		compressedTxs, err := CompressTxs(b, commitment.Txs)
 		if err != nil {
 			b.log.Error("Unable to compress txs", "error", err)
 			return "", err
@@ -223,7 +224,7 @@ func (b *Bazooka) submitCreate2TransferBatch(commitments []Commitment) (string, 
 		updatedRoots = append(updatedRoots, commitment.UpdatedRoot)
 		totalTxs += len(commitment.Txs)
 
-		sig, err := BytesToSolSignature(commitment.AggregatedSignature)
+		sig, err := core.BytesToSolSignature(commitment.AggregatedSignature)
 		if err != nil {
 			return "", err
 		}
@@ -257,7 +258,7 @@ func (b *Bazooka) submitCreate2TransferBatch(commitments []Commitment) (string, 
 	return tx.Hash().String(), nil
 }
 
-func (b *Bazooka) submitMassMigrationBatch(commitments []Commitment) (string, error) {
+func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment) (string, error) {
 	var txs [][]byte
 	var updatedRoots [][32]byte
 	var aggregatedSig [][2]*big.Int
@@ -269,7 +270,7 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []Commitment) (string, er
 	dummyReceiver := big.NewInt(0)
 
 	for _, commitment := range commitments {
-		compressedTxs, err := b.CompressTxs(commitment.Txs)
+		compressedTxs, err := CompressTxs(b, commitment.Txs)
 		if err != nil {
 			b.log.Error("Unable to compress txs", "error", err)
 			return "", err
@@ -278,7 +279,7 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []Commitment) (string, er
 		updatedRoots = append(updatedRoots, commitment.UpdatedRoot)
 		totalTxs += len(commitment.Txs)
 
-		sig, err := BytesToSolSignature(commitment.AggregatedSignature)
+		sig, err := core.BytesToSolSignature(commitment.AggregatedSignature)
 		if err != nil {
 			return "", err
 		}
@@ -290,22 +291,23 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []Commitment) (string, er
 		var totalAmount = big.NewInt(0)
 
 		for i, tx := range commitment.Txs {
-			from, spoke, _, _, amount, _, err := b.DecodeMassMigrationTx(tx.Data)
+			_, spoke, _, _, amount, _, err := b.DecodeMassMigrationTx(tx.Data)
 			if err != nil {
 				return "", err
 			}
 
 			if i == 0 {
 				spokeID = spoke
-				state, err := DBInstance.GetStateByIndex(from.Uint64())
-				if err != nil {
-					return "", err
-				}
-				_, _, _, token, err := b.DecodeState(state.Data)
-				if err != nil {
-					return "", err
-				}
-				tokenID = token
+				// TODO fix
+				// state, err := core.DBInstance.GetStateByIndex(from.Uint64())
+				// if err != nil {
+				// 	return "", err
+				// }
+				// _, _, _, token, err := b.DecodeState(state.Data)
+				// if err != nil {
+				// 	return "", err
+				// }
+				tokenID = big.NewInt(0)
 			}
 
 			totalAmount.Add(amount, totalAmount)
@@ -352,11 +354,11 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []Commitment) (string, er
 	return tx.Hash().String(), nil
 }
 
-func (b *Bazooka) FireDepositFinalisation(TBreplaced UserState, siblings []UserState, subTreeHeight uint64) (err error) {
+func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []core.UserState, subTreeHeight uint64) (err error) {
 	b.log.Info(
 		"Attempting to finalise deposits",
 		"NodeToBeReplaced",
-		TBreplaced.String(),
+		TBreplaced,
 		"NumberOfSiblings",
 		len(siblings),
 		"atDepth",
@@ -502,15 +504,15 @@ func (b *Bazooka) ParseCalldata(txHash ethCmn.Hash, batchType uint8) (calldata C
 	var data []byte
 
 	switch batchType {
-	case TX_GENESIS:
+	case core.TX_GENESIS:
 		return calldata, ErrNoTxs
-	case TX_DEPOSIT:
+	case core.TX_DEPOSIT:
 		return calldata, ErrNoTxs
-	case TX_TRANSFER_TYPE:
+	case core.TX_TRANSFER_TYPE:
 		method = b.RollupABI.Methods[SubmitTransferMethod]
-	case TX_CREATE_2_TRANSFER:
+	case core.TX_CREATE_2_TRANSFER:
 		method = b.RollupABI.Methods[SubmitCreate2TransferMethod]
-	case TX_MASS_MIGRATIONS:
+	case core.TX_MASS_MIGRATIONS:
 		method = b.RollupABI.Methods[SubmitMassMigrationMethod]
 	}
 	fmt.Println("data and method", data, method)
@@ -532,15 +534,15 @@ func (b *Bazooka) getInputData(txHash ethCmn.Hash, batchType uint8) (map[string]
 	var data []byte
 
 	switch batchType {
-	case TX_GENESIS:
+	case core.TX_GENESIS:
 		return inputDataMap, ErrNoTxs
-	case TX_DEPOSIT:
+	case core.TX_DEPOSIT:
 		return inputDataMap, ErrNoTxs
-	case TX_TRANSFER_TYPE:
+	case core.TX_TRANSFER_TYPE:
 		method = b.RollupABI.Methods["submitTransfer"]
-	case TX_CREATE_2_TRANSFER:
+	case core.TX_CREATE_2_TRANSFER:
 		method = b.RollupABI.Methods["submitCreate2Transfer"]
-	case TX_MASS_MIGRATIONS:
+	case core.TX_MASS_MIGRATIONS:
 		method = b.RollupABI.Methods["submitMassMigration"]
 	}
 
