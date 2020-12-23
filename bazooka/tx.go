@@ -25,81 +25,6 @@ const (
 	SubmitMassMigrationMethod   = "submitMassMigration"
 )
 
-type Calldata interface {
-	Pack(b Bazooka, args interface{}) (data []byte, err error)
-	Unpack(b Bazooka, data []byte) (err error)
-	Method() string
-}
-
-type TransferCalldata struct {
-	Txss         [][]byte
-	StateRoots   [][32]byte
-	feeReceivers []*big.Int
-	Signatures   [][2]*big.Int
-}
-
-func (c *TransferCalldata) Pack(b Bazooka, input interface{}) (data []byte, err error) {
-	body, ok := input.(TransferCalldata)
-	if !ok {
-		return data, errors.New("Input not of type transfer")
-	}
-	data, err = b.RollupABI.Pack(SubmitTransferMethod, body.StateRoots, body.Signatures, body.feeReceivers, body.Txss)
-	if err != nil {
-		b.log.Error("Error packing data for submitBatch", "err", err)
-		return data, err
-	}
-	return data, nil
-}
-
-func (c *TransferCalldata) Unpack(b Bazooka, data []byte) (err error) {
-	err = b.RollupABI.Unpack(c, SubmitTransferMethod, data)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c *TransferCalldata) Method() string {
-	return SubmitTransferMethod
-}
-
-type Create2TransferCalldata struct {
-	Txss         [][]byte
-	StateRoots   [][32]byte
-	feeReceivers []*big.Int
-	Signatures   [][2]*big.Int
-}
-
-func (c *Create2TransferCalldata) Pack(b Bazooka, args ...interface{}) (data []byte, err error) {
-	return nil, nil
-}
-
-func (c *Create2TransferCalldata) Unpack(b Bazooka, data []byte) (err error) {
-	return nil
-}
-func (c *Create2TransferCalldata) Method() string {
-	return SubmitCreate2TransferMethod
-}
-
-type MassMigrationCalldata struct {
-	Txss          [][]byte
-	StateRoots    [][32]byte
-	WithdrawRoots [][32]byte
-	Meta          [][4]*big.Int
-	Signatures    [][2]*big.Int
-}
-
-func (c *MassMigrationCalldata) Pack(b Bazooka, args ...interface{}) (data []byte, err error) {
-	return nil, nil
-}
-
-func (c *MassMigrationCalldata) Unpack(b Bazooka, data []byte) (err error) {
-	return nil
-}
-func (c *MassMigrationCalldata) Method() string {
-	return SubmitMassMigrationMethod
-}
-
 // SubmitBatch submits the batch on chain with updated root and compressed transactions
 func (b *Bazooka) SubmitBatch(commitments []core.Commitment) (txHash string, err error) {
 	b.log.Info(
@@ -174,7 +99,13 @@ func (b *Bazooka) submitTransferBatch(commitments []core.Commitment) (string, er
 	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
 	stakeAmount := big.NewInt(1000000000000000000)
 
-	data, err := b.RollupABI.Pack("submitTransfer", updatedRoots, aggregatedSig, feeReceivers, txs)
+	var inputData TransferCalldata
+	inputData.StateRoots = updatedRoots
+	inputData.Signatures = aggregatedSig
+	inputData.feeReceivers = feeReceivers
+	inputData.Txss = txs
+
+	data, err := inputData.Pack(*b, inputData)
 	if err != nil {
 		b.log.Error("Error packing data for submitBatch", "err", err)
 		return "", err
@@ -185,6 +116,9 @@ func (b *Bazooka) submitTransferBatch(commitments []core.Commitment) (string, er
 		b.log.Error("Estimate gas failed, tx reverting", "error", err)
 		return "", err
 	}
+
+	// rawTx := types.NewTransaction(auth.Nonce.Uint64(), rollupAddress, stakeAmount, auth.GasLimit, auth.GasPrice, data)
+	// b.EthClient.SendTransaction(context.Background(), rawTx)
 
 	tx, err := b.SC.RollupContract.SubmitTransfer(auth, updatedRoots, aggregatedSig, feeReceivers, txs)
 	if err != nil {
@@ -472,143 +406,19 @@ func (b *Bazooka) RegisterPubkeys(pubkeys [16][4]*big.Int) (txHash string, err e
 		return
 	}
 
-	tx, err := b.SC.AccountRegistry.RegisterBatch(auth, pubkeys)
+	tx := types.NewTransaction(auth.Nonce.Uint64(), ethCmn.HexToAddress(config.GlobalCfg.AccountRegistry), big.NewInt(0), auth.GasLimit, auth.GasPrice, data)
+	err = b.EthClient.SendTransaction(context.Background(), tx)
 	if err != nil {
+		fmt.Println("error unable to send transaction")
 		return
 	}
+
+	// tx, err := b.SC.AccountRegistry.RegisterBatch(auth, pubkeys)
+	// if err != nil {
+	// 	return
+	// }
 
 	b.log.Info("Registered pubkeys", "count", len(pubkeys), "txHash", tx.Hash().String())
 
 	return tx.Hash().String(), nil
-}
-
-func (b *Bazooka) getTxDataByHash(txHash ethCmn.Hash) (data []byte, err error) {
-	tx, isPending, err := b.EthClient.TransactionByHash(context.Background(), txHash)
-	if err != nil {
-		b.log.Error("Cannot fetch transaction from hash", "Error", err)
-		return
-	}
-
-	if isPending {
-		b.log.Error("Transaction is still pending, cannot process", "Error", ErrTxPending)
-		return data, ErrTxPending
-	}
-
-	payload := tx.Data()[4:]
-	return payload, nil
-}
-
-func (b *Bazooka) ParseCalldata(txHash ethCmn.Hash, batchType uint8) (calldata Calldata, err error) {
-	// inputDataMap := make(map[string]interface{})
-	var method abi.Method
-	var data []byte
-
-	switch batchType {
-	case core.TX_GENESIS:
-		return calldata, ErrNoTxs
-	case core.TX_DEPOSIT:
-		return calldata, ErrNoTxs
-	case core.TX_TRANSFER_TYPE:
-		method = b.RollupABI.Methods[SubmitTransferMethod]
-	case core.TX_CREATE_2_TRANSFER:
-		method = b.RollupABI.Methods[SubmitCreate2TransferMethod]
-	case core.TX_MASS_MIGRATIONS:
-		method = b.RollupABI.Methods[SubmitMassMigrationMethod]
-	}
-	fmt.Println("data and method", data, method)
-
-	data, err = b.getTxDataByHash(txHash)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println("data here", hex.EncodeToString(data))
-
-	// calldata.Unpack()
-	return calldata, nil
-}
-
-func (b *Bazooka) getInputData(txHash ethCmn.Hash, batchType uint8) (map[string]interface{}, error) {
-	inputDataMap := make(map[string]interface{})
-	var method abi.Method
-	var data []byte
-
-	switch batchType {
-	case core.TX_GENESIS:
-		return inputDataMap, ErrNoTxs
-	case core.TX_DEPOSIT:
-		return inputDataMap, ErrNoTxs
-	case core.TX_TRANSFER_TYPE:
-		method = b.RollupABI.Methods["submitTransfer"]
-	case core.TX_CREATE_2_TRANSFER:
-		method = b.RollupABI.Methods["submitCreate2Transfer"]
-	case core.TX_MASS_MIGRATIONS:
-		method = b.RollupABI.Methods["submitMassMigration"]
-	}
-
-	data, err := b.getTxDataByHash(txHash)
-	if err != nil {
-		return nil, err
-	}
-
-	err = method.Inputs.UnpackIntoMap(inputDataMap, data)
-	if err != nil {
-		b.log.Error("Error unpacking payload", "Error", err, "data", data)
-		return inputDataMap, err
-	}
-
-	return inputDataMap, nil
-}
-
-// FetchTxsFromBatch parses the calldata for transactions
-func (b *Bazooka) FetchTxsFromBatch(txHash ethCmn.Hash, batchType uint8) (txs []byte, err error) {
-	inputs, err := b.getInputData(txHash, batchType)
-	if err != nil {
-		if err == ErrNoTxs {
-			return txs, nil
-		}
-		return txs, err
-	}
-
-	return getTxsFromInput(inputs)
-}
-
-// FetchMetaInfoFromBatch parses the calldata for transactions
-func (b *Bazooka) FetchMetaInfoFromBatch(txHash ethCmn.Hash, batchType uint8) (withdrawRoots [][32]byte, toSpokeIDs, tokenIDs, amounts []*big.Int, err error) {
-	inputs, err := b.getInputData(txHash, batchType)
-	if err != nil {
-		return
-	}
-
-	return getMassMigrationInfo(inputs)
-}
-
-func getTxsFromInput(input map[string]interface{}) (txs []byte, err error) {
-	if txPayload, ok := input[TXS_PARAM]; ok {
-		txList, ok := txPayload.([][]byte)
-		if !ok {
-			return nil, ErrConvertingTxPayload
-		}
-
-		txs = txList[0]
-	} else {
-		return nil, ErrTxParamDoesntExist
-	}
-	return txs, nil
-}
-
-func getMassMigrationInfo(input map[string]interface{}) (withdrawRoots [][32]byte, toSpokeIDs, tokenIDs, amounts []*big.Int, err error) {
-	fmt.Println("print input data", input)
-	if txPayload, ok := input[META_PARAM]; ok {
-		metaList, ok := txPayload.([][4]*big.Int)
-		if !ok {
-			return withdrawRoots, toSpokeIDs, tokenIDs, amounts, ErrConvertingTxPayload
-		}
-		fmt.Println("meta list", metaList)
-
-		// txs = metaList[0]
-	} else {
-		return withdrawRoots, toSpokeIDs, tokenIDs, amounts, ErrTxParamDoesntExist
-	}
-	return
 }
