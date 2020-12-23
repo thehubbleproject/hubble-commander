@@ -2,13 +2,16 @@ package bazooka
 
 import (
 	"context"
-	"encoding/hex"
-	"fmt"
+	"errors"
 	"math/big"
 
+	"github.com/BOPR/config"
 	"github.com/BOPR/core"
-	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethCmn "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 func (b *Bazooka) getTxDataByHash(txHash ethCmn.Hash) (data []byte, err error) {
@@ -28,116 +31,82 @@ func (b *Bazooka) getTxDataByHash(txHash ethCmn.Hash) (data []byte, err error) {
 }
 
 func (b *Bazooka) ParseCalldata(txHash ethCmn.Hash, batchType uint8) (calldata Calldata, err error) {
-	// inputDataMap := make(map[string]interface{})
-	var method abi.Method
-	var data []byte
-
-	switch batchType {
-	case core.TX_GENESIS:
-		return calldata, ErrNoTxs
-	case core.TX_DEPOSIT:
-		return calldata, ErrNoTxs
-	case core.TX_TRANSFER_TYPE:
-		method = b.RollupABI.Methods[SubmitTransferMethod]
-	case core.TX_CREATE_2_TRANSFER:
-		method = b.RollupABI.Methods[SubmitCreate2TransferMethod]
-	case core.TX_MASS_MIGRATIONS:
-		method = b.RollupABI.Methods[SubmitMassMigrationMethod]
-	}
-	fmt.Println("data and method", data, method)
-
-	data, err = b.getTxDataByHash(txHash)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println("data here", hex.EncodeToString(data))
-
-	// calldata.Unpack()
-	return calldata, nil
-}
-
-func (b *Bazooka) getInputData(txHash ethCmn.Hash, batchType uint8) (map[string]interface{}, error) {
-	inputDataMap := make(map[string]interface{})
-	var method abi.Method
-	var data []byte
-
-	switch batchType {
-	case core.TX_GENESIS:
-		return inputDataMap, ErrNoTxs
-	case core.TX_DEPOSIT:
-		return inputDataMap, ErrNoTxs
-	case core.TX_TRANSFER_TYPE:
-		method = b.RollupABI.Methods[SubmitTransferMethod]
-	case core.TX_CREATE_2_TRANSFER:
-		method = b.RollupABI.Methods[SubmitCreate2TransferMethod]
-	case core.TX_MASS_MIGRATIONS:
-		method = b.RollupABI.Methods[SubmitMassMigrationMethod]
-	}
-
 	data, err := b.getTxDataByHash(txHash)
 	if err != nil {
 		return nil, err
 	}
 
-	err = method.Inputs.UnpackIntoMap(inputDataMap, data)
-	if err != nil {
-		b.log.Error("Error unpacking payload", "Error", err, "data", data)
-		return inputDataMap, err
+	switch batchType {
+	case core.TX_GENESIS:
+		return calldata, ErrNoTxs
+	case core.TX_DEPOSIT:
+		return calldata, ErrNoTxs
+	case core.TX_TRANSFER_TYPE:
+		return b.UnpackBatchCalldata(SubmitTransferMethod, data)
+	case core.TX_CREATE_2_TRANSFER:
+		return b.UnpackBatchCalldata(SubmitCreate2TransferMethod, data)
+	case core.TX_MASS_MIGRATIONS:
+		return b.UnpackBatchCalldata(SubmitMassMigrationMethod, data)
+	default:
+		return nil, errors.New("Unable to match batch type")
 	}
-
-	return inputDataMap, nil
 }
 
-// FetchTxsFromBatch parses the calldata for transactions
-func (b *Bazooka) FetchTxsFromBatch(txHash ethCmn.Hash, batchType uint8) (txs []byte, err error) {
-	inputs, err := b.getInputData(txHash, batchType)
+func (b *Bazooka) SignAndBroadcastBatch(client *ethclient.Client, toAddr ethCmn.Address, value *big.Int, data Calldata) (tx *types.Transaction, err error) {
+	inputData, err := data.Pack(*b)
 	if err != nil {
-		if err == ErrNoTxs {
-			return txs, nil
-		}
-		return txs, err
+		return nil, err
 	}
-
-	return getTxsFromInput(inputs)
+	return b.SignAndBroadcast(client, toAddr, value, inputData)
 }
 
-// FetchMetaInfoFromBatch parses the calldata for transactions
-func (b *Bazooka) FetchMetaInfoFromBatch(txHash ethCmn.Hash, batchType uint8) (withdrawRoots [][32]byte, toSpokeIDs, tokenIDs, amounts []*big.Int, err error) {
-	inputs, err := b.getInputData(txHash, batchType)
+func (b *Bazooka) SignAndBroadcast(client *ethclient.Client, toAddr ethCmn.Address, value *big.Int, data []byte) (tx *types.Transaction, err error) {
+	opts, err := b.generateAuthObj(b.EthClient, toAddr, value, data)
+	if err != nil {
+		b.log.Error("Estimate gas failed, tx reverting", "error", err)
+		return
+	}
+	tx = types.NewTransaction(opts.Nonce.Uint64(), toAddr, opts.Value, opts.GasLimit, opts.GasPrice, data)
+	sigTx, err := opts.Signer(types.HomesteadSigner{}, opts.From, tx)
+	err = b.EthClient.SendTransaction(context.Background(), sigTx)
+	if err != nil {
+		return
+	}
+	return tx, nil
+}
+
+func (b *Bazooka) generateAuthObj(client *ethclient.Client, toAddr ethCmn.Address, value *big.Int, data []byte) (auth *bind.TransactOpts, err error) {
+	// from address
+	fromAddress := config.OperatorAddress
+
+	// fetch gas price
+	gasprice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
 		return
 	}
 
-	return getMassMigrationInfo(inputs)
-}
-
-func getTxsFromInput(input map[string]interface{}) (txs []byte, err error) {
-	if txPayload, ok := input[TXS_PARAM]; ok {
-		txList, ok := txPayload.([][]byte)
-		if !ok {
-			return nil, ErrConvertingTxPayload
-		}
-
-		txs = txList[0]
-	} else {
-		return nil, ErrTxParamDoesntExist
+	// fetch nonce
+	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
+	if err != nil {
+		return
 	}
-	return txs, nil
-}
 
-func getMassMigrationInfo(input map[string]interface{}) (withdrawRoots [][32]byte, toSpokeIDs, tokenIDs, amounts []*big.Int, err error) {
-	fmt.Println("print input data", input)
-	if txPayload, ok := input[META_PARAM]; ok {
-		metaList, ok := txPayload.([][4]*big.Int)
-		if !ok {
-			return withdrawRoots, toSpokeIDs, tokenIDs, amounts, ErrConvertingTxPayload
-		}
-		fmt.Println("meta list", metaList)
-
-		// txs = metaList[0]
-	} else {
-		return withdrawRoots, toSpokeIDs, tokenIDs, amounts, ErrTxParamDoesntExist
+	callMsg := ethereum.CallMsg{
+		To:    &toAddr,
+		Data:  data,
+		Value: value,
 	}
+
+	// fetch gas limit
+	callMsg.From = fromAddress
+	gasLimit, err := client.EstimateGas(context.Background(), callMsg)
+	if err != nil {
+		return
+	}
+	// create auth
+	auth = bind.NewKeyedTransactor(config.OperatorKey)
+	auth.GasPrice = gasprice
+	auth.Nonce = big.NewInt(int64(nonce))
+	auth.GasLimit = uint64(gasLimit)
 	return
 }

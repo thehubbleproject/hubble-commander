@@ -177,19 +177,6 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		if err != nil {
 			return
 		}
-		// var txs []byte
-
-		_, err = s.loadedBazooka.ParseCalldata(vLog.TxHash, event.BatchType)
-		// if err != nil {
-		// 	s.Logger.Error("Error fetching input data from tx", "error", err)
-		// 	return
-		// }
-		// newRoot, err := s.applyTxsFromBatch(txs, vLog.TxHash, uint64(event.BatchType), true)
-		// if err != nil {
-		// 	s.Logger.Error("Error applying transactions from batch", "index", event.Index.String(), "error", err)
-		// 	return
-		// }
-
 		newBatch := core.NewBatch(newRoot.String(), event.Committer.String(), vLog.TxHash.String(), uint64(event.BatchType), core.BATCH_COMMITTED)
 		err = s.DBInstance.AddNewBatch(newBatch)
 		if err != nil {
@@ -265,10 +252,10 @@ func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txHash ethCmn.Hash, txType u
 			return newRoot, err
 		}
 	case core.TX_MASS_MIGRATIONS:
-		transactions, err = s.decompressMassMigrations(txsBytes, txHash)
-		if err != nil {
-			return newRoot, err
-		}
+		// transactions, err = s.decompressMassMigrations(txsBytes, txHash)
+		// if err != nil {
+		// 	return newRoot, err
+		// }
 	case core.TX_CREATE_2_TRANSFER:
 		transactions, err = s.decompressCreate2Transfers(txsBytes)
 		if err != nil {
@@ -347,46 +334,55 @@ func (s *Syncer) decompressCreate2Transfers(decompressedTxs []byte) (txs []core.
 }
 
 // decompressTransfers decompresses transfer bytes to TX
-func (s *Syncer) decompressMassMigrations(decompressedTxs []byte, txHash ethCmn.Hash) (txs []core.Tx, err error) {
-	froms, amounts, fees, err := s.loadedBazooka.DecompressMassMigrationTxs(decompressedTxs)
-	if err != nil {
-		return
-	}
+// func (s *Syncer) decompressMassMigrations(decompressedTxs []byte, txHash ethCmn.Hash) (txs []core.Tx, err error) {
+// 	froms, amounts, fees, err := s.loadedBazooka.DecompressMassMigrationTxs(decompressedTxs)
+// 	if err != nil {
+// 		return
+// 	}
 
-	_, toSpokeIDs, _, _, err := s.loadedBazooka.FetchMetaInfoFromBatch(txHash, core.TX_MASS_MIGRATIONS)
-	if err != nil {
-		return
-	}
+// 	_, toSpokeIDs, _, _, err := s.loadedBazooka.FetchMetaInfoFromBatch(txHash, core.TX_MASS_MIGRATIONS)
+// 	if err != nil {
+// 		return
+// 	}
 
-	var transactions []core.Tx
+// 	var transactions []core.Tx
 
-	for i := 0; i < len(froms); i++ {
-		fromState, err := s.DBInstance.GetStateByIndex(froms[i].Uint64())
-		if err != nil {
-			return transactions, err
-		}
-		_, _, nonce, _, err := s.loadedBazooka.DecodeState(fromState.Data)
-		if err != nil {
-			return transactions, err
-		}
+// 	for i := 0; i < len(froms); i++ {
+// 		fromState, err := s.DBInstance.GetStateByIndex(froms[i].Uint64())
+// 		if err != nil {
+// 			return transactions, err
+// 		}
+// 		_, _, nonce, _, err := s.loadedBazooka.DecodeState(fromState.Data)
+// 		if err != nil {
+// 			return transactions, err
+// 		}
 
-		txData, err := s.loadedBazooka.EncodeMassMigrationTx(froms[i].Int64(), toSpokeIDs[i].Int64(), fees[i].Int64(), nonce.Int64(), amounts[i].Int64(), int64(core.TX_MASS_MIGRATIONS))
-		if err != nil {
-			return transactions, err
-		}
+// 		txData, err := s.loadedBazooka.EncodeMassMigrationTx(froms[i].Int64(), toSpokeIDs[i].Int64(), fees[i].Int64(), nonce.Int64(), amounts[i].Int64(), int64(core.TX_MASS_MIGRATIONS))
+// 		if err != nil {
+// 			return transactions, err
+// 		}
 
-		newTx := core.NewTx(froms[i].Uint64(), 0, core.TX_TRANSFER_TYPE, nil, txData)
-		transactions = append(transactions, newTx)
-	}
+// 		newTx := core.NewTx(froms[i].Uint64(), 0, core.TX_TRANSFER_TYPE, nil, txData)
+// 		transactions = append(transactions, newTx)
+// 	}
 
-	return transactions, nil
-}
+// 	return transactions, nil
+// }
 
 func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoot core.ByteArray, err error) {
+	calldata, err := s.loadedBazooka.ParseCalldata(txHash, batchType)
+	if err != nil {
+		if err != bazooka.ErrNoTxs {
+			fmt.Println("unable to parse calldata")
+			return newRoot, err
+		}
+		return newRoot, nil
+	}
+
 	// parse input data according to the batch type
 
 	// apply transactions
-	return
+	return newRoot, nil
 }
 
 // IsCatchingUp returns true/false according to the sync status of the node

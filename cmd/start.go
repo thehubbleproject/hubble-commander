@@ -28,14 +28,14 @@ func startCmd() *cobra.Command {
 		Short: "Starts hubble daemon",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+			// populate global config objects
+			initConfigAndGlobals()
+
 			bz, err := bazooka.NewPreLoadedBazooka()
 			common.PanicIfError(err)
 
 			DBI, err := db.NewDB()
 			common.PanicIfError(err)
-
-			// populate global config objects
-			initConfigAndGlobals()
 
 			logger := hlog.Logger.With("module", "start")
 			// create aggregator service

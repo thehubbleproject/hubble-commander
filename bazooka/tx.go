@@ -1,22 +1,14 @@
 package bazooka
 
 import (
-	"context"
-	"encoding/hex"
-	"errors"
-	"fmt"
 	"math/big"
 	"strings"
 
 	"github.com/BOPR/config"
 	"github.com/BOPR/contracts/accountregistry"
 	"github.com/BOPR/core"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethCmn "github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 const (
@@ -102,35 +94,12 @@ func (b *Bazooka) submitTransferBatch(commitments []core.Commitment) (string, er
 	var inputData TransferCalldata
 	inputData.StateRoots = updatedRoots
 	inputData.Signatures = aggregatedSig
-	inputData.feeReceivers = feeReceivers
+	inputData.FeeReceivers = feeReceivers
 	inputData.Txss = txs
 
-	data, err := inputData.Pack(*b, inputData)
-	if err != nil {
-		b.log.Error("Error packing data for submitBatch", "err", err)
-		return "", err
-	}
-
-	auth, err := b.generateAuthObj(b.EthClient, rollupAddress, stakeAmount, data)
-	if err != nil {
-		b.log.Error("Estimate gas failed, tx reverting", "error", err)
-		return "", err
-	}
-
-	// rawTx := types.NewTransaction(auth.Nonce.Uint64(), rollupAddress, stakeAmount, auth.GasLimit, auth.GasPrice, data)
-	// b.EthClient.SendTransaction(context.Background(), rawTx)
-
-	tx, err := b.SC.RollupContract.SubmitTransfer(auth, updatedRoots, aggregatedSig, feeReceivers, txs)
-	if err != nil {
-		b.log.Error("Error submitting batch", "err", err)
-		return "", err
-	}
-	receipt, err := bind.WaitMined(context.Background(), b.EthClient, tx)
+	tx, err := b.SignAndBroadcastBatch(b.EthClient, rollupAddress, stakeAmount, &inputData)
 	if err != nil {
 		return "", err
-	}
-	if receipt.Status != types.ReceiptStatusSuccessful {
-		return "", errors.New("Error tx reverted")
 	}
 
 	return tx.Hash().String(), nil
@@ -171,22 +140,15 @@ func (b *Bazooka) submitCreate2TransferBatch(commitments []core.Commitment) (str
 	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
 	stakeAmount := big.NewInt(1000000000000000000)
 
-	data, err := b.RollupABI.Pack("submitCreate2Transfer", updatedRoots, aggregatedSig, feeReceivers, txs)
-	if err != nil {
-		b.log.Error("Error packing data for submitBatch", "err", err)
-		return "", nil
-	}
+	var inputData Create2TransferCalldata
+	inputData.StateRoots = updatedRoots
+	inputData.Signatures = aggregatedSig
+	inputData.FeeReceivers = feeReceivers
+	inputData.Txss = txs
 
-	auth, err := b.generateAuthObj(b.EthClient, rollupAddress, stakeAmount, data)
+	tx, err := b.SignAndBroadcastBatch(b.EthClient, rollupAddress, stakeAmount, inputData)
 	if err != nil {
-		b.log.Error("Estimate gas failed, tx reverting", "error", err)
-		return "", nil
-	}
-
-	tx, err := b.SC.RollupContract.SubmitCreate2Transfer(auth, updatedRoots, aggregatedSig, feeReceivers, txs)
-	if err != nil {
-		b.log.Error("Error submitting batch", "err", err)
-		return "", nil
+		return "", err
 	}
 
 	return tx.Hash().String(), nil
@@ -265,24 +227,16 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment) (strin
 	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
 	stakeAmount := big.NewInt(100000000000000000)
 
-	data, err := b.RollupABI.Pack("submitMassMigration", updatedRoots, aggregatedSig, meta, withdrawRoots, txs)
-	if err != nil {
-		b.log.Error("Error packing data for submitBatch", "err", err)
-		return "", nil
-	}
+	var inputData MassMigrationCalldata
+	inputData.StateRoots = updatedRoots
+	inputData.WithdrawRoots = withdrawRoots
+	inputData.Signatures = aggregatedSig
+	inputData.Meta = meta
+	inputData.Txss = txs
 
-	auth, err := b.generateAuthObj(b.EthClient, rollupAddress, stakeAmount, data)
+	tx, err := b.SignAndBroadcastBatch(b.EthClient, rollupAddress, stakeAmount, inputData)
 	if err != nil {
-		b.log.Error("Estimate gas failed, tx reverting", "error", err)
-		return "", nil
-	}
-
-	fmt.Println("data here", hex.EncodeToString(data))
-
-	tx, err := b.SC.RollupContract.SubmitMassMigration(auth, updatedRoots, aggregatedSig, meta, withdrawRoots, txs)
-	if err != nil {
-		b.log.Error("Error submitting batch", "err", err)
-		return "", nil
+		return "", err
 	}
 
 	return tx.Hash().String(), nil
@@ -352,42 +306,6 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 	return nil
 }
 
-func (b *Bazooka) generateAuthObj(client *ethclient.Client, toAddr ethCmn.Address, value *big.Int, data []byte) (auth *bind.TransactOpts, err error) {
-	// from address
-	fromAddress := config.OperatorAddress
-
-	// fetch gas price
-	gasprice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		return
-	}
-
-	// fetch nonce
-	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
-	if err != nil {
-		return
-	}
-
-	callMsg := ethereum.CallMsg{
-		To:    &toAddr,
-		Data:  data,
-		Value: value,
-	}
-
-	// fetch gas limit
-	callMsg.From = fromAddress
-	gasLimit, err := client.EstimateGas(context.Background(), callMsg)
-	if err != nil {
-		return
-	}
-	// create auth
-	auth = bind.NewKeyedTransactor(config.OperatorKey)
-	auth.GasPrice = gasprice
-	auth.Nonce = big.NewInt(int64(nonce))
-	auth.GasLimit = uint64(gasLimit)
-	return
-}
-
 // RegisterPubkeys registers pubkeys in a batch
 func (b *Bazooka) RegisterPubkeys(pubkeys [16][4]*big.Int) (txHash string, err error) {
 	registryABI, err := abi.JSON(strings.NewReader(accountregistry.AccountregistryABI))
@@ -400,23 +318,11 @@ func (b *Bazooka) RegisterPubkeys(pubkeys [16][4]*big.Int) (txHash string, err e
 		return
 	}
 
-	auth, err := b.generateAuthObj(b.EthClient, ethCmn.HexToAddress(config.GlobalCfg.AccountRegistry), big.NewInt(0), data)
+	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(config.GlobalCfg.AccountRegistry), big.NewInt(0), data)
 	if err != nil {
-		b.log.Error("Estimate gas failed, tx reverting", "error", err)
+		b.log.Error("Error sending register batch", "err", err)
 		return
 	}
-
-	tx := types.NewTransaction(auth.Nonce.Uint64(), ethCmn.HexToAddress(config.GlobalCfg.AccountRegistry), big.NewInt(0), auth.GasLimit, auth.GasPrice, data)
-	err = b.EthClient.SendTransaction(context.Background(), tx)
-	if err != nil {
-		fmt.Println("error unable to send transaction")
-		return
-	}
-
-	// tx, err := b.SC.AccountRegistry.RegisterBatch(auth, pubkeys)
-	// if err != nil {
-	// 	return
-	// }
 
 	b.log.Info("Registered pubkeys", "count", len(pubkeys), "txHash", tx.Hash().String())
 
