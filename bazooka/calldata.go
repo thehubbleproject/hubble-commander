@@ -41,7 +41,12 @@ type Create2TransferCalldata struct {
 }
 
 func (c Create2TransferCalldata) Pack(b Bazooka) (data []byte, err error) {
-	return nil, nil
+	data, err = b.RollupABI.Pack(SubmitTransferMethod, c.StateRoots, c.Signatures, c.FeeReceivers, c.Txss)
+	if err != nil {
+		b.log.Error("Error packing data for submitBatch", "err", err)
+		return data, err
+	}
+	return data, nil
 }
 
 func (c Create2TransferCalldata) Method() string {
@@ -57,7 +62,12 @@ type MassMigrationCalldata struct {
 }
 
 func (c MassMigrationCalldata) Pack(b Bazooka) (data []byte, err error) {
-	return nil, nil
+	data, err = b.RollupABI.Pack(SubmitMassMigrationMethod, c.StateRoots, c.Signatures, c.Meta, c.WithdrawRoots, c.Txss)
+	if err != nil {
+		b.log.Error("Error packing data for submitBatch", "err", err)
+		return data, err
+	}
+	return data, nil
 }
 
 func (c MassMigrationCalldata) Method() string {

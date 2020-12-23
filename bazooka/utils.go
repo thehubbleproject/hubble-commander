@@ -3,6 +3,7 @@ package bazooka
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/BOPR/config"
@@ -70,6 +71,7 @@ func (b *Bazooka) SignAndBroadcast(client *ethclient.Client, toAddr ethCmn.Addre
 	sigTx, err := opts.Signer(types.HomesteadSigner{}, opts.From, tx)
 	err = b.EthClient.SendTransaction(context.Background(), sigTx)
 	if err != nil {
+		fmt.Println("error unable to send transaction", err)
 		return
 	}
 	return tx, nil

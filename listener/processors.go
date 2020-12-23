@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/big"
 
 	"github.com/BOPR/bazooka"
 	"github.com/BOPR/common"
@@ -175,6 +176,7 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		s.Logger.Info("Found a new batch, applying transactions and adding new batch", "index", event.Index.Uint64)
 		newRoot, err := s.parseAndApplyBatch(vLog.TxHash, event.BatchType)
 		if err != nil {
+			fmt.Println("error while applying batch", "error", err)
 			return
 		}
 		newBatch := core.NewBatch(newRoot.String(), event.Committer.String(), vLog.TxHash.String(), uint64(event.BatchType), core.BATCH_COMMITTED)
@@ -238,26 +240,34 @@ func (s *Syncer) SendDepositFinalisationTx() {
 	}
 }
 
-func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txHash ethCmn.Hash, txType uint64, isSyncing bool) (newRoot core.ByteArray, err error) {
-	// check if the batch has any txs
-	if len(txsBytes) == 0 {
-		s.Logger.Info("No txs to apply")
-		return newRoot, nil
-	}
+func (s *Syncer) applyBatch(calldata bazooka.Calldata, txHash ethCmn.Hash, txType uint64, isSyncing bool) (newRoot core.ByteArray, err error) {
 	var transactions []core.Tx
+
 	switch txType {
 	case core.TX_TRANSFER_TYPE:
-		transactions, err = s.decompressTransfers(txsBytes)
+		batchInfo, ok := calldata.(bazooka.TransferCalldata)
+		if !ok {
+			return newRoot, errors.New("Error converting calldata to batchinfo")
+		}
+		transactions, err = s.decompressTransfers(batchInfo.Txss)
 		if err != nil {
 			return newRoot, err
 		}
 	case core.TX_MASS_MIGRATIONS:
-		// transactions, err = s.decompressMassMigrations(txsBytes, txHash)
-		// if err != nil {
-		// 	return newRoot, err
-		// }
+		batchInfo, ok := calldata.(bazooka.MassMigrationCalldata)
+		if !ok {
+			return newRoot, errors.New("Error converting calldata to batchinfo")
+		}
+		transactions, err = s.decompressMassMigrations(batchInfo.Txss, batchInfo.Meta)
+		if err != nil {
+			return newRoot, err
+		}
 	case core.TX_CREATE_2_TRANSFER:
-		transactions, err = s.decompressCreate2Transfers(txsBytes)
+		batchInfo, ok := calldata.(bazooka.Create2TransferCalldata)
+		if !ok {
+			return newRoot, errors.New("Error converting calldata to batchinfo")
+		}
+		transactions, err = s.decompressCreate2Transfers(batchInfo.Txss)
 		if err != nil {
 			return newRoot, err
 		}
@@ -275,8 +285,8 @@ func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txHash ethCmn.Hash, txType u
 }
 
 // decompressTransfers decompresses transfer bytes to TX
-func (s *Syncer) decompressTransfers(decompressedTxs []byte) (txs []core.Tx, err error) {
-	froms, tos, amounts, fees, err := s.loadedBazooka.DecompressTransferTxs(decompressedTxs)
+func (s *Syncer) decompressTransfers(decompressedTxs [][]byte) (txs []core.Tx, err error) {
+	froms, tos, amounts, fees, err := s.loadedBazooka.DecompressTransferTxs(concatTxs(decompressedTxs))
 	if err != nil {
 		return
 	}
@@ -304,8 +314,8 @@ func (s *Syncer) decompressTransfers(decompressedTxs []byte) (txs []core.Tx, err
 	return transactions, nil
 }
 
-func (s *Syncer) decompressCreate2Transfers(decompressedTxs []byte) (txs []core.Tx, err error) {
-	froms, tos, toAccIDs, amounts, fees, err := s.loadedBazooka.DecompressCreate2TransferTxs(decompressedTxs)
+func (s *Syncer) decompressCreate2Transfers(decompressedTxs [][]byte) (txs []core.Tx, err error) {
+	froms, tos, toAccIDs, amounts, fees, err := s.loadedBazooka.DecompressCreate2TransferTxs(concatTxs(decompressedTxs))
 	if err != nil {
 		return
 	}
@@ -334,40 +344,35 @@ func (s *Syncer) decompressCreate2Transfers(decompressedTxs []byte) (txs []core.
 }
 
 // decompressTransfers decompresses transfer bytes to TX
-// func (s *Syncer) decompressMassMigrations(decompressedTxs []byte, txHash ethCmn.Hash) (txs []core.Tx, err error) {
-// 	froms, amounts, fees, err := s.loadedBazooka.DecompressMassMigrationTxs(decompressedTxs)
-// 	if err != nil {
-// 		return
-// 	}
+func (s *Syncer) decompressMassMigrations(decompressedTxs [][]byte, meta [][4]*big.Int) (txs []core.Tx, err error) {
+	froms, amounts, fees, err := s.loadedBazooka.DecompressMassMigrationTxs(concatTxs(decompressedTxs))
+	if err != nil {
+		return
+	}
 
-// 	_, toSpokeIDs, _, _, err := s.loadedBazooka.FetchMetaInfoFromBatch(txHash, core.TX_MASS_MIGRATIONS)
-// 	if err != nil {
-// 		return
-// 	}
+	var transactions []core.Tx
 
-// 	var transactions []core.Tx
+	for i := 0; i < len(froms); i++ {
+		fromState, err := s.DBInstance.GetStateByIndex(froms[i].Uint64())
+		if err != nil {
+			return transactions, err
+		}
+		_, _, nonce, _, err := s.loadedBazooka.DecodeState(fromState.Data)
+		if err != nil {
+			return transactions, err
+		}
 
-// 	for i := 0; i < len(froms); i++ {
-// 		fromState, err := s.DBInstance.GetStateByIndex(froms[i].Uint64())
-// 		if err != nil {
-// 			return transactions, err
-// 		}
-// 		_, _, nonce, _, err := s.loadedBazooka.DecodeState(fromState.Data)
-// 		if err != nil {
-// 			return transactions, err
-// 		}
+		txData, err := s.loadedBazooka.EncodeMassMigrationTx(froms[i].Int64(), meta[i][0].Int64(), fees[i].Int64(), nonce.Int64(), amounts[i].Int64(), int64(core.TX_MASS_MIGRATIONS))
+		if err != nil {
+			return transactions, err
+		}
 
-// 		txData, err := s.loadedBazooka.EncodeMassMigrationTx(froms[i].Int64(), toSpokeIDs[i].Int64(), fees[i].Int64(), nonce.Int64(), amounts[i].Int64(), int64(core.TX_MASS_MIGRATIONS))
-// 		if err != nil {
-// 			return transactions, err
-// 		}
+		newTx := core.NewTx(froms[i].Uint64(), 0, core.TX_TRANSFER_TYPE, nil, txData)
+		transactions = append(transactions, newTx)
+	}
 
-// 		newTx := core.NewTx(froms[i].Uint64(), 0, core.TX_TRANSFER_TYPE, nil, txData)
-// 		transactions = append(transactions, newTx)
-// 	}
-
-// 	return transactions, nil
-// }
+	return transactions, nil
+}
 
 func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoot core.ByteArray, err error) {
 	calldata, err := s.loadedBazooka.ParseCalldata(txHash, batchType)
@@ -377,6 +382,11 @@ func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoo
 			return newRoot, err
 		}
 		return newRoot, nil
+	}
+	fmt.Printf("calldata here %+v\n", calldata)
+	newRoot, err = s.applyBatch(calldata, txHash, uint64(batchType), true)
+	if err != nil {
+		return
 	}
 
 	// parse input data according to the batch type
@@ -403,4 +413,11 @@ func IsCatchingUp(b bazooka.Bazooka, db db.DB) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func concatTxs(txss [][]byte) (txs []byte) {
+	for _, tx := range txss {
+		txs = append(txs, tx[:]...)
+	}
+	return txs
 }
