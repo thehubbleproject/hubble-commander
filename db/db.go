@@ -1,10 +1,12 @@
-package core
+package db
 
 import (
-	"github.com/tendermint/tendermint/libs/log"
+	tmLog "github.com/tendermint/tendermint/libs/log"
 
-	"github.com/BOPR/common"
+	"github.com/BOPR/bazooka"
 	"github.com/BOPR/config"
+	"github.com/BOPR/core"
+	"github.com/BOPR/log"
 	"github.com/globalsign/mgo"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -13,20 +15,20 @@ import (
 type IDB interface {
 	// Account related DB functions
 	// FetchSiblings(accID uint64) (accs []UserState, err error)
-	GetAllAccounts() (accs []UserState, err error)
-	GetAccount(accID uint64) (UserState, error)
-	InsertBulkAccounts(accounts []UserState) error
+	GetAllAccounts() (accs []core.UserState, err error)
+	GetAccount(accID uint64) (core.UserState, error)
+	InsertBulkAccounts(accounts []core.UserState) error
 	InsertGenAccounts(genAccs []config.GenUserState) error
 	GetAccountCount() (int, error)
 
 	// Tx related functions
-	InsertTx(t *Tx) error
-	PopTxs() (txs []Tx, err error)
+	InsertTx(t *core.Tx) error
+	PopTxs() (txs []core.Tx, err error)
 
 	// Batch related functions
-	InsertBatchInfo(root ByteArray, index uint64) error
-	GetAllBatches() (batches []Batch, err error)
-	GetLatestBatch() (Batch, error)
+	InsertBatchInfo(root core.ByteArray, index uint64) error
+	GetAllBatches() (batches []core.Batch, err error)
+	GetLatestBatch() (core.Batch, error)
 	GetBatchCount() (int, error)
 
 	// common functions
@@ -35,13 +37,11 @@ type IDB interface {
 	GetAccountCollection() *mgo.Collection
 }
 
-// global DB instance created while doing init
-var DBInstance DB
-
+// DB is the struct implementing IDB
 type DB struct {
 	Instance *gorm.DB
-	Bazooka  Bazooka
-	Logger   log.Logger
+	Bazooka  bazooka.Bazooka
+	Logger   tmLog.Logger
 }
 
 // NewDB creates a new DB instance
@@ -57,9 +57,9 @@ func NewDB() (DB, error) {
 	}
 	db.LogMode(config.GlobalCfg.DBLogMode)
 	// create logger
-	logger := common.Logger.With("module", "DB")
+	logger := log.Logger.With("module", "DB")
 
-	bz, err := NewPreLoadedBazooka()
+	bz, err := bazooka.NewPreLoadedBazooka()
 	if err != nil {
 		return DB{}, err
 	}

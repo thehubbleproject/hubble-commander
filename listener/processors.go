@@ -4,14 +4,18 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/big"
 
+	"github.com/BOPR/bazooka"
 	"github.com/BOPR/common"
 	"github.com/BOPR/contracts/accountregistry"
 	"github.com/BOPR/contracts/depositmanager"
 	"github.com/BOPR/contracts/rollup"
 	"github.com/BOPR/contracts/tokenregistry"
 	"github.com/BOPR/core"
+	"github.com/BOPR/db"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	ethCmn "github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/jinzhu/gorm"
 )
@@ -102,7 +106,7 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 	}
 
 	// send deposit finalisation transction to ethereum chain
-	catchingup, err := core.IsCatchingUp()
+	catchingup, err := IsCatchingUp(s.loadedBazooka, s.DBInstance)
 	if err != nil {
 		panic(err)
 	}
@@ -166,26 +170,15 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		"TxHash", vLog.TxHash.String(),
 	)
 
-	// if the batch has some txs, parse them
-	var txs []byte
-
-	// pick the calldata for the batch
-	txs, err = s.loadedBazooka.FetchBatchInputData(vLog.TxHash, event.BatchType)
-	if err != nil {
-		s.Logger.Error("Error fetching input data from tx", "error", err)
-		return
-	}
-
 	// if we havent seen the batch, apply txs and store batch
 	batch, err := s.DBInstance.GetBatchByIndex(event.Index.Uint64())
 	if err != nil && gorm.IsRecordNotFoundError(err) {
 		s.Logger.Info("Found a new batch, applying transactions and adding new batch", "index", event.Index.Uint64)
-		newRoot, err := s.applyTxsFromBatch(txs, uint64(event.BatchType), true)
+		newRoot, err := s.parseAndApplyBatch(vLog.TxHash, event.BatchType)
 		if err != nil {
-			s.Logger.Error("Error applying transactions from batch", "index", event.Index.String(), "error", err)
+			fmt.Println("error while applying batch", "error", err)
 			return
 		}
-
 		newBatch := core.NewBatch(newRoot.String(), event.Committer.String(), vLog.TxHash.String(), uint64(event.BatchType), core.BATCH_COMMITTED)
 		err = s.DBInstance.AddNewBatch(newBatch)
 		if err != nil {
@@ -225,7 +218,7 @@ func (s *Syncer) processRegisteredToken(eventName string, abiObject *abi.ABI, vL
 		"TokenAddress", event.TokenContract.String(),
 		"TokenID", event.TokenType,
 	)
-	newToken := core.Token{TokenID: event.TokenType.Uint64(), Address: event.TokenContract.String()}
+	newToken := db.Token{TokenID: event.TokenType.Uint64(), Address: event.TokenContract.String()}
 	if err := s.DBInstance.AddToken(newToken); err != nil {
 		panic(err)
 	}
@@ -247,16 +240,34 @@ func (s *Syncer) SendDepositFinalisationTx() {
 	}
 }
 
-func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txType uint64, isSyncing bool) (newRoot core.ByteArray, err error) {
-	// check if the batch has any txs
-	if len(txsBytes) == 0 {
-		s.Logger.Info("No txs to apply")
-		return newRoot, nil
-	}
+func (s *Syncer) applyBatch(calldata bazooka.Calldata, txHash ethCmn.Hash, txType uint64, isSyncing bool) (newRoot core.ByteArray, err error) {
 	var transactions []core.Tx
+
 	switch txType {
 	case core.TX_TRANSFER_TYPE:
-		transactions, err = s.decompressTransfers(txsBytes)
+		batchInfo, ok := calldata.(bazooka.TransferCalldata)
+		if !ok {
+			return newRoot, errors.New("Error converting calldata to batchinfo")
+		}
+		transactions, err = s.decompressTransfers(batchInfo.Txss)
+		if err != nil {
+			return newRoot, err
+		}
+	case core.TX_MASS_MIGRATIONS:
+		batchInfo, ok := calldata.(bazooka.MassMigrationCalldata)
+		if !ok {
+			return newRoot, errors.New("Error converting calldata to batchinfo")
+		}
+		transactions, err = s.decompressMassMigrations(batchInfo.Txss, batchInfo.Meta)
+		if err != nil {
+			return newRoot, err
+		}
+	case core.TX_CREATE_2_TRANSFER:
+		batchInfo, ok := calldata.(bazooka.Create2TransferCalldata)
+		if !ok {
+			return newRoot, errors.New("Error converting calldata to batchinfo")
+		}
+		transactions, err = s.decompressCreate2Transfers(batchInfo.Txss)
 		if err != nil {
 			return newRoot, err
 		}
@@ -265,7 +276,7 @@ func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txType uint64, isSyncing boo
 		return newRoot, errors.New("Didn't match any options")
 	}
 
-	commitments, err := core.ProcessTxs(s.DBInstance, s.loadedBazooka, transactions, isSyncing)
+	commitments, err := db.ProcessTxs(&s.loadedBazooka, &s.DBInstance, transactions, isSyncing)
 	if err != nil {
 		return newRoot, err
 	}
@@ -274,8 +285,8 @@ func (s *Syncer) applyTxsFromBatch(txsBytes []byte, txType uint64, isSyncing boo
 }
 
 // decompressTransfers decompresses transfer bytes to TX
-func (s *Syncer) decompressTransfers(decompressedTxs []byte) (txs []core.Tx, err error) {
-	froms, tos, amounts, fees, err := s.loadedBazooka.DecompressTransferTxs(decompressedTxs)
+func (s *Syncer) decompressTransfers(decompressedTxs [][]byte) (txs []core.Tx, err error) {
+	froms, tos, amounts, fees, err := s.loadedBazooka.DecompressTransferTxs(concatTxs(decompressedTxs))
 	if err != nil {
 		return
 	}
@@ -301,4 +312,111 @@ func (s *Syncer) decompressTransfers(decompressedTxs []byte) (txs []core.Tx, err
 	}
 
 	return transactions, nil
+}
+
+func (s *Syncer) decompressCreate2Transfers(decompressedTxs [][]byte) (txs []core.Tx, err error) {
+	froms, tos, toAccIDs, amounts, fees, err := s.loadedBazooka.DecompressCreate2TransferTxs(concatTxs(decompressedTxs))
+	if err != nil {
+		return
+	}
+	var transactions []core.Tx
+
+	for i := 0; i < len(froms); i++ {
+		fromState, err := s.DBInstance.GetStateByIndex(froms[i].Uint64())
+		if err != nil {
+			return transactions, err
+		}
+		_, _, nonce, _, err := s.loadedBazooka.DecodeState(fromState.Data)
+		if err != nil {
+			return transactions, err
+		}
+
+		txData, err := s.loadedBazooka.EncodeCreate2TransferTx(froms[i].Int64(), tos[i].Int64(), toAccIDs[i].Int64(), fees[i].Int64(), nonce.Int64(), amounts[i].Int64(), int64(core.TX_CREATE_2_TRANSFER))
+		if err != nil {
+			return transactions, err
+		}
+
+		newTx := core.NewTx(froms[i].Uint64(), tos[i].Uint64(), core.TX_CREATE_2_TRANSFER, nil, txData)
+		transactions = append(transactions, newTx)
+	}
+
+	return transactions, nil
+}
+
+// decompressTransfers decompresses transfer bytes to TX
+func (s *Syncer) decompressMassMigrations(decompressedTxs [][]byte, meta [][4]*big.Int) (txs []core.Tx, err error) {
+	froms, amounts, fees, err := s.loadedBazooka.DecompressMassMigrationTxs(concatTxs(decompressedTxs))
+	if err != nil {
+		return
+	}
+
+	var transactions []core.Tx
+
+	for i := 0; i < len(froms); i++ {
+		fromState, err := s.DBInstance.GetStateByIndex(froms[i].Uint64())
+		if err != nil {
+			return transactions, err
+		}
+		_, _, nonce, _, err := s.loadedBazooka.DecodeState(fromState.Data)
+		if err != nil {
+			return transactions, err
+		}
+
+		txData, err := s.loadedBazooka.EncodeMassMigrationTx(froms[i].Int64(), meta[i][0].Int64(), fees[i].Int64(), nonce.Int64(), amounts[i].Int64(), int64(core.TX_MASS_MIGRATIONS))
+		if err != nil {
+			return transactions, err
+		}
+
+		newTx := core.NewTx(froms[i].Uint64(), 0, core.TX_TRANSFER_TYPE, nil, txData)
+		transactions = append(transactions, newTx)
+	}
+
+	return transactions, nil
+}
+
+func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoot core.ByteArray, err error) {
+	calldata, err := s.loadedBazooka.ParseCalldata(txHash, batchType)
+	if err != nil {
+		if err != bazooka.ErrNoTxs {
+			fmt.Println("unable to parse calldata")
+			return newRoot, err
+		}
+		return newRoot, nil
+	}
+	newRoot, err = s.applyBatch(calldata, txHash, uint64(batchType), true)
+	if err != nil {
+		return
+	}
+
+	// parse input data according to the batch type
+
+	// apply transactions
+	return newRoot, nil
+}
+
+// IsCatchingUp returns true/false according to the sync status of the node
+func IsCatchingUp(b bazooka.Bazooka, db db.DB) (bool, error) {
+	totalBatches, err := b.TotalBatches()
+	if err != nil {
+		return false, err
+	}
+
+	totalBatchedStored, err := db.GetBatchCount()
+	if err != nil {
+		return false, err
+	}
+
+	// if total batchse are greater than what we recorded we are still catching up
+	if totalBatches > uint64(totalBatchedStored) {
+		return true, err
+	}
+
+	return false, nil
+}
+
+func concatTxs(txss [][]byte) (txs []byte) {
+	for _, tx := range txss {
+		txs = append(txs, tx[:]...)
+	}
+	return txs
 }

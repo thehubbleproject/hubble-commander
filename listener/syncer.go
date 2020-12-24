@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/BOPR/bazooka"
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/contracts/accountregistry"
@@ -14,12 +15,18 @@ import (
 	"github.com/BOPR/contracts/depositmanager"
 	"github.com/BOPR/contracts/rollup"
 	"github.com/BOPR/contracts/tokenregistry"
+	"github.com/BOPR/db"
+	"github.com/BOPR/log"
 
 	"github.com/BOPR/core"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCmn "github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
+)
+
+const (
+	SyncerServiceName = "syncer"
 )
 
 // Syncer to sync events from ethereum chain
@@ -31,10 +38,10 @@ type Syncer struct {
 	abis []abi.ABI
 
 	// storage client
-	DBInstance core.DB
+	DBInstance db.DB
 
 	// contract caller to interact with contracts
-	loadedBazooka core.Bazooka
+	loadedBazooka bazooka.Bazooka
 
 	// header channel
 	HeaderChannel chan *ethTypes.Header
@@ -51,14 +58,14 @@ type Syncer struct {
 // NewSyncer creates a new syncer object
 func NewSyncer() *Syncer {
 	// create logger
-	logger := common.Logger.With("module", SyncerServiceName)
+	logger := log.Logger.With("module", SyncerServiceName)
 
 	// create syncer obj
 	syncerService := &Syncer{}
 
 	// create new base service
 	syncerService.BaseService = *core.NewBaseService(logger, SyncerServiceName, syncerService)
-	loadedBazooka, err := core.NewPreLoadedBazooka()
+	loadedBazooka, err := bazooka.NewPreLoadedBazooka()
 	if err != nil {
 		panic(err)
 	}
@@ -85,7 +92,7 @@ func NewSyncer() *Syncer {
 	syncerService.abis = abis
 	syncerService.loadedBazooka = loadedBazooka
 	syncerService.HeaderChannel = make(chan *ethTypes.Header)
-	syncerService.DBInstance, err = core.NewDB()
+	syncerService.DBInstance, err = db.NewDB()
 	if err != nil {
 		panic(err)
 	}

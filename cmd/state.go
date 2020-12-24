@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/BOPR/core"
+	"github.com/BOPR/bazooka"
+	db "github.com/BOPR/db"
 	"github.com/spf13/cobra"
 )
 
@@ -17,23 +18,21 @@ func viewState() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			db, err := core.NewDB()
+			DBI, err := db.NewDB()
 			if err != nil {
 				return err
 			}
-			defer db.Close()
+			defer DBI.Close()
 
-			bazooka, err := core.NewPreLoadedBazooka()
-			if err != nil {
-				return err
-			}
-
-			state, err := db.GetStateByIndex(stateID)
+			bazooka, err := bazooka.NewPreLoadedBazooka()
 			if err != nil {
 				return err
 			}
 
-			fmt.Println("State", state, stateID)
+			state, err := DBI.GetStateByIndex(stateID)
+			if err != nil {
+				return err
+			}
 
 			ID, bal, nonce, token, err := bazooka.DecodeState(state.Data)
 			if err != nil {

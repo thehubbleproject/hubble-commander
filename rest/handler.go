@@ -44,7 +44,7 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// add the transaction to pool
-	err = core.DBInstance.InsertTx(&userTx)
+	err = dbI.InsertTx(&userTx)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
 	}
@@ -75,7 +75,7 @@ func stateDecoderHandler(w http.ResponseWriter, r *http.Request) {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
 	}
 
-	parameters, err := db.GetParams()
+	parameters, err := dbI.GetParams()
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
 	}
@@ -85,11 +85,11 @@ func stateDecoderHandler(w http.ResponseWriter, r *http.Request) {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
 	}
 
-	state, err := db.GetStateByPath(path)
+	state, err := dbI.GetStateByPath(path)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable toID")
 	}
-	ID, balance, nonce, token, err := bazooka.DecodeState(state.Data)
+	ID, balance, nonce, token, err := bazookaI.DecodeState(state.Data)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable toID")
 	}
@@ -113,19 +113,19 @@ func stateDecoderHandler(w http.ResponseWriter, r *http.Request) {
 func decodeTx(tx []byte, txType uint64) (to, from uint64, err error) {
 	switch txType {
 	case core.TX_TRANSFER_TYPE:
-		fromInt, toInt, _, _, _, _, err := bazooka.DecodeTransferTx(tx)
+		fromInt, toInt, _, _, _, _, err := bazookaI.DecodeTransferTx(tx)
 		if err != nil {
 			return to, from, err
 		}
 		return toInt.Uint64(), fromInt.Uint64(), nil
 	case core.TX_CREATE_2_TRANSFER:
-		fromInt, _, _, _, _, _, err := bazooka.DecodeCreate2TransferWithPub(tx)
+		fromInt, _, _, _, _, _, err := bazookaI.DecodeCreate2TransferWithPub(tx)
 		if err != nil {
 			return to, from, err
 		}
 		return fromInt.Uint64(), 0, nil
 	case core.TX_MASS_MIGRATIONS:
-		fromInt, _, _, _, _, _, err := bazooka.DecodeMassMigrationTx(tx)
+		fromInt, _, _, _, _, _, err := bazookaI.DecodeMassMigrationTx(tx)
 		if err != nil {
 			return to, from, err
 		}

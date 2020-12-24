@@ -5,16 +5,17 @@ import (
 	"os"
 	"testing"
 
-	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/core"
+	"github.com/BOPR/db"
+	"github.com/BOPR/log"
 	"github.com/BOPR/migrations"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/stretchr/testify/assert"
 )
 
-func setupDB() (db core.DB, cleanup func(), err error) {
+func setupDB() (DBI db.DB, cleanup func(), err error) {
 	tmpfile, err := ioutil.TempFile("", "test.*.db")
 	if err != nil {
 		return
@@ -24,21 +25,21 @@ func setupDB() (db core.DB, cleanup func(), err error) {
 	if err != nil {
 		return
 	}
-	logger := common.Logger.With("module", "tests")
-	db = core.DB{Instance: sqliteDb, Logger: logger}
+	logger := log.Logger.With("module", "tests")
+	DBI = db.DB{Instance: sqliteDb, Logger: logger}
 
 	allMigrations := migrations.GetMigrations()
-	m := migrations.NewGormigrate(db.Instance, migrations.DefaultOptions, allMigrations)
+	m := migrations.NewGormigrate(DBI.Instance, migrations.DefaultOptions, allMigrations)
 	err = m.Migrate()
 	if err != nil {
 		return
 	}
 	cleanup = func() {
-		db.Close()
+		DBI.Close()
 		os.Remove(tmpfile.Name())
 	}
 
-	return db, cleanup, nil
+	return DBI, cleanup, nil
 
 }
 

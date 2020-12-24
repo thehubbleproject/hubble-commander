@@ -3,7 +3,6 @@ package core
 import (
 	"encoding/hex"
 	"errors"
-	"math/big"
 
 	ethCmn "github.com/ethereum/go-ethereum/common"
 )
@@ -38,15 +37,4 @@ func BytesToByteArray(bz []byte) ByteArray {
 	var temp [32]byte
 	copy(temp[:], bz)
 	return temp
-}
-
-type TypesUserState struct {
-	PubkeyID *big.Int
-	TokenID  *big.Int
-	Balance  *big.Int
-	Nonce    *big.Int
-}
-type TypesStateMerkleProof struct {
-	State   TypesUserState
-	Witness [][32]byte
 }

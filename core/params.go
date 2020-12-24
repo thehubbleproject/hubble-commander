@@ -2,13 +2,15 @@ package core
 
 import (
 	"math/big"
+
+	"github.com/jinzhu/gorm"
+	uuid "github.com/satori/go.uuid"
 )
 
 // Params stores all the parameters which are maintained on-chain and keeps updating
 // them whenever they change on-chain
 type Params struct {
-	DBModel
-
+	ID string `json:"-" gorm:"primary_key;size:100;default:'6ba7b810-9dad-11d1-80b4-00c04fd430c8'"`
 	// Stake amount which coordinator needs to submit a new batch
 	// Updates when syncer receives a stake update event from the contract
 	// Used while sending new batch
@@ -26,6 +28,15 @@ type Params struct {
 	FinalisationTime uint64 `json:"finalisationTime"`
 }
 
+// BeforeCreate sets id
+func (model *Params) BeforeCreate(scope *gorm.Scope) error {
+	err := scope.SetColumn("id", uuid.NewV4().String())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Maintains sync information
 type SyncStatus struct {
 	ID string `json:"-" gorm:"primary_key;size:100;default:'6ba7b810-9dad-11d1-80b4-00c04fd430c8'"`
@@ -36,84 +47,4 @@ type SyncStatus struct {
 func (ss *SyncStatus) LastEthBlockBigInt() *big.Int {
 	n := new(big.Int)
 	return n.SetUint64(ss.LastEthBlockRecorded)
-}
-
-func (db *DB) InitSyncStatus(startBlock uint64) error {
-	return db.Instance.Create(&SyncStatus{LastEthBlockRecorded: startBlock}).Error
-}
-
-func (db *DB) UpdateSyncStatusWithBlockNumber(blkNum uint64) error {
-	syncStatus, err := db.GetSyncStatus()
-	if err != nil {
-		return err
-	}
-	var updatedSyncStatus SyncStatus
-	updatedSyncStatus.LastEthBlockRecorded = blkNum
-	if err := db.Instance.Table("sync_statuses").Where("id = ?", syncStatus.ID).Update(&updatedSyncStatus).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (db *DB) GetSyncStatus() (status SyncStatus, err error) {
-	if err := db.Instance.First(&status).Error; err != nil {
-		return status, err
-	}
-	return status, nil
-}
-
-// UpdateStakeAmount updates the stake amount
-func (db *DB) UpdateStakeAmount(newStakeAmount uint64) error {
-	var updatedParams Params
-	updatedParams.StakeAmount = newStakeAmount
-	if err := db.Instance.Table("params").Assign(Params{StakeAmount: newStakeAmount}).FirstOrCreate(&updatedParams).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-// UpdateFinalisationTimePerBatch updates the max depth
-func (db *DB) UpdateFinalisationTimePerBatch(finalisationDuration uint64) error {
-	var updatedParams Params
-	updatedParams.MaxDepth = finalisationDuration
-	if err := db.Instance.Table("params").Assign(Params{FinalisationTime: finalisationDuration}).FirstOrCreate(&updatedParams).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-// UpdateMaxDepth updates the max depth
-func (db *DB) UpdateMaxDepth(newDepth uint64) error {
-	var updatedParams Params
-	updatedParams.MaxDepth = newDepth
-	if err := db.Instance.Table("params").Assign(Params{MaxDepth: newDepth}).FirstOrCreate(&updatedParams).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-// UpdateDepositSubTreeHeight updates the max height of deposit sub tree
-func (db *DB) UpdateDepositSubTreeHeight(newHeight uint64) error {
-	var updatedParams Params
-	updatedParams.MaxDepositSubTreeHeight = newHeight
-	if err := db.Instance.Table("params").Assign(Params{MaxDepositSubTreeHeight: newHeight}).FirstOrCreate(&updatedParams).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (db *DB) GetBatchFinalisationTime() (uint64, error) {
-	var params Params
-	if err := db.Instance.First(&params).Error; err != nil {
-		return 0, err
-	}
-	return params.FinalisationTime, nil
-}
-
-// GetParams gets params from the DB
-func (db *DB) GetParams() (params Params, err error) {
-	if err := db.Instance.First(&params).Error; err != nil {
-		return params, err
-	}
-	return params, nil
 }

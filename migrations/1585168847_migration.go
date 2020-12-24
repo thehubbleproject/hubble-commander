@@ -2,6 +2,7 @@ package migrations
 
 import (
 	types "github.com/BOPR/core"
+	dbI "github.com/BOPR/db"
 	"github.com/jinzhu/gorm"
 )
 
@@ -22,8 +23,8 @@ func init() {
 			if !db.HasTable(&types.Params{}) {
 				db.CreateTable(&types.Params{})
 			}
-			if !db.HasTable(&types.Token{}) {
-				db.CreateTable(&types.Token{})
+			if !db.HasTable(&dbI.Token{}) {
+				db.CreateTable(&dbI.Token{})
 			}
 			if !db.HasTable(&types.Account{}) {
 				db.CreateTable(&types.Account{})
@@ -31,8 +32,8 @@ func init() {
 			if !db.HasTable(&types.UserState{}) {
 				db.CreateTable(&types.UserState{})
 			}
-			if !db.HasTable(&types.RelayPacket{}) {
-				db.CreateTable(&types.RelayPacket{})
+			if !db.HasTable(&dbI.RelayPacket{}) {
+				db.CreateTable(&dbI.RelayPacket{})
 			}
 			return nil
 		},
@@ -41,10 +42,10 @@ func init() {
 			db.DropTableIfExists(&types.Batch{})
 			db.DropTableIfExists(&types.Params{})
 			db.DropTableIfExists(&types.SyncStatus{})
-			db.DropTableIfExists(&types.Token{})
+			db.DropTableIfExists(&dbI.Token{})
 			db.DropTableIfExists(&types.Account{})
 			db.DropTableIfExists(&types.UserState{})
-			db.DropTableIfExists(&types.RelayPacket{})
+			db.DropTableIfExists(&dbI.RelayPacket{})
 			return nil
 		},
 	}

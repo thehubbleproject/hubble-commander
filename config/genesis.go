@@ -6,8 +6,13 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
+)
 
-	"github.com/BOPR/common"
+const (
+	ZERO_UINT       = 0
+	DEFAULT_DEPTH   = 2
+	DEFAULT_BALANCE = 0
+	DEFAULT_NONCE   = 0
 )
 
 // Genesis describes the fields in genesis.json file
@@ -79,8 +84,8 @@ func DefaultGenesisAccounts() GenesisAccounts {
 	var accounts []GenUserState
 
 	// add coordinator accounts
-	acc1 := NewGenUserState(0, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, []byte{})
-	acc2 := NewGenUserState(1, common.ZERO_UINT, common.ZERO_UINT, common.ZERO_UINT, []byte{})
+	acc1 := NewGenUserState(0, ZERO_UINT, ZERO_UINT, ZERO_UINT, []byte{})
+	acc2 := NewGenUserState(1, ZERO_UINT, ZERO_UINT, ZERO_UINT, []byte{})
 	accounts = append(accounts, acc1, acc2)
 
 	return NewGenesisAccounts(accounts)
@@ -89,8 +94,8 @@ func DefaultGenesisAccounts() GenesisAccounts {
 func DefaultGenesis() Genesis {
 	return Genesis{
 		StartEthBlock:           0,
-		MaxTreeDepth:            common.DEFAULT_DEPTH,
-		MaxDepositSubTreeHeight: common.DEFAULT_DEPTH,
+		MaxTreeDepth:            DEFAULT_DEPTH,
+		MaxDepositSubTreeHeight: DEFAULT_DEPTH,
 		StakeAmount:             32,
 		GenesisAccounts:         DefaultGenesisAccounts(),
 	}

@@ -1,11 +1,13 @@
-package core
+package db
 
 import (
 	"bytes"
 	"errors"
+
+	"github.com/BOPR/core"
 )
 
-func (db *DB) GetDepositNodeAndSiblings() (NodeToBeReplaced UserState, siblings []UserState, err error) {
+func (db *DB) GetDepositNodeAndSiblings() (NodeToBeReplaced core.UserState, siblings []core.UserState, err error) {
 	// get params
 	params, err := db.GetParams()
 	if err != nil {
@@ -14,7 +16,7 @@ func (db *DB) GetDepositNodeAndSiblings() (NodeToBeReplaced UserState, siblings 
 
 	// get the deposit node
 	// it fetches empty node according to the deposit tree height and its hash
-	expectedHash := defaultHashes[params.MaxDepositSubTreeHeight]
+	expectedHash := core.DefaultHashes[params.MaxDepositSubTreeHeight]
 
 	// getNode with the expectedHash
 	NodeToBeReplaced, err = db.GetDepositSubTreeRoot(expectedHash.String(), params.MaxDepth-params.MaxDepositSubTreeHeight)
@@ -31,7 +33,7 @@ func (db *DB) GetDepositNodeAndSiblings() (NodeToBeReplaced UserState, siblings 
 	return
 }
 
-func (db *DB) FinaliseDepositsAndAddBatch(depositRoot ByteArray, pathToDepositSubTree uint64) (string, error) {
+func (db *DB) FinaliseDepositsAndAddBatch(depositRoot core.ByteArray, pathToDepositSubTree uint64) (string, error) {
 	var root string
 	db.Logger.Info("Finalising accounts", "depositRoot", depositRoot, "pathToDepositSubTree", pathToDepositSubTree)
 
@@ -49,7 +51,7 @@ func (db *DB) FinaliseDepositsAndAddBatch(depositRoot ByteArray, pathToDepositSu
 	return rootAccount.Hash, nil
 }
 
-func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot ByteArray) error {
+func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.ByteArray) error {
 	params, err := db.GetParams()
 	if err != nil {
 		return err
@@ -63,7 +65,7 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot ByteArra
 
 	// find out where the insertion was made
 	height := params.MaxDepth - 1
-	getTerminalNodesOf, err := SolidityPathToNodePath(pathToDepositSubTree, height)
+	getTerminalNodesOf, err := core.SolidityPathToNodePath(pathToDepositSubTree, height)
 	if err != nil {
 		return err
 	}
@@ -75,7 +77,7 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot ByteArra
 	}
 
 	for i, acc := range accounts {
-		acc.Status = STATUS_ACTIVE
+		acc.Status = core.STATUS_ACTIVE
 		acc.UpdatePath(terminalNodes[i])
 		acc.CreateAccountHash()
 		err := db.UpdateState(acc)
@@ -93,8 +95,8 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot ByteArra
 	return nil
 }
 
-func (db *DB) GetPendingDeposits(numberOfAccs uint64) ([]UserState, error) {
-	var accounts []UserState
+func (db *DB) GetPendingDeposits(numberOfAccs uint64) ([]core.UserState, error) {
+	var accounts []core.UserState
 	err := db.Instance.Limit(numberOfAccs).Where("status = ?", 0).Find(&accounts).Error
 	if err != nil {
 		return accounts, err
@@ -106,16 +108,16 @@ func (db *DB) GetAllTerminalNodes(pathToDepositSubTree string) (terminalNodes []
 	buf := bytes.Buffer{}
 	buf.WriteString(pathToDepositSubTree)
 	buf.WriteString("%")
-	var accounts []UserState
+	var accounts []core.UserState
 
 	// LIKE query with search for terminal nodes to DB
-	if err = db.Instance.Where("path LIKE ? AND type = ?", buf.String(), TYPE_TERMINAL).Find(&accounts).Error; err != nil {
+	if err = db.Instance.Where("path LIKE ? AND type = ?", buf.String(), core.TYPE_TERMINAL).Find(&accounts).Error; err != nil {
 		return
 	}
 
 	// get all accounts while making sure they are empty and append to paths array
 	for _, account := range accounts {
-		if account.Hash != ZERO_VALUE_LEAF.String() {
+		if account.Hash != core.ZERO_VALUE_LEAF.String() {
 			return terminalNodes, errors.New("Account not zero, aborting operation")
 		}
 		terminalNodes = append(terminalNodes, account.Path)
