@@ -7,8 +7,8 @@ type StateMerkleProof struct {
 	Siblings []core.UserState
 }
 
-func NewStateMerkleProof(account core.UserState, siblings []core.UserState) StateMerkleProof {
-	return StateMerkleProof{State: account, Siblings: siblings}
+func NewStateMerkleProof(state core.UserState, siblings []core.UserState) StateMerkleProof {
+	return StateMerkleProof{State: state, Siblings: siblings}
 }
 
 func (m *StateMerkleProof) ToABIVersion(b Bazooka) (stateMP TypesStateMerkleProof, err error) {

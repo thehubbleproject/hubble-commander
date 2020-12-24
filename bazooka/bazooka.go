@@ -67,7 +67,7 @@ type (
 	}
 )
 
-// NewPreLoadedBazooka creates
+// NewPreLoadedBazooka loads all contract and creates a ready to go client
 // NOTE: Reads configration from the config.toml file
 func NewPreLoadedBazooka() (bazooka Bazooka, err error) {
 	err = config.SetOperatorKeys(config.GlobalCfg.OperatorKey)

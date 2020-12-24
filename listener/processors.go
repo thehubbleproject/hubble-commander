@@ -383,7 +383,6 @@ func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoo
 		}
 		return newRoot, nil
 	}
-	fmt.Printf("calldata here %+v\n", calldata)
 	newRoot, err = s.applyBatch(calldata, txHash, uint64(batchType), true)
 	if err != nil {
 		return
