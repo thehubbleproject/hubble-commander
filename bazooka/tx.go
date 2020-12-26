@@ -253,28 +253,12 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 		subTreeHeight,
 	)
 
-	// depositSubTreeHeight := big.NewInt(0)
-	// depositSubTreeHeight.SetUint64(subTreeHeight)
-	// var siblingData [][32]byte
-	// for _, sibling := range siblings {
-	// 	data, err := HexToByteArray(sibling.Hash)
-	// 	if err != nil {
-	// 		b.log.Error("unable to convert HexToByteArray", err)
-	// 		return err
-	// 	}
-	// 	siblingData = append(siblingData, data)
-	// }
+	// depositSubTreeHeight := big.NewInt(int64(subTreeHeight))
 
-	// accountProof := rollup.TypesAccountMerkleProof{}
-	// accountProof.AccountIP.PathToAccount = StringToBigInt(TBreplaced.Path)
-	// userAccount, err := TBreplaced.ToABIAccount()
-	// if err != nil {
-	// 	b.log.Error("unable to convert", "error", err)
-	// 	return
-	// }
-	// accountProof.AccountIP.Account = rollup.TypesUserState(userAccount)
+	// stateProof := NewStateMerkleProof(TBreplaced, siblings)
 
-	// accountProof.Siblings = siblingData
+	// b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(config.GlobalCfg.RollupAddress))
+
 	// data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("finaliseDepositsAndSubmitBatch", depositSubTreeHeight, accountProof)
 	// if err != nil {
 	// 	fmt.Println("Unable to craete data", err)

@@ -18,7 +18,6 @@ type IDB interface {
 	GetAllAccounts() (accs []core.UserState, err error)
 	GetAccount(accID uint64) (core.UserState, error)
 	InsertBulkAccounts(accounts []core.UserState) error
-	InsertGenAccounts(genAccs []config.GenUserState) error
 	GetAccountCount() (int, error)
 
 	// Tx related functions

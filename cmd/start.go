@@ -72,7 +72,6 @@ func startCmd() *cobra.Command {
 					if err := syncer.Stop(); err != nil {
 						log.Fatalln("Unable to stop syncer", "error", err)
 					}
-
 					DBI.Close()
 					// exit
 					os.Exit(1)
@@ -98,37 +97,12 @@ func loadGenesisData(bz *bazooka.Bazooka, DBI *db.DB, genesis config.Genesis) {
 	if err != nil {
 		common.PanicIfError(err)
 	}
-	genesisAccounts := genesis.GenesisAccounts.Accounts
-
-	diff := int(math.Exp2(float64(genesis.MaxTreeDepth))) - len(genesisAccounts)
 
 	var states []core.UserState
 	var accounts []core.Account
-
 	var zeroData []byte
 
-	// convert genesis accounts to user accounts
-	for i, acc := range genesisAccounts {
-		path, err := core.SolidityPathToNodePath(acc.AccountID, genesis.MaxTreeDepth)
-		common.PanicIfError(err)
-
-		// use contracts to get coordinator state bytes
-		stateBytes, err := bz.EncodeState(acc.AccountID, acc.Balance, acc.Nonce, acc.TokenType)
-		common.PanicIfError(err)
-
-		if i == 0 {
-			zeroData = stateBytes
-		}
-
-		newState := core.NewUserState(acc.AccountID, core.STATUS_ACTIVE, path, stateBytes)
-		newAcc, err := core.NewAccount(acc.AccountID, acc.PublicKey, path)
-		common.PanicIfError(err)
-
-		states = append(states, *newState)
-		accounts = append(accounts, *newAcc)
-	}
-
-	for ; diff > 0; diff-- {
+	for i := 0; i < int(math.Exp2(float64(genesis.MaxTreeDepth))); i++ {
 		// create empty state
 		newEmptyState := core.EmptyUserState()
 		newEmptyState.Data = zeroData

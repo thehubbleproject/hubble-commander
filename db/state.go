@@ -18,25 +18,27 @@ func (db *DB) InitStateTree(depth uint64, genesisAccounts []core.UserState) erro
 		return errors.New("Depth and number of leaves do not match")
 	}
 	db.Logger.Debug("Attempting to init balance tree", "totalAccounts", totalLeaves)
-
 	var err error
-
-	// insert coodinator leaf
-	err = db.InsertCoordinatorAccounts(&genesisAccounts[0], depth)
-	if err != nil {
-		db.Logger.Error("Unable to insert coodinator account", "err", err)
-		return err
-	}
 
 	var insertRecords []interface{}
 	prevNodePath := genesisAccounts[0].Path
 
-	for i := 1; i < len(genesisAccounts); i++ {
-		pathToAdjacentNode, err := core.GetAdjacentNodePath(prevNodePath)
-		if err != nil {
-			return err
+	for i := 0; i < len(genesisAccounts); i++ {
+		var path string
+		if i == 0 {
+			path, err = core.SolidityPathToNodePath(0, depth)
+			if err != nil {
+				return err
+			}
+			prevNodePath = path
+		} else {
+			path, err = core.GetAdjacentNodePath(prevNodePath)
+			if err != nil {
+				return err
+			}
 		}
-		genesisAccounts[i].UpdatePath(pathToAdjacentNode)
+
+		genesisAccounts[i].UpdatePath(path)
 		insertRecords = append(insertRecords, genesisAccounts[i])
 		prevNodePath = genesisAccounts[i].Path
 	}
@@ -59,6 +61,7 @@ func (db *DB) InitStateTree(depth uint64, genesisAccounts []core.UserState) erro
 		if err != nil {
 			return err
 		}
+
 		var nextLevelAccounts []interface{}
 
 		// iterate over 2 at a time and create next level
@@ -282,13 +285,6 @@ func (db *DB) GetRoot() (core.UserState, error) {
 		return account, core.ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v", err))
 	}
 	return account, nil
-}
-
-func (db *DB) InsertCoordinatorAccounts(acc *core.UserState, depth uint64) error {
-	acc.UpdatePath(core.GenCoordinatorPath(depth))
-	acc.CreateAccountHash()
-	acc.Type = core.TYPE_TERMINAL
-	return db.Instance.Create(&acc).Error
 }
 
 // updateState will simply replace all the changed fields
