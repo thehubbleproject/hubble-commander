@@ -1,23 +1,5 @@
 {
-    "max_tree_depth": 32,
+    "max_tree_depth": 2,
     "max_deposit_subtree": 2,
-    "stake_amount": 32,
-    "genesis_accounts": {
-        "gen_accounts": [
-            {
-                "account_id": 0,
-                "nonce": 0,
-                "balance": 0,
-                "token_type": 0,
-                "public_key": ""
-            },
-            {
-                "account_id": 1,
-                "nonce": 0,
-                "balance": 0,
-                "token_type": 0,
-                "public_key": ""
-            }
-        ]
-    }
+    "stake_amount": 32
 }
