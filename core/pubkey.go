@@ -21,17 +21,13 @@ func NewPubkey(p [4]*big.Int) Pubkey {
 	return pubkey
 }
 
-func FromString(p [4]string) Pubkey {
+func NewPubkeyFromString(p [4]string) Pubkey {
 	pubkey := make([]byte, pubkeyLength)
 	copy(pubkey[:32], common.Hex2BytesFixed(p[1], 32))
 	copy(pubkey[32:64], common.Hex2BytesFixed(p[0], 32))
 	copy(pubkey[64:96], common.Hex2BytesFixed(p[3], 32))
 	copy(pubkey[96:128], common.Hex2BytesFixed(p[2], 32))
 	return pubkey
-}
-
-func FromBytes(p []byte) Pubkey {
-	return p
 }
 
 func (p Pubkey) ToSol() (pubkey [4]*big.Int, err error) {
