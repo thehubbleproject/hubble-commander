@@ -30,6 +30,10 @@ func FromString(p [4]string) Pubkey {
 	return pubkey
 }
 
+func FromBytes(p []byte) Pubkey {
+	return p
+}
+
 func (p Pubkey) ToSol() (pubkey [4]*big.Int, err error) {
 	if len(p) != pubkeyLength {
 		return pubkey, ErrInvalidPubkeyLen
