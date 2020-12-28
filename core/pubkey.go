@@ -2,6 +2,9 @@ package core
 
 import (
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // Pubkey is an alias for public key
@@ -11,10 +14,19 @@ const pubkeyLength = 128
 
 func NewPubkey(p [4]*big.Int) Pubkey {
 	pubkey := make([]byte, pubkeyLength)
-	copy(pubkey[:32], p[1].Bytes())
-	copy(pubkey[32:64], p[0].Bytes())
-	copy(pubkey[64:96], p[3].Bytes())
-	copy(pubkey[96:128], p[2].Bytes())
+	copy(pubkey[:32], common.LeftPadBytes(p[1].Bytes(), 32))
+	copy(pubkey[32:64], common.LeftPadBytes(p[0].Bytes(), 32))
+	copy(pubkey[64:96], common.LeftPadBytes(p[3].Bytes(), 32))
+	copy(pubkey[96:128], common.LeftPadBytes(p[2].Bytes(), 32))
+	return pubkey
+}
+
+func FromString(p [4]string) Pubkey {
+	pubkey := make([]byte, pubkeyLength)
+	copy(pubkey[:32], common.Hex2BytesFixed(p[1], 32))
+	copy(pubkey[32:64], common.Hex2BytesFixed(p[0], 32))
+	copy(pubkey[64:96], common.Hex2BytesFixed(p[3], 32))
+	copy(pubkey[96:128], common.Hex2BytesFixed(p[2], 32))
 	return pubkey
 }
 
@@ -28,4 +40,23 @@ func (p Pubkey) ToSol() (pubkey [4]*big.Int, err error) {
 	pubkey[2] = new(big.Int).SetBytes(p[96:128])
 
 	return pubkey, nil
+}
+
+func (p Pubkey) ToHash() (str string, err error) {
+	uint256Arr4, err := abi.NewType("uint256[4]", "", nil)
+	if err != nil {
+		return "", err
+	}
+
+	arguments := abi.Arguments{{Type: uint256Arr4}}
+	ints, err := p.ToSol()
+	if err != nil {
+		return "", err
+	}
+	bytes, err := arguments.Pack(ints)
+	if err != nil {
+		return "", err
+	}
+
+	return Keccak256(bytes).String(), nil
 }
