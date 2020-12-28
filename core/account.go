@@ -82,7 +82,7 @@ func (p *Account) PopulateHash() error {
 		p.Hash = ZERO_VALUE_LEAF.String()
 		return nil
 	}
-	hash, err := FromBytes(p.PublicKey).ToHash()
+	hash, err := Pubkey(p.PublicKey).ToHash()
 	if err != nil {
 		return err
 	}

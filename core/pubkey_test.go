@@ -28,7 +28,7 @@ func TestPubkey(t *testing.T) {
 		])
 		'0x440f7602722941c9563b2751bb8d69be261a08d1ea65be0780d53410ec705b12'
 	*/
-	pubkey = FromString([4]string{
+	pubkey = NewPubkeyFromString([4]string{
 		"2cbb4859ce0dead5cfc5a8bd444166ad6d913fd3b0cae8146b21a09cfe4ec9f5",
 		"2d07390b2b52a872e4c375a55e8fcb1389358b93484b5964eb2d32f5f9b9193c",
 		"0ba33185eae981b55323520a4068b5ca1a00a6f26713579b1ac6784474e777fd",
