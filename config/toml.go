@@ -46,6 +46,12 @@ frontend_generic_address = "{{ .State }}"
 transfer_address = "{{ .Transfer }}"
 mass_migration_address = "{{ .MassMigration }}"
 create2transfer_address = "{{ .Create2Transfer }}"
+
+### Protocol Parameters
+
+max_tree_depth = "{{ .MaxTreeDepth }}"
+max_deposit_subtree = "{{ .MaxDepositSubtree }}"
+stake_amount = "{{ .StakeAmount }}"
 `
 
 var configTemplate *template.Template
