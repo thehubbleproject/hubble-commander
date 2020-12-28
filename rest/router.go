@@ -38,7 +38,7 @@ func LoadRouters() (r *mux.Router, err error) {
 	r.HandleFunc("/create2transfer", create2transferTx).Methods("POST")
 
 	fmt.Println("Here are the available routes...")
-	r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+	err = r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		t, err := route.GetPathTemplate()
 		if err != nil {
 			return err
@@ -46,5 +46,8 @@ func LoadRouters() (r *mux.Router, err error) {
 		fmt.Println(t)
 		return nil
 	})
+	if err != nil {
+		return
+	}
 	return r, nil
 }

@@ -123,7 +123,7 @@ func accountDecoderHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
 	}
-	account, err := db.GetAccountLeafByID(uint64(idInt))
+	account, err := dbI.GetAccountLeafByID(uint64(idInt))
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to fetch account by ID")
 	}
@@ -160,13 +160,13 @@ func transferTx(w http.ResponseWriter, r *http.Request) {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to json decode transfer")
 		return
 	}
-	txData, err := bazooka.EncodeTransferTx(int64(transferTx.From), int64(transferTx.To), int64(transferTx.Fee), int64(transferTx.Nonce), int64(transferTx.Amount), core.TX_TRANSFER_TYPE)
+	txData, err := bazookaI.EncodeTransferTx(int64(transferTx.From), int64(transferTx.To), int64(transferTx.Fee), int64(transferTx.Nonce), int64(transferTx.Amount), core.TX_TRANSFER_TYPE)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to json decode transfer")
 		return
 	}
 	tx := core.Tx{Data: txData}
-	signBytes, err := bazooka.TransferSignBytes(tx)
+	signBytes, err := bazookaI.TransferSignBytes(tx)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to json decode transfer")
 		return
@@ -199,13 +199,13 @@ func massMigrationTx(w http.ResponseWriter, r *http.Request) {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to json decode mass migrations")
 		return
 	}
-	txData, err := bazooka.EncodeMassMigrationTx(int64(mmTx.From), int64(mmTx.ToSpokeID), int64(mmTx.Fee), int64(mmTx.Nonce), int64(mmTx.Amount), core.TX_MASS_MIGRATIONS)
+	txData, err := bazookaI.EncodeMassMigrationTx(int64(mmTx.From), int64(mmTx.ToSpokeID), int64(mmTx.Fee), int64(mmTx.Nonce), int64(mmTx.Amount), core.TX_MASS_MIGRATIONS)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to encode mass migration transaction")
 		return
 	}
 	tx := core.Tx{Data: txData}
-	signBytes, err := bazooka.MassMigrationSignBytes(tx)
+	signBytes, err := bazookaI.MassMigrationSignBytes(tx)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to generate sign bytes")
 		return
@@ -245,13 +245,13 @@ func create2transferTx(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	txData, err := bazooka.EncodeCreate2TransferTxWithPub(int64(cTx.From), toPubkey, int64(cTx.Fee), int64(cTx.Nonce), int64(cTx.Amount), core.TX_CREATE_2_TRANSFER)
+	txData, err := bazookaI.EncodeCreate2TransferTxWithPub(int64(cTx.From), toPubkey, int64(cTx.Fee), int64(cTx.Nonce), int64(cTx.Amount), core.TX_CREATE_2_TRANSFER)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to encode mass migration transaction")
 		return
 	}
 	tx := core.Tx{Data: txData}
-	signBytes, err := bazooka.Create2TransferSignBytesWithPub(tx)
+	signBytes, err := bazookaI.Create2TransferSignBytesWithPub(tx)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to generate sign bytes")
 		return
