@@ -2,43 +2,58 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 )
 
-const (
-	ZERO_UINT       = 0
-	DEFAULT_DEPTH   = 2
-	DEFAULT_BALANCE = 0
-	DEFAULT_NONCE   = 0
-)
-
 // Genesis describes the fields in genesis.json file
 type Genesis struct {
-	StartEthBlock           uint64 `json:"start_eth_block,omitempty"`     // should be set to the eth block num the contracts were deployed at
-	MaxTreeDepth            uint64 `json:"max_tree_depth,omitempty"`      // height for all trees initially
-	MaxDepositSubTreeHeight uint64 `json:"max_deposit_subtree,omitempty"` // max height for deposit subtrees initially
-	StakeAmount             uint64 `json:"stake_amount,omitempty"`        // initial stake amount set on contracts
+	Parameters struct {
+		MAXDEPTH               uint64 `json:"MAX_DEPTH"`
+		MAXDEPOSITSUBTREEDEPTH uint64 `json:"MAX_DEPOSIT_SUBTREE_DEPTH"`
+		STAKEAMOUNT            string `json:"STAKE_AMOUNT"` // In Wei
+		BLOCKSTOFINALISE       uint64 `json:"BLOCKS_TO_FINALISE"`
+		MINGASLEFT             uint64 `json:"MIN_GAS_LEFT"`
+		MAXTXSPERCOMMIT        uint64 `json:"MAX_TXS_PER_COMMIT"`
+		USEBURNAUCTION         bool   `json:"USE_BURN_AUCTION"`
+		DONATIONADDRESS        string `json:"DONATION_ADDRESS"`
+		DONATIONNUMERATOR      uint64 `json:"DONATION_NUMERATOR"`
+		GENESISSTATEROOT       string `json:"GENESIS_STATE_ROOT"`
+	} `json:"parameters"`
+	Addresses struct {
+		ParamManager            string `json:"paramManager"`
+		FrontendGeneric         string `json:"frontendGeneric"`
+		FrontendTransfer        string `json:"frontendTransfer"`
+		FrontendMassMigration   string `json:"frontendMassMigration"`
+		FrontendCreate2Transfer string `json:"frontendCreate2Transfer"`
+		NameRegistry            string `json:"nameRegistry"`
+		BlsAccountRegistry      string `json:"blsAccountRegistry"`
+		TokenRegistry           string `json:"tokenRegistry"`
+		Transfer                string `json:"transfer"`
+		MassMigration           string `json:"massMigration"`
+		Create2Transfer         string `json:"create2Transfer"`
+		Chooser                 string `json:"chooser"`
+		ExampleToken            string `json:"exampleToken"`
+		SpokeRegistry           string `json:"spokeRegistry"`
+		Vault                   string `json:"vault"`
+		DepositManager          string `json:"depositManager"`
+		Rollup                  string `json:"rollup"`
+		WithdrawManager         string `json:"withdrawManager"`
+	} `json:"addresses"`
 }
 
-// Validate validates the genesis file and checks for basic things
 func (g Genesis) Validate() error {
+	if g.Parameters.MAXDEPTH <= 0 {
+		return fmt.Errorf("Bad Max tree size %d", g.Parameters.MAXDEPTH)
+	}
 	return nil
 }
 
-func DefaultGenesis() Genesis {
-	return Genesis{
-		StartEthBlock:           0,
-		MaxTreeDepth:            DEFAULT_DEPTH,
-		MaxDepositSubTreeHeight: DEFAULT_DEPTH,
-		StakeAmount:             32,
-	}
-}
-
-func ReadGenesisFile() (Genesis, error) {
+func ReadGenesisFile(path string) (Genesis, error) {
 	var genesis Genesis
 
-	genesisFile, err := os.Open("genesis.json")
+	genesisFile, err := os.Open(path)
 	if err != nil {
 		return genesis, err
 	}
@@ -51,12 +66,4 @@ func ReadGenesisFile() (Genesis, error) {
 
 	err = json.Unmarshal(genBytes, &genesis)
 	return genesis, err
-}
-
-func WriteGenesisFile(genesis Genesis) error {
-	bz, err := json.MarshalIndent(genesis, "", "    ")
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile("genesis.json", bz, 0644)
 }

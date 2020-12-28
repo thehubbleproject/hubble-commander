@@ -62,6 +62,10 @@ type Configuration struct {
 	OperatorKey       string `mapstructure:"operator_key"`
 	OperatorAddress   string `mapstructure:"operator_address"`
 	LastRecordedBlock string `mapstructure:"last_recorded_block"`
+
+	MaxTreeDepth      uint64 `mapstructure:"max_tree_depth"`
+	MaxDepositSubtree uint64 `mapstructure:"max_deposit_subtree"`
+	StakeAmount       uint64 `mapstructure:"stake_amount"`
 }
 
 // GetDefaultConfig returns the default configration options
@@ -90,6 +94,10 @@ func GetDefaultConfig() Configuration {
 		OperatorKey:       "",
 		OperatorAddress:   "",
 		LastRecordedBlock: "0",
+
+		MaxTreeDepth:      32,
+		MaxDepositSubtree: 1,
+		StakeAmount:       32,
 	}
 }
 
