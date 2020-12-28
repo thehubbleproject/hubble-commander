@@ -17,6 +17,9 @@ func init() {
 			if !db.HasTable(&types.Batch{}) {
 				db.CreateTable(&types.Batch{})
 			}
+			if !db.HasTable(&types.Commitment{}) {
+				db.CreateTable(&types.Commitment{})
+			}
 			if !db.HasTable(&types.SyncStatus{}) {
 				db.CreateTable(&types.SyncStatus{})
 			}
@@ -40,6 +43,7 @@ func init() {
 		Down: func(db *gorm.DB) error {
 			db.DropTableIfExists(&types.Tx{})
 			db.DropTableIfExists(&types.Batch{})
+			db.DropTableIfExists(&types.Commitment{})
 			db.DropTableIfExists(&types.Params{})
 			db.DropTableIfExists(&types.SyncStatus{})
 			db.DropTableIfExists(&dbI.Token{})

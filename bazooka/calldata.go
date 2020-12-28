@@ -3,11 +3,14 @@ package bazooka
 import (
 	"errors"
 	"math/big"
+
+	"github.com/BOPR/core"
 )
 
 // Calldata interface defines different batches and how their call data is packed/unpacked
 type Calldata interface {
 	Pack(b Bazooka) (data []byte, err error)
+	Commitments(accountRoot string) ([]core.CommitmentData, error)
 	Method() string
 }
 
@@ -27,6 +30,18 @@ func (c TransferCalldata) Pack(b Bazooka) (data []byte, err error) {
 	}
 
 	return data, nil
+}
+
+func (c TransferCalldata) Commitments(accountRoot string) ([]core.CommitmentData, error) {
+	// loop through all stateroots
+
+	// create core.TranferCommitments
+
+	// call .hash() and create body root
+
+	// return core.CommitmentData
+
+	return []core.CommitmentData{}, nil
 }
 
 func (c TransferCalldata) Method() string {
@@ -49,6 +64,18 @@ func (c Create2TransferCalldata) Pack(b Bazooka) (data []byte, err error) {
 	return data, nil
 }
 
+func (c Create2TransferCalldata) Commitments(accountRoot string) ([]core.CommitmentData, error) {
+	// loop through all stateroots
+
+	// create core.TranferCommitments
+
+	// call .hash() and create body root
+
+	// return core.CommitmentData
+
+	return []core.CommitmentData{}, nil
+}
+
 func (c Create2TransferCalldata) Method() string {
 	return SubmitCreate2TransferMethod
 }
@@ -68,6 +95,21 @@ func (c MassMigrationCalldata) Pack(b Bazooka) (data []byte, err error) {
 		return data, err
 	}
 	return data, nil
+}
+
+func (c MassMigrationCalldata) Commitments(accountRoot string) ([]core.CommitmentData, error) {
+	// loop through all stateroots
+	for i := 0; i < len(c.StateRoots); i++ {
+
+	}
+
+	// create core.TranferCommitments
+
+	// call .hash() and create body root
+
+	// return core.CommitmentData
+
+	return []core.CommitmentData{}, nil
 }
 
 func (c MassMigrationCalldata) Method() string {

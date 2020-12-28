@@ -18,12 +18,14 @@ const (
 )
 
 // SubmitBatch submits the batch on chain with updated root and compressed transactions
-func (b *Bazooka) SubmitBatch(commitments []core.Commitment) (txHash string, err error) {
+func (b *Bazooka) SubmitBatch(commitments []core.Commitment, accountRoot string) (txHash string, err error) {
 	b.log.Info(
 		"Attempting to submit a new batch",
 		"NumOfCommitments",
 		len(commitments),
 	)
+
+	var commitmentData []core.CommitmentData
 
 	if len(commitments) == 0 {
 		b.log.Info("No transactions to submit, waiting....")
@@ -32,36 +34,44 @@ func (b *Bazooka) SubmitBatch(commitments []core.Commitment) (txHash string, err
 
 	switch txType := commitments[0].BatchType; txType {
 	case core.TX_TRANSFER_TYPE:
-		txHash, err := b.submitTransferBatch(commitments)
+		commitmentData, txHash, err = b.submitTransferBatch(commitments, accountRoot)
 		if err != nil {
-			return "", err
+			return txHash, err
 		}
 		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", core.TX_TRANSFER_TYPE)
 	case core.TX_CREATE_2_TRANSFER:
-		txHash, err := b.submitCreate2TransferBatch(commitments)
+		commitmentData, txHash, err = b.submitCreate2TransferBatch(commitments, accountRoot)
 		if err != nil {
-			return "", err
+			return txHash, err
 		}
+
 		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", core.TX_CREATE_2_TRANSFER)
+
 	case core.TX_MASS_MIGRATIONS:
-		txHash, err := b.submitMassMigrationBatch(commitments)
+		commitmentData, txHash, err = b.submitMassMigrationBatch(commitments, accountRoot)
 		if err != nil {
-			return "", err
+			return txHash, err
 		}
 		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", core.TX_MASS_MIGRATIONS)
 	default:
 		b.log.Error("Tx not indentified", "txType", commitments[0].BatchType)
 	}
 
+	for i := range commitments {
+		commitments[i].BodyRoot = commitmentData[i].BodyRoot
+		commitments[i].StateRoot = commitmentData[i].StateRoot
+	}
+
 	return txHash, nil
 }
 
-func (b *Bazooka) submitTransferBatch(commitments []core.Commitment) (string, error) {
+func (b *Bazooka) submitTransferBatch(commitments []core.Commitment, accountRoot string) ([]core.CommitmentData, string, error) {
 	var txs [][]byte
 	var updatedRoots [][32]byte
 	var aggregatedSig [][2]*big.Int
 	var totalTxs int
 	var feeReceivers []*big.Int
+	var commitmentData []core.CommitmentData
 
 	dummyReceivers := big.NewInt(0)
 	for i := 0; i <= len(commitments); i++ {
@@ -72,15 +82,15 @@ func (b *Bazooka) submitTransferBatch(commitments []core.Commitment) (string, er
 		compressedTxs, err := CompressTxs(b, commitment.Txs)
 		if err != nil {
 			b.log.Error("Unable to compress txs", "error", err)
-			return "", err
+			return commitmentData, "", err
 		}
 		txs = append(txs, compressedTxs)
-		updatedRoots = append(updatedRoots, commitment.UpdatedRoot)
+		updatedRoots = append(updatedRoots, commitment.StateRoot)
 		totalTxs += len(commitment.Txs)
 
 		sig, err := core.BytesToSolSignature(commitment.AggregatedSignature)
 		if err != nil {
-			return "", err
+			return commitmentData, "", err
 		}
 		aggregatedSig = append(aggregatedSig, sig)
 	}
@@ -97,20 +107,26 @@ func (b *Bazooka) submitTransferBatch(commitments []core.Commitment) (string, er
 	inputData.FeeReceivers = feeReceivers
 	inputData.Txss = txs
 
-	tx, err := b.SignAndBroadcastBatch(b.EthClient, rollupAddress, stakeAmount, &inputData)
+	commitmentData, err := inputData.Commitments(accountRoot)
 	if err != nil {
-		return "", err
+		return commitmentData, "", err
 	}
 
-	return tx.Hash().String(), nil
+	tx, err := b.SignAndBroadcastBatch(b.EthClient, rollupAddress, stakeAmount, &inputData)
+	if err != nil {
+		return commitmentData, "", err
+	}
+
+	return commitmentData, tx.Hash().String(), nil
 }
 
-func (b *Bazooka) submitCreate2TransferBatch(commitments []core.Commitment) (string, error) {
+func (b *Bazooka) submitCreate2TransferBatch(commitments []core.Commitment, accountRoot string) ([]core.CommitmentData, string, error) {
 	var txs [][]byte
 	var updatedRoots [][32]byte
 	var aggregatedSig [][2]*big.Int
 	var totalTxs int
 	var feeReceivers []*big.Int
+	var commitmentData []core.CommitmentData
 
 	dummyReceivers := big.NewInt(0)
 	for i := 0; i <= len(commitments); i++ {
@@ -121,15 +137,15 @@ func (b *Bazooka) submitCreate2TransferBatch(commitments []core.Commitment) (str
 		compressedTxs, err := CompressTxs(b, commitment.Txs)
 		if err != nil {
 			b.log.Error("Unable to compress txs", "error", err)
-			return "", err
+			return commitmentData, "", err
 		}
 		txs = append(txs, compressedTxs)
-		updatedRoots = append(updatedRoots, commitment.UpdatedRoot)
+		updatedRoots = append(updatedRoots, commitment.StateRoot)
 		totalTxs += len(commitment.Txs)
 
 		sig, err := core.BytesToSolSignature(commitment.AggregatedSignature)
 		if err != nil {
-			return "", err
+			return commitmentData, "", err
 		}
 		aggregatedSig = append(aggregatedSig, sig)
 	}
@@ -146,15 +162,20 @@ func (b *Bazooka) submitCreate2TransferBatch(commitments []core.Commitment) (str
 	inputData.FeeReceivers = feeReceivers
 	inputData.Txss = txs
 
-	tx, err := b.SignAndBroadcastBatch(b.EthClient, rollupAddress, stakeAmount, inputData)
+	commitmentData, err := inputData.Commitments(accountRoot)
 	if err != nil {
-		return "", err
+		return commitmentData, "", err
 	}
 
-	return tx.Hash().String(), nil
+	tx, err := b.SignAndBroadcastBatch(b.EthClient, rollupAddress, stakeAmount, inputData)
+	if err != nil {
+		return commitmentData, "", err
+	}
+
+	return commitmentData, tx.Hash().String(), nil
 }
 
-func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment) (string, error) {
+func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment, accountRoot string) ([]core.CommitmentData, string, error) {
 	var txs [][]byte
 	var updatedRoots [][32]byte
 	var aggregatedSig [][2]*big.Int
@@ -162,6 +183,7 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment) (strin
 
 	var meta [][4]*big.Int
 	var withdrawRoots [][32]byte
+	var commitmentData []core.CommitmentData
 
 	dummyReceiver := big.NewInt(0)
 
@@ -169,15 +191,15 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment) (strin
 		compressedTxs, err := CompressTxs(b, commitment.Txs)
 		if err != nil {
 			b.log.Error("Unable to compress txs", "error", err)
-			return "", err
+			return commitmentData, "", err
 		}
 		txs = append(txs, compressedTxs)
-		updatedRoots = append(updatedRoots, commitment.UpdatedRoot)
+		updatedRoots = append(updatedRoots, commitment.StateRoot)
 		totalTxs += len(commitment.Txs)
 
 		sig, err := core.BytesToSolSignature(commitment.AggregatedSignature)
 		if err != nil {
-			return "", err
+			return commitmentData, "", err
 		}
 
 		aggregatedSig = append(aggregatedSig, sig)
@@ -189,7 +211,7 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment) (strin
 		for i, tx := range commitment.Txs {
 			_, spoke, _, _, amount, _, err := b.DecodeMassMigrationTx(tx.Data)
 			if err != nil {
-				return "", err
+				return commitmentData, "", err
 			}
 
 			if i == 0 {
@@ -234,12 +256,17 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment) (strin
 	inputData.Meta = meta
 	inputData.Txss = txs
 
-	tx, err := b.SignAndBroadcastBatch(b.EthClient, rollupAddress, stakeAmount, inputData)
+	commitmentData, err := inputData.Commitments(accountRoot)
 	if err != nil {
-		return "", err
+		return commitmentData, "", err
 	}
 
-	return tx.Hash().String(), nil
+	tx, err := b.SignAndBroadcastBatch(b.EthClient, rollupAddress, stakeAmount, inputData)
+	if err != nil {
+		return commitmentData, "", err
+	}
+
+	return commitmentData, tx.Hash().String(), nil
 }
 
 func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []core.UserState, subTreeHeight uint64) (err error) {

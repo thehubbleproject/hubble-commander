@@ -132,9 +132,15 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 		return
 	}
 
+	rootNode, err := a.DB.GetAccountRoot()
+	if err != nil {
+		return
+	}
+	accountTreeRoot := rootNode.Hash
+
 	// Step-3
 	// Submit all commitments on-chain
-	txHash, err := a.LoadedBazooka.SubmitBatch(commitments)
+	txHash, err := a.LoadedBazooka.SubmitBatch(commitments, accountTreeRoot)
 	if err != nil {
 		fmt.Println("Error while submitting batch", "error", err)
 		return
@@ -143,8 +149,8 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 	// Step-4
 	// Record batch locally
 	lastCommitment := commitments[len(commitments)-1]
-	newBatch := core.NewBatch(lastCommitment.UpdatedRoot.String(), config.GlobalCfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
-	err = a.DB.AddNewBatch(newBatch)
+	newBatch := core.NewBatch(lastCommitment.StateRoot.String(), config.GlobalCfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
+	err = a.DB.AddNewBatch(newBatch, commitments)
 	if err != nil {
 		return
 	}

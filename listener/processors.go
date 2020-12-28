@@ -174,13 +174,13 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 	batch, err := s.DBInstance.GetBatchByIndex(event.Index.Uint64())
 	if err != nil && gorm.IsRecordNotFoundError(err) {
 		s.Logger.Info("Found a new batch, applying transactions and adding new batch", "index", event.Index.Uint64)
-		newRoot, err := s.parseAndApplyBatch(vLog.TxHash, event.BatchType)
+		newRoot, commitments, err := s.parseAndApplyBatch(vLog.TxHash, event.BatchType)
 		if err != nil {
 			fmt.Println("error while applying batch", "error", err)
 			return
 		}
 		newBatch := core.NewBatch(newRoot.String(), event.Committer.String(), vLog.TxHash.String(), uint64(event.BatchType), core.BATCH_COMMITTED)
-		err = s.DBInstance.AddNewBatch(newBatch)
+		err = s.DBInstance.AddNewBatch(newBatch, commitments)
 		if err != nil {
 			s.Logger.Error("Error adding new batch to DB", "error", err)
 			return
@@ -240,48 +240,75 @@ func (s *Syncer) SendDepositFinalisationTx() {
 	}
 }
 
-func (s *Syncer) applyBatch(calldata bazooka.Calldata, txHash ethCmn.Hash, txType uint64, isSyncing bool) (newRoot core.ByteArray, err error) {
+func (s *Syncer) applyBatch(calldata bazooka.Calldata, txHash ethCmn.Hash, txType uint64, isSyncing bool) (newRoot core.ByteArray, commitments []core.Commitment, err error) {
+	rootNode, err := s.DBInstance.GetAccountRoot()
+	if err != nil {
+		return newRoot, nil, err
+	}
+
+	accountRoot := rootNode.Hash
+
 	var transactions []core.Tx
+
+	var commitmentData []core.CommitmentData
 
 	switch txType {
 	case core.TX_TRANSFER_TYPE:
 		batchInfo, ok := calldata.(bazooka.TransferCalldata)
 		if !ok {
-			return newRoot, errors.New("Error converting calldata to batchinfo")
+			return newRoot, commitments, errors.New("Error converting calldata to batchinfo")
 		}
 		transactions, err = s.decompressTransfers(batchInfo.Txss)
 		if err != nil {
-			return newRoot, err
+			return newRoot, commitments, err
+		}
+
+		commitmentData, err = batchInfo.Commitments(accountRoot)
+		if err != nil {
+			return newRoot, commitments, err
 		}
 	case core.TX_MASS_MIGRATIONS:
 		batchInfo, ok := calldata.(bazooka.MassMigrationCalldata)
 		if !ok {
-			return newRoot, errors.New("Error converting calldata to batchinfo")
+			return newRoot, commitments, errors.New("Error converting calldata to batchinfo")
 		}
 		transactions, err = s.decompressMassMigrations(batchInfo.Txss, batchInfo.Meta)
 		if err != nil {
-			return newRoot, err
+			return newRoot, commitments, err
+		}
+		commitmentData, err = batchInfo.Commitments(accountRoot)
+		if err != nil {
+			return newRoot, commitments, err
 		}
 	case core.TX_CREATE_2_TRANSFER:
 		batchInfo, ok := calldata.(bazooka.Create2TransferCalldata)
 		if !ok {
-			return newRoot, errors.New("Error converting calldata to batchinfo")
+			return newRoot, commitments, errors.New("Error converting calldata to batchinfo")
 		}
 		transactions, err = s.decompressCreate2Transfers(batchInfo.Txss)
 		if err != nil {
-			return newRoot, err
+			return newRoot, commitments, err
+		}
+		commitmentData, err = batchInfo.Commitments(accountRoot)
+		if err != nil {
+			return newRoot, commitments, err
 		}
 	default:
 		fmt.Println("TxType didnt match any options", txType)
-		return newRoot, errors.New("Didn't match any options")
+		return newRoot, commitments, errors.New("Didn't match any options")
 	}
 
-	commitments, err := db.ProcessTxs(&s.loadedBazooka, &s.DBInstance, transactions, isSyncing)
+	commitments, err = db.ProcessTxs(&s.loadedBazooka, &s.DBInstance, transactions, isSyncing)
 	if err != nil {
-		return newRoot, err
+		return newRoot, commitments, err
 	}
 
-	return commitments[len(commitments)-1].UpdatedRoot, nil
+	for i := range commitments {
+		commitments[i].BodyRoot = commitmentData[i].BodyRoot
+		commitments[i].StateRoot = commitmentData[i].StateRoot
+	}
+
+	return commitments[len(commitments)-1].StateRoot, commitments, nil
 }
 
 // decompressTransfers decompresses transfer bytes to TX
@@ -374,16 +401,16 @@ func (s *Syncer) decompressMassMigrations(decompressedTxs [][]byte, meta [][4]*b
 	return transactions, nil
 }
 
-func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoot core.ByteArray, err error) {
+func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoot core.ByteArray, commitments []core.Commitment, err error) {
 	calldata, err := s.loadedBazooka.ParseCalldata(txHash, batchType)
 	if err != nil {
 		if err != bazooka.ErrNoTxs {
 			fmt.Println("unable to parse calldata")
-			return newRoot, err
+			return newRoot, commitments, err
 		}
-		return newRoot, nil
+		return newRoot, commitments, nil
 	}
-	newRoot, err = s.applyBatch(calldata, txHash, uint64(batchType), true)
+	newRoot, commitments, err = s.applyBatch(calldata, txHash, uint64(batchType), true)
 	if err != nil {
 		return
 	}
@@ -391,7 +418,7 @@ func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoo
 	// parse input data according to the batch type
 
 	// apply transactions
-	return newRoot, nil
+	return newRoot, commitments, nil
 }
 
 // IsCatchingUp returns true/false according to the sync status of the node

@@ -163,7 +163,6 @@ func (db *DB) InitAccountTree(depth uint64, genesisAccount []core.Account) error
 			if err != nil {
 				return err
 			}
-			prevNodePath = path
 		} else {
 			path, err = core.GetAdjacentNodePath(prevNodePath)
 			if err != nil {

@@ -30,7 +30,6 @@ func (db *DB) InitStateTree(depth uint64, genesisAccounts []core.UserState) erro
 			if err != nil {
 				return err
 			}
-			prevNodePath = path
 		} else {
 			path, err = core.GetAdjacentNodePath(prevNodePath)
 			if err != nil {
