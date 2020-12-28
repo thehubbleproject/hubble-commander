@@ -2,8 +2,6 @@ package core
 
 import (
 	"errors"
-
-	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
 var (
@@ -84,35 +82,10 @@ func (p *Account) PopulateHash() error {
 		p.Hash = ZERO_VALUE_LEAF.String()
 		return nil
 	}
-	bz, err := encodePubkey(p.PublicKey)
+	hash, err := FromBytes(p.PublicKey).ToHash()
 	if err != nil {
 		return err
 	}
-	p.Hash = Keccak256(bz).String()
+	p.Hash = hash
 	return nil
-}
-
-// ------------------------------------------------------------------------------------- DB -------------------------------------------------------------------------------------
-
-func encodePubkey(pubkey []byte) ([]byte, error) {
-	uint256Ty, err := abi.NewType("bytes", "bytes", nil)
-	if err != nil {
-		return []byte(""), err
-	}
-
-	arguments := abi.Arguments{
-		{
-			Type: uint256Ty,
-		},
-	}
-
-	bytes, err := arguments.Pack(
-		pubkey,
-	)
-
-	if err != nil {
-		return []byte(""), err
-	}
-
-	return bytes, nil
 }
