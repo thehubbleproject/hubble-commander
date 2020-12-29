@@ -36,7 +36,6 @@ func (db *DB) InitStateTree(depth uint64, genesisAccounts []core.UserState) erro
 				return err
 			}
 		}
-
 		genesisAccounts[i].UpdatePath(path)
 		insertRecords = append(insertRecords, genesisAccounts[i])
 		prevNodePath = genesisAccounts[i].Path

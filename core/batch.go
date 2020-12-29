@@ -51,6 +51,10 @@ type CommitmentData struct {
 	BodyRoot  ByteArray
 }
 
+func NewCommitmentData(stateRoot, bodyRoot ByteArray) *CommitmentData {
+	return &CommitmentData{StateRoot: stateRoot, BodyRoot: bodyRoot}
+}
+
 func NewCommitment(txs []Tx, batchType uint64, newRoot ByteArray, signature []byte) Commitment {
 	return Commitment{
 		BatchType: batchType,
@@ -67,8 +71,8 @@ type TransferCommitment struct {
 }
 type TransferBody struct {
 	AccountRoot ByteArray
-	Signature   [2]big.Int
-	FeeReceiver big.Int
+	Signature   [2]*big.Int
+	FeeReceiver *big.Int
 	Txs         []byte
 }
 
@@ -80,8 +84,8 @@ type Create2TransferCommitment struct {
 }
 type Create2TransferBody struct {
 	AccountRoot ByteArray
-	Signature   [2]big.Int
-	FeeReceiver big.Int
+	Signature   [2]*big.Int
+	FeeReceiver *big.Int
 	Txs         []byte
 }
 
@@ -89,17 +93,17 @@ func (c *Create2TransferCommitment) Hash() (ByteArray, error) { return ByteArray
 
 type MassMigrationCommitment struct {
 	StateRoot ByteArray
-	Create2TransferBody
+	MassMigrationBody
 }
 
 type MassMigrationBody struct {
 	AccountRoot  ByteArray
-	Signature    [2]big.Int
-	SpokeID      big.Int
+	Signature    [2]*big.Int
+	SpokeID      *big.Int
 	WithdrawRoot ByteArray
-	TokenID      big.Int
-	Amount       big.Int
-	FeeReceiver  big.Int
+	TokenID      *big.Int
+	Amount       *big.Int
+	FeeReceiver  *big.Int
 	Txs          []byte
 }
 

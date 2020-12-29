@@ -32,16 +32,27 @@ func (c TransferCalldata) Pack(b Bazooka) (data []byte, err error) {
 	return data, nil
 }
 
-func (c TransferCalldata) Commitments(accountRoot string) ([]core.CommitmentData, error) {
-	// loop through all stateroots
+func (c TransferCalldata) Commitments(accountRoot string) (commitmentDatas []core.CommitmentData, err error) {
+	for i := range c.StateRoots {
+		var transferCommitment core.TransferCommitment
+		transferCommitment.AccountRoot, err = core.HexToByteArray(accountRoot)
+		if err != nil {
+			return
+		}
 
-	// create core.TranferCommitments
+		transferCommitment.StateRoot = c.StateRoots[i]
+		transferCommitment.Signature = c.Signatures[i]
+		transferCommitment.FeeReceiver = c.FeeReceivers[i]
+		transferCommitment.Txs = c.Txss[i]
 
-	// call .hash() and create body root
+		bodyRoot, inErr := transferCommitment.Hash()
+		if inErr != nil {
+			return
+		}
 
-	// return core.CommitmentData
-
-	return []core.CommitmentData{}, nil
+		commitmentDatas = append(commitmentDatas, *core.NewCommitmentData(c.StateRoots[i], bodyRoot))
+	}
+	return commitmentDatas, nil
 }
 
 func (c TransferCalldata) Method() string {
@@ -64,16 +75,27 @@ func (c Create2TransferCalldata) Pack(b Bazooka) (data []byte, err error) {
 	return data, nil
 }
 
-func (c Create2TransferCalldata) Commitments(accountRoot string) ([]core.CommitmentData, error) {
-	// loop through all stateroots
+func (c Create2TransferCalldata) Commitments(accountRoot string) (commitmentDatas []core.CommitmentData, err error) {
+	for i := range c.StateRoots {
+		var transferCommitment core.TransferCommitment
+		transferCommitment.AccountRoot, err = core.HexToByteArray(accountRoot)
+		if err != nil {
+			return
+		}
 
-	// create core.TranferCommitments
+		transferCommitment.StateRoot = c.StateRoots[i]
+		transferCommitment.Signature = c.Signatures[i]
+		transferCommitment.FeeReceiver = c.FeeReceivers[i]
+		transferCommitment.Txs = c.Txss[i]
 
-	// call .hash() and create body root
+		bodyRoot, inErr := transferCommitment.Hash()
+		if inErr != nil {
+			return
+		}
 
-	// return core.CommitmentData
-
-	return []core.CommitmentData{}, nil
+		commitmentDatas = append(commitmentDatas, *core.NewCommitmentData(c.StateRoots[i], bodyRoot))
+	}
+	return commitmentDatas, nil
 }
 
 func (c Create2TransferCalldata) Method() string {
@@ -97,19 +119,32 @@ func (c MassMigrationCalldata) Pack(b Bazooka) (data []byte, err error) {
 	return data, nil
 }
 
-func (c MassMigrationCalldata) Commitments(accountRoot string) ([]core.CommitmentData, error) {
-	// loop through all stateroots
-	for i := 0; i < len(c.StateRoots); i++ {
+func (c MassMigrationCalldata) Commitments(accountRoot string) (commitmentDatas []core.CommitmentData, err error) {
+	for i := range c.StateRoots {
+		var mmCommitment core.MassMigrationCommitment
+		mmCommitment.AccountRoot, err = core.HexToByteArray(accountRoot)
+		if err != nil {
+			return
+		}
 
+		mmCommitment.StateRoot = c.StateRoots[i]
+		mmCommitment.Signature = c.Signatures[i]
+		mmCommitment.WithdrawRoot = c.WithdrawRoots[i]
+		mmCommitment.Txs = c.Txss[i]
+
+		mmCommitment.FeeReceiver = c.Meta[i][3]
+		mmCommitment.Amount = c.Meta[i][2]
+		mmCommitment.SpokeID = c.Meta[i][0]
+		mmCommitment.TokenID = c.Meta[i][1]
+
+		bodyRoot, inErr := mmCommitment.Hash()
+		if inErr != nil {
+			return
+		}
+
+		commitmentDatas = append(commitmentDatas, *core.NewCommitmentData(c.StateRoots[i], bodyRoot))
 	}
-
-	// create core.TranferCommitments
-
-	// call .hash() and create body root
-
-	// return core.CommitmentData
-
-	return []core.CommitmentData{}, nil
+	return commitmentDatas, nil
 }
 
 func (c MassMigrationCalldata) Method() string {
