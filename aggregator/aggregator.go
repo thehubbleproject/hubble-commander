@@ -140,7 +140,7 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 
 	// Step-3
 	// Submit all commitments on-chain
-	txHash, err := a.LoadedBazooka.SubmitBatch(commitments, accountTreeRoot)
+	txHash, commitments, err := a.LoadedBazooka.SubmitBatch(commitments, accountTreeRoot)
 	if err != nil {
 		fmt.Println("Error while submitting batch", "error", err)
 		return

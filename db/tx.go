@@ -250,7 +250,7 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, isSyncing bool) (co
 					return commitments, err
 				}
 			}
-			commitment := core.NewCommitment(txInCommitment, tx.Type, newRoot, aggregatedSig.ToBytes())
+			commitment := core.NewCommitment(0, 0, txInCommitment, tx.Type, newRoot, core.ByteArray{}, aggregatedSig.ToBytes())
 			commitments = append(commitments, commitment)
 		}
 	}

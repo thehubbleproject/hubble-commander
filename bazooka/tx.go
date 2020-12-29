@@ -18,7 +18,7 @@ const (
 )
 
 // SubmitBatch submits the batch on chain with updated root and compressed transactions
-func (b *Bazooka) SubmitBatch(commitments []core.Commitment, accountRoot string) (txHash string, err error) {
+func (b *Bazooka) SubmitBatch(commitments []core.Commitment, accountRoot string) (txHash string, updatedCommitments []core.Commitment, err error) {
 	b.log.Info(
 		"Attempting to submit a new batch",
 		"NumOfCommitments",
@@ -29,20 +29,20 @@ func (b *Bazooka) SubmitBatch(commitments []core.Commitment, accountRoot string)
 
 	if len(commitments) == 0 {
 		b.log.Info("No transactions to submit, waiting....")
-		return "", nil
+		return "", updatedCommitments, nil
 	}
 
 	switch txType := commitments[0].BatchType; txType {
 	case core.TX_TRANSFER_TYPE:
 		commitmentData, txHash, err = b.submitTransferBatch(commitments, accountRoot)
 		if err != nil {
-			return txHash, err
+			return txHash, updatedCommitments, err
 		}
 		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", core.TX_TRANSFER_TYPE)
 	case core.TX_CREATE_2_TRANSFER:
 		commitmentData, txHash, err = b.submitCreate2TransferBatch(commitments, accountRoot)
 		if err != nil {
-			return txHash, err
+			return txHash, updatedCommitments, err
 		}
 
 		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", core.TX_CREATE_2_TRANSFER)
@@ -50,7 +50,7 @@ func (b *Bazooka) SubmitBatch(commitments []core.Commitment, accountRoot string)
 	case core.TX_MASS_MIGRATIONS:
 		commitmentData, txHash, err = b.submitMassMigrationBatch(commitments, accountRoot)
 		if err != nil {
-			return txHash, err
+			return txHash, updatedCommitments, err
 		}
 		b.log.Info("Sent a new batch!", "TxHash", txHash, "Type", core.TX_MASS_MIGRATIONS)
 	default:
@@ -62,7 +62,7 @@ func (b *Bazooka) SubmitBatch(commitments []core.Commitment, accountRoot string)
 		commitments[i].StateRoot = commitmentData[i].StateRoot
 	}
 
-	return txHash, nil
+	return txHash, commitments, nil
 }
 
 func (b *Bazooka) submitTransferBatch(commitments []core.Commitment, accountRoot string) ([]core.CommitmentData, string, error) {

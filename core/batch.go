@@ -47,6 +47,22 @@ type Commitment struct {
 	AggregatedSignature []byte `gorm:"-"`
 }
 
+func NewCommitment(batchID uint64, offset uint64, txs []Tx, batchType uint64, stateRoot, bodyRoot ByteArray, signature []byte) Commitment {
+	return Commitment{
+		CommitmentData: CommitmentData{
+			StateRoot: stateRoot,
+			BodyRoot:  bodyRoot,
+		},
+
+		BatchID:   batchID,
+		Offset:    offset,
+		BatchType: batchType,
+
+		Txs:                 txs,
+		AggregatedSignature: signature,
+	}
+}
+
 // CommitmentData is the crutial information per commitment that needs to be stored
 type CommitmentData struct {
 	StateRoot ByteArray
@@ -88,12 +104,6 @@ func NewCommitmentData(stateRoot, bodyRoot ByteArray) *CommitmentData {
 	return &CommitmentData{StateRoot: stateRoot, BodyRoot: bodyRoot}
 }
 
-func NewCommitment(txs []Tx, batchType uint64, newRoot ByteArray, signature []byte) Commitment {
-	return Commitment{
-		BatchType: batchType,
-	}
-}
-
 type TxCommitment interface {
 	Hash() (ByteArray, error)
 }
@@ -109,7 +119,49 @@ type TransferBody struct {
 	Txs         []byte
 }
 
-func (t *TransferCommitment) Hash() (ByteArray, error) { return ByteArray(t.StateRoot), nil }
+func (t *TransferCommitment) Hash() (ByteArray, error) {
+	uint2Ty, err := abi.NewType("uint256[2]", "uint256[2]", nil)
+	if err != nil {
+		return ByteArray{}, err
+	}
+	bytesTy, err := abi.NewType("bytes", "bytes", nil)
+	if err != nil {
+		return ByteArray{}, err
+	}
+	bytes32Ty, err := abi.NewType("bytes32", "bytes32", nil)
+	if err != nil {
+		return ByteArray{}, err
+	}
+	uintTy, err := abi.NewType("uint256", "uint256", nil)
+	if err != nil {
+		return ByteArray{}, err
+	}
+	arguments := abi.Arguments{
+		{
+			Type: bytes32Ty,
+		},
+		{
+			Type: uint2Ty,
+		},
+		{
+			Type: uintTy,
+		},
+		{
+			Type: bytesTy,
+		},
+	}
+	data, err := arguments.Pack(
+		t.AccountRoot,
+		t.Signature,
+		t.FeeReceiver,
+		t.Txs,
+	)
+	if err != nil {
+		return ByteArray{}, err
+	}
+
+	return ByteArray(Keccak256(data)), nil
+}
 
 type Create2TransferCommitment struct {
 	StateRoot ByteArray
@@ -123,7 +175,47 @@ type Create2TransferBody struct {
 }
 
 func (c *Create2TransferCommitment) Hash() (ByteArray, error) {
-	return ByteArray(c.StateRoot), nil
+	uint2Ty, err := abi.NewType("uint256[2]", "uint256[2]", nil)
+	if err != nil {
+		return ByteArray{}, err
+	}
+	bytesTy, err := abi.NewType("bytes", "bytes", nil)
+	if err != nil {
+		return ByteArray{}, err
+	}
+	bytes32Ty, err := abi.NewType("bytes32", "bytes32", nil)
+	if err != nil {
+		return ByteArray{}, err
+	}
+	uintTy, err := abi.NewType("uint256", "uint256", nil)
+	if err != nil {
+		return ByteArray{}, err
+	}
+	arguments := abi.Arguments{
+		{
+			Type: bytes32Ty,
+		},
+		{
+			Type: uint2Ty,
+		},
+		{
+			Type: uintTy,
+		},
+		{
+			Type: bytesTy,
+		},
+	}
+	data, err := arguments.Pack(
+		c.AccountRoot,
+		c.Signature,
+		c.FeeReceiver,
+		c.Txs,
+	)
+	if err != nil {
+		return ByteArray{}, err
+	}
+
+	return ByteArray(Keccak256(data)), nil
 }
 
 type MassMigrationCommitment struct {
@@ -142,4 +234,62 @@ type MassMigrationBody struct {
 	Txs          []byte
 }
 
-func (m *MassMigrationCommitment) Hash() (ByteArray, error) { return ByteArray(m.StateRoot), nil }
+func (m *MassMigrationCommitment) Hash() (ByteArray, error) {
+	uint2Ty, err := abi.NewType("uint256[2]", "uint256[2]", nil)
+	if err != nil {
+		return ByteArray{}, err
+	}
+	bytesTy, err := abi.NewType("bytes", "bytes", nil)
+	if err != nil {
+		return ByteArray{}, err
+	}
+	bytes32Ty, err := abi.NewType("bytes32", "bytes32", nil)
+	if err != nil {
+		return ByteArray{}, err
+	}
+	uintTy, err := abi.NewType("uint256", "uint256", nil)
+	if err != nil {
+		return ByteArray{}, err
+	}
+	arguments := abi.Arguments{
+		{
+			Type: bytes32Ty,
+		},
+		{
+			Type: uint2Ty,
+		},
+		{
+			Type: uintTy,
+		},
+		{
+			Type: bytes32Ty,
+		},
+		{
+			Type: uintTy,
+		},
+		{
+			Type: uintTy,
+		},
+		{
+			Type: uintTy,
+		},
+		{
+			Type: bytesTy,
+		},
+	}
+	data, err := arguments.Pack(
+		m.AccountRoot,
+		m.Signature,
+		m.SpokeID,
+		m.WithdrawRoot,
+		m.TokenID,
+		m.Amount,
+		m.FeeReceiver,
+		m.Txs,
+	)
+	if err != nil {
+		return ByteArray{}, err
+	}
+
+	return ByteArray(Keccak256(data)), nil
+}
