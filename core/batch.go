@@ -3,6 +3,8 @@ package core
 import (
 	"errors"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
 var (
@@ -51,6 +53,37 @@ type CommitmentData struct {
 	BodyRoot  ByteArray
 }
 
+func (c CommitmentData) Leaf() (leaf ByteArray, err error) {
+	data, err := c.Bytes()
+	if err != nil {
+		return
+	}
+	return ByteArray(Keccak256(data)), nil
+}
+
+func (c CommitmentData) Bytes() ([]byte, error) {
+	bytes32Ty, err := abi.NewType("bytes32", "bytes32", nil)
+	if err != nil {
+		return []byte(""), err
+	}
+	arguments := abi.Arguments{
+		{
+			Type: bytes32Ty,
+		},
+		{
+			Type: bytes32Ty,
+		},
+	}
+	data, err := arguments.Pack(
+		c.StateRoot,
+		c.BodyRoot,
+	)
+	if err != nil {
+		return []byte(""), err
+	}
+	return data, nil
+}
+
 func NewCommitmentData(stateRoot, bodyRoot ByteArray) *CommitmentData {
 	return &CommitmentData{StateRoot: stateRoot, BodyRoot: bodyRoot}
 }
@@ -89,7 +122,9 @@ type Create2TransferBody struct {
 	Txs         []byte
 }
 
-func (c *Create2TransferCommitment) Hash() (ByteArray, error) { return ByteArray(c.StateRoot), nil }
+func (c *Create2TransferCommitment) Hash() (ByteArray, error) {
+	return ByteArray(c.StateRoot), nil
+}
 
 type MassMigrationCommitment struct {
 	StateRoot ByteArray

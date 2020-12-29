@@ -77,18 +77,18 @@ func (c Create2TransferCalldata) Pack(b Bazooka) (data []byte, err error) {
 
 func (c Create2TransferCalldata) Commitments(accountRoot string) (commitmentDatas []core.CommitmentData, err error) {
 	for i := range c.StateRoots {
-		var transferCommitment core.TransferCommitment
-		transferCommitment.AccountRoot, err = core.HexToByteArray(accountRoot)
+		var c2tCommitment core.Create2TransferCommitment
+		c2tCommitment.AccountRoot, err = core.HexToByteArray(accountRoot)
 		if err != nil {
 			return
 		}
 
-		transferCommitment.StateRoot = c.StateRoots[i]
-		transferCommitment.Signature = c.Signatures[i]
-		transferCommitment.FeeReceiver = c.FeeReceivers[i]
-		transferCommitment.Txs = c.Txss[i]
+		c2tCommitment.StateRoot = c.StateRoots[i]
+		c2tCommitment.Signature = c.Signatures[i]
+		c2tCommitment.FeeReceiver = c.FeeReceivers[i]
+		c2tCommitment.Txs = c.Txss[i]
 
-		bodyRoot, inErr := transferCommitment.Hash()
+		bodyRoot, inErr := c2tCommitment.Hash()
 		if inErr != nil {
 			return
 		}
