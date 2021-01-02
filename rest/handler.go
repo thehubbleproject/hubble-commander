@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -129,7 +128,7 @@ func accountDecoderHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var accountData accountExporter
 	accountData.AccountID = account.ID
-	accountData.Pubkey = hex.EncodeToString(account.PublicKey)
+	accountData.Pubkey = core.Pubkey(account.PublicKey).String()
 
 	output, err := json.Marshal(accountData)
 	if err != nil {
