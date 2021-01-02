@@ -16,6 +16,21 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+// GetParent takes in left and right children and returns the parent hash
+func GetParent(left, right ByteArray) (parent ByteArray, err error) {
+	data, err := encodeChildren(left, right)
+	if err != nil {
+		return parent, err
+	}
+	leaf := Keccak256(data)
+	return BytesToByteArray(leaf.Bytes()), nil
+}
+
+// GetParentPath given the path to any of the children returns the path to the parent
+func GetParentPath(path string) (parentNodePath string) {
+	return trimPathToParentPath(path)
+}
+
 // StringToBigInt takes in a string and returns the corresponding big int
 func StringToBigInt(s string) *big.Int {
 	t := big.NewInt(0)

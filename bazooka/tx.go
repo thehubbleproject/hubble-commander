@@ -297,20 +297,23 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 	// stakeAmount.SetString("32000000000000000000", 10)
 
 	// // generate call msg
-	// callMsg := ethereum.CallMsg{}
+	// callMsg := ethereum.CallMsg{
+	// 	To:    &rollupAddress,
+	// 	Data:  data,
+	// 	Value: stakeAmount,
+	// }
 
-	// auth, err := b.generateAuthObj(b.EthClient)
+	// auth, err := b.generateAuthObj(b.EthClient, callMsg)
 	// if err != nil {
 	// 	return err
 	// }
-	// // b.log.Info("Broadcasting deposit finalisation transaction")
-	// var commitmentIP TypesCommitmentInclusionProof
+	// b.log.Info("Broadcasting deposit finalisation transaction")
 
-	// tx, err := b.SC.RollupContract.SubmitDeposits(auth, commitmentIP, accountProof)
+	// tx, err := b.RollupContract.FinaliseDepositsAndSubmitBatch(auth, depositSubTreeHeight, accountProof)
 	// if err != nil {
 	// 	return err
 	// }
-	// // b.log.Info("Deposits successfully finalized!", "TxHash", tx.Hash())
+	// b.log.Info("Deposits successfully finalized!", "TxHash", tx.Hash())
 	return nil
 }
 
