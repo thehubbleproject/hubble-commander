@@ -1,6 +1,10 @@
 package bazooka
 
-import "math/big"
+import (
+	"math/big"
+
+	"github.com/BOPR/core"
+)
 
 type TypesUserState struct {
 	PubkeyID *big.Int
@@ -12,4 +16,11 @@ type TypesUserState struct {
 type TypesStateMerkleProof struct {
 	State   TypesUserState
 	Witness [][32]byte
+}
+
+// TypesCommitmentInclusionProof is an auto generated low-level Go binding around an user-defined struct.
+type TypesCommitmentInclusionProof struct {
+	Commitment core.CommitmentData
+	Path       *big.Int
+	Witness    [][32]byte
 }

@@ -24,28 +24,35 @@ func (DBI *DB) InsertTx(tx *core.Tx) error {
 func (DBI *DB) PopTxs() (txs []core.Tx, err error) {
 	txType, err := DBI.FetchTxType()
 	tx := DBI.Instance.Begin()
+
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
 		}
 	}()
+
 	if err := tx.Error; err != nil {
 		return txs, err
 	}
+
 	var pendingTxs []core.Tx
 	// select N number of transactions which are pending in mempool and
 	if err := tx.Limit(config.GlobalCfg.TxsPerBatch).Where(&core.Tx{Status: core.TX_STATUS_PENDING, Type: txType}).Find(&pendingTxs).Error; err != nil {
 		DBI.Logger.Error("error while fetching pending transactions", err)
+		tx.Rollback()
 		return txs, err
 	}
+
 	DBI.Logger.Info("Found txs", "pendingTxs", len(pendingTxs))
 	var ids []string
 	for _, tx := range pendingTxs {
 		ids = append(ids, tx.ID)
 	}
+
 	// update the transactions from pending to processing
 	errs := tx.Table("txes").Where("id IN (?)", ids).Updates(map[string]interface{}{"status": core.TX_STATUS_PROCESSING}).GetErrors()
 	if err != nil {
+		tx.Rollback()
 		DBI.Logger.Error("errors while processing transactions", errs)
 		return
 	}
