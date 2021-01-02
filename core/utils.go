@@ -88,15 +88,10 @@ func trimPathToParentPath(s string) string {
 	return s[:len(s)-size]
 }
 
-func GenCoordinatorPath(depth uint64) string {
-	var path []rune
-	for i := uint64(0); i < depth; i++ {
-		path = append(path, 48)
-	}
-	return string(path)
-}
-
 func GetAdjacentNodePath(path string) (string, error) {
+	if len(path) == 0 {
+		return "", errors.New("path is empty")
+	}
 	nodePath, err := StringToUint(path)
 	if err != nil {
 		return "", err

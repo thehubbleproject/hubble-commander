@@ -3,11 +3,14 @@ package bazooka
 import (
 	"errors"
 	"math/big"
+
+	"github.com/BOPR/core"
 )
 
 // Calldata interface defines different batches and how their call data is packed/unpacked
 type Calldata interface {
 	Pack(b Bazooka) (data []byte, err error)
+	Commitments(accountRoot string) ([]core.CommitmentData, error)
 	Method() string
 }
 
@@ -27,6 +30,29 @@ func (c TransferCalldata) Pack(b Bazooka) (data []byte, err error) {
 	}
 
 	return data, nil
+}
+
+func (c TransferCalldata) Commitments(accountRoot string) (commitmentDatas []core.CommitmentData, err error) {
+	for i := range c.StateRoots {
+		var transferCommitment core.TransferCommitment
+		transferCommitment.AccountRoot, err = core.HexToByteArray(accountRoot)
+		if err != nil {
+			return
+		}
+
+		transferCommitment.StateRoot = c.StateRoots[i]
+		transferCommitment.Signature = c.Signatures[i]
+		transferCommitment.FeeReceiver = c.FeeReceivers[i]
+		transferCommitment.Txs = c.Txss[i]
+
+		bodyRoot, inErr := transferCommitment.Hash()
+		if inErr != nil {
+			return
+		}
+
+		commitmentDatas = append(commitmentDatas, *core.NewCommitmentData(c.StateRoots[i], bodyRoot))
+	}
+	return commitmentDatas, nil
 }
 
 func (c TransferCalldata) Method() string {
@@ -49,6 +75,29 @@ func (c Create2TransferCalldata) Pack(b Bazooka) (data []byte, err error) {
 	return data, nil
 }
 
+func (c Create2TransferCalldata) Commitments(accountRoot string) (commitmentDatas []core.CommitmentData, err error) {
+	for i := range c.StateRoots {
+		var c2tCommitment core.Create2TransferCommitment
+		c2tCommitment.AccountRoot, err = core.HexToByteArray(accountRoot)
+		if err != nil {
+			return
+		}
+
+		c2tCommitment.StateRoot = c.StateRoots[i]
+		c2tCommitment.Signature = c.Signatures[i]
+		c2tCommitment.FeeReceiver = c.FeeReceivers[i]
+		c2tCommitment.Txs = c.Txss[i]
+
+		bodyRoot, inErr := c2tCommitment.Hash()
+		if inErr != nil {
+			return
+		}
+
+		commitmentDatas = append(commitmentDatas, *core.NewCommitmentData(c.StateRoots[i], bodyRoot))
+	}
+	return commitmentDatas, nil
+}
+
 func (c Create2TransferCalldata) Method() string {
 	return SubmitCreate2TransferMethod
 }
@@ -68,6 +117,34 @@ func (c MassMigrationCalldata) Pack(b Bazooka) (data []byte, err error) {
 		return data, err
 	}
 	return data, nil
+}
+
+func (c MassMigrationCalldata) Commitments(accountRoot string) (commitmentDatas []core.CommitmentData, err error) {
+	for i := range c.StateRoots {
+		var mmCommitment core.MassMigrationCommitment
+		mmCommitment.AccountRoot, err = core.HexToByteArray(accountRoot)
+		if err != nil {
+			return
+		}
+
+		mmCommitment.StateRoot = c.StateRoots[i]
+		mmCommitment.Signature = c.Signatures[i]
+		mmCommitment.WithdrawRoot = c.WithdrawRoots[i]
+		mmCommitment.Txs = c.Txss[i]
+
+		mmCommitment.FeeReceiver = c.Meta[i][3]
+		mmCommitment.Amount = c.Meta[i][2]
+		mmCommitment.SpokeID = c.Meta[i][0]
+		mmCommitment.TokenID = c.Meta[i][1]
+
+		bodyRoot, inErr := mmCommitment.Hash()
+		if inErr != nil {
+			return
+		}
+
+		commitmentDatas = append(commitmentDatas, *core.NewCommitmentData(c.StateRoots[i], bodyRoot))
+	}
+	return commitmentDatas, nil
 }
 
 func (c MassMigrationCalldata) Method() string {

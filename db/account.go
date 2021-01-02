@@ -143,17 +143,6 @@ func (db *DB) storeAccountLeaf(pdaLeaf core.Account, path string, siblings []cor
 	return nil
 }
 
-// InsertCoordinatorPubkeyAccounts inserts the coordinator accounts
-func (db *DB) InsertCoordinatorPubkeyAccounts(coordinatorAccount *core.Account, depth uint64) error {
-	coordinatorAccount.UpdatePath(core.GenCoordinatorPath(depth))
-	err := coordinatorAccount.PopulateHash()
-	if err != nil {
-		return err
-	}
-	coordinatorAccount.Type = core.TYPE_TERMINAL
-	return db.Instance.Create(&coordinatorAccount).Error
-}
-
 // InitAccountTree init account tree with all leaves
 func (db *DB) InitAccountTree(depth uint64, genesisAccount []core.Account) error {
 	// calculate total number of leaves
@@ -165,21 +154,22 @@ func (db *DB) InitAccountTree(depth uint64, genesisAccount []core.Account) error
 	db.Logger.Debug("Attempting to init core.Account tree", "totalAccounts", totalLeaves)
 	var err error
 
-	// insert coodinator leaf
-	err = db.InsertCoordinatorPubkeyAccounts(&genesisAccount[0], depth)
-	if err != nil {
-		db.Logger.Error("Unable to insert coodinator account", "err", err)
-		return err
-	}
-
 	var insertRecords []interface{}
 	prevNodePath := genesisAccount[0].Path
-	for i := 1; i < len(genesisAccount); i++ {
-		pathToAdjacentNode, err := core.GetAdjacentNodePath(prevNodePath)
-		if err != nil {
-			return err
+	for i := 0; i < len(genesisAccount); i++ {
+		var path string
+		if i == 0 {
+			path, err = core.SolidityPathToNodePath(0, depth)
+			if err != nil {
+				return err
+			}
+		} else {
+			path, err = core.GetAdjacentNodePath(prevNodePath)
+			if err != nil {
+				return err
+			}
 		}
-		genesisAccount[i].UpdatePath(pathToAdjacentNode)
+		genesisAccount[i].UpdatePath(path)
 		insertRecords = append(insertRecords, genesisAccount[i])
 		prevNodePath = genesisAccount[i].Path
 	}
