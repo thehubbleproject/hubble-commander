@@ -403,12 +403,11 @@ func (s *Syncer) decompressMassMigrations(decompressedTxs [][]byte, meta [][4]*b
 
 func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoot core.ByteArray, commitments []core.Commitment, err error) {
 	calldata, err := s.loadedBazooka.ParseCalldata(txHash, batchType)
-	if err != nil {
-		if err != bazooka.ErrNoTxs {
-			fmt.Println("unable to parse calldata")
-			return newRoot, commitments, err
-		}
+	if err != bazooka.ErrNoTxs {
 		return newRoot, commitments, nil
+	}
+	if err != nil {
+		return newRoot, commitments, fmt.Errorf("unable to parse calldata %s", f)
 	}
 	newRoot, commitments, err = s.applyBatch(calldata, txHash, uint64(batchType), true)
 	if err != nil {
