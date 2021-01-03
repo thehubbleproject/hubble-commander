@@ -119,7 +119,7 @@ func (acc *UserState) CreateAccountHash() {
 // Utils
 //
 
-// EmptyUserState creates a new account which has the same hash as ZERO_VALUE_LEAF
+// EmptyUserState creates a new account which has the same hash as ZeroLeaf
 func EmptyUserState() UserState {
 	return *NewUserState(ZERO, STATUS_INACTIVE, "", []byte(""))
 }

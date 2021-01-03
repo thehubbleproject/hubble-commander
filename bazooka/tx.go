@@ -6,6 +6,7 @@ import (
 
 	"github.com/BOPR/config"
 	"github.com/BOPR/contracts/accountregistry"
+	"github.com/BOPR/contracts/rollup"
 	"github.com/BOPR/core"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCmn "github.com/ethereum/go-ethereum/common"
@@ -269,7 +270,7 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment, accoun
 	return commitmentData, tx.Hash().String(), nil
 }
 
-func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []core.UserState, subTreeHeight uint64) (err error) {
+func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []core.UserState, commitmentMP TypesCommitmentInclusionProof, subTreeHeight uint64) (err error) {
 	b.log.Info(
 		"Attempting to finalise deposits",
 		"NodeToBeReplaced",
@@ -280,37 +281,37 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 		subTreeHeight,
 	)
 
-	// depositSubTreeHeight := big.NewInt(int64(subTreeHeight))
+	stateProof := NewStateMerkleProof(TBreplaced, siblings)
+	solStateProof, err := stateProof.ToABIVersion(*b)
+	if err != nil {
+		return nil
 
-	// stateProof := NewStateMerkleProof(TBreplaced, siblings)
+	}
+	pathAtDepth := core.StringToBigInt(TBreplaced.Path)
 
-	// b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(config.GlobalCfg.RollupAddress))
+	commitmentIP := rollup.TypesCommitmentInclusionProof{
+		Commitment: rollup.TypesCommitment{
+			StateRoot: commitmentMP.Commitment.StateRoot, BodyRoot: commitmentMP.Commitment.BodyRoot,
+		}}
+	vacancyProof := rollup.TypesSubtreeVacancyProof{
+		Depth:       big.NewInt(int64(subTreeHeight)),
+		Witness:     solStateProof.Witness,
+		PathAtDepth: pathAtDepth,
+	}
 
-	// data, err := b.ContractABI[common.ROLLUP_CONTRACT_KEY].Pack("finaliseDepositsAndSubmitBatch", depositSubTreeHeight, accountProof)
-	// if err != nil {
-	// 	fmt.Println("Unable to craete data", err)
-	// 	return
-	// }
+	input, err := b.RollupABI.Pack("submitDeposits", commitmentIP, vacancyProof)
+	if err != nil {
+		b.log.Error("Error packing data for submitBatch", "err", err)
+		return err
+	}
 
-	// rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
-	// stakeAmount := big.NewInt(0)
-	// stakeAmount.SetString("32000000000000000000", 10)
+	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(config.GlobalCfg.AccountRegistry), big.NewInt(32), input)
+	if err != nil {
+		b.log.Error("Error sending register batch", "err", err)
+		return
+	}
 
-	// // generate call msg
-	// callMsg := ethereum.CallMsg{}
-
-	// auth, err := b.generateAuthObj(b.EthClient)
-	// if err != nil {
-	// 	return err
-	// }
-	// // b.log.Info("Broadcasting deposit finalisation transaction")
-	// var commitmentIP TypesCommitmentInclusionProof
-
-	// tx, err := b.SC.RollupContract.SubmitDeposits(auth, commitmentIP, accountProof)
-	// if err != nil {
-	// 	return err
-	// }
-	// // b.log.Info("Deposits successfully finalized!", "TxHash", tx.Hash())
+	b.log.Info("Deposits successfully finalized!", "TxHash", tx.Hash())
 	return nil
 }
 

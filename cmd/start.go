@@ -106,12 +106,12 @@ func loadGenesisData(bz *bazooka.Bazooka, DBI *db.DB, genesis config.Genesis) {
 		// create empty state
 		newEmptyState := core.EmptyUserState()
 		newEmptyState.Data = zeroData
-		newEmptyState.Hash = core.ZERO_VALUE_LEAF.String()
+		newEmptyState.Hash = core.ZeroLeaf.String()
 		states = append(states, newEmptyState)
 
 		// create empty account
 		newAccount := core.NewEmptyAccount()
-		newAccount.Hash = core.ZERO_VALUE_LEAF.String()
+		newAccount.Hash = core.ZeroLeaf.String()
 		accounts = append(accounts, *newAccount)
 	}
 

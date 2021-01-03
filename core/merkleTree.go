@@ -5,15 +5,14 @@ import (
 	"math"
 )
 
-// ZERO_VALUE_LEAF depicts the empty leaf in balance tree
 var (
-	ZERO_VALUE_LEAF ByteArray
-	DefaultHashes   []ByteArray
+	ZeroLeaf      ByteArray
+	DefaultHashes []ByteArray
 )
 
 func init() {
 	var err error
-	ZERO_VALUE_LEAF, err = HexToByteArray("0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563")
+	ZeroLeaf, err = HexToByteArray("0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563")
 	if err != nil {
 		panic(err)
 	}
@@ -63,7 +62,7 @@ func NewTree(leaves []ByteArray) (newTree Tree, err error) {
 
 	err = ascend(&newTree)
 	if err != nil {
-		panic(err)
+		return newTree, err
 	}
 
 	return newTree, nil
@@ -127,7 +126,7 @@ func GetParentPath(path string) (parentNodePath string) {
 // GenDefaultHashes generates default hashes
 func GenDefaultHashes(depth int) ([]ByteArray, error) {
 	hashes := make([]ByteArray, depth)
-	hashes[0] = ZERO_VALUE_LEAF
+	hashes[0] = ZeroLeaf
 	for i := 1; i < depth; i++ {
 		parent, err := GetParent(hashes[i-1], hashes[i-1])
 		if err != nil {

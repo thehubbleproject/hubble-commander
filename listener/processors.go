@@ -233,8 +233,17 @@ func (s *Syncer) SendDepositFinalisationTx() {
 	if err != nil {
 		return
 	}
+	totalBatches, err := s.DBInstance.GetBatchCount()
+	if err != nil {
+		return
+	}
 
-	err = s.loadedBazooka.FireDepositFinalisation(nodeToBeReplaced, siblings, params.MaxDepositSubTreeHeight)
+	commitmentMP, err := s.DBInstance.GetLastCommitmentMP(uint64(totalBatches))
+	if err != nil {
+		return
+	}
+
+	err = s.loadedBazooka.FireDepositFinalisation(nodeToBeReplaced, siblings, commitmentMP, params.MaxDepositSubTreeHeight)
 	if err != nil {
 		return
 	}

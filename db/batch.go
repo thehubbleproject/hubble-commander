@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/BOPR/bazooka"
@@ -17,7 +16,9 @@ func (db *DB) GetLatestBatch() (batch core.Batch, err error) {
 
 func (db *DB) GetBatchCount() (int, error) {
 	var count int
-	db.Instance.Table("batches").Count(&count)
+	if err := db.Instance.Table("batches").Count(&count).Error; err != nil {
+		return count, err
+	}
 	return count, nil
 }
 
@@ -72,38 +73,43 @@ func (db *DB) GetCommitmentsForBatch(id uint64) (commitments []core.Commitment, 
 	return
 }
 
-func (db *DB) GetLastCommitmentMP(id uint64) (err error) {
+func (db *DB) GetLastCommitmentMP(id uint64) (commitmentMP bazooka.TypesCommitmentInclusionProof, err error) {
 	commitments, err := db.GetCommitmentsForBatch(id)
 	if err != nil {
-		return err
+		return
 	}
 
 	var leaves []core.ByteArray
 	for _, commitment := range commitments {
 		leaf, err := commitment.CommitmentData.Leaf()
 		if err != nil {
-			return err
+			return commitmentMP, err
 		}
 		leaves = append(leaves, leaf)
 	}
 
 	tree, err := core.NewTree(leaves)
 	if err != nil {
-		return err
+		return
 	}
 
 	lastCommitment := len(commitments) - 1
-	leaf, witness, err := tree.GetWitnessForLeaf(uint64(lastCommitment))
+	_, witnesses, err := tree.GetWitnessForLeaf(uint64(lastCommitment))
 	if err != nil {
-		return err
+		return
 	}
 
-	commitmentMP := bazooka.TypesCommitmentInclusionProof{
+	var solWitness [][32]byte
+
+	for _, witness := range witnesses {
+		solWitness = append(solWitness, witness)
+	}
+
+	commitmentMP = bazooka.TypesCommitmentInclusionProof{
 		Commitment: commitments[lastCommitment].CommitmentData,
 		Path:       big.NewInt(int64(lastCommitment)),
-		Witness:    witness,
+		Witness:    solWitness,
 	}
 
-	fmt.Println("leaf and witness", leaf, witness)
-	return nil
+	return commitmentMP, nil
 }

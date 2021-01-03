@@ -79,7 +79,7 @@ func (p *Account) HashToByteArray() ByteArray {
 
 func (p *Account) PopulateHash() error {
 	if len(p.PublicKey) == 0 {
-		p.Hash = ZERO_VALUE_LEAF.String()
+		p.Hash = ZeroLeaf.String()
 		return nil
 	}
 	hash, err := Pubkey(p.PublicKey).ToHash()

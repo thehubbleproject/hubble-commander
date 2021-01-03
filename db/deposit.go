@@ -117,7 +117,7 @@ func (db *DB) GetAllTerminalNodes(pathToDepositSubTree string) (terminalNodes []
 
 	// get all accounts while making sure they are empty and append to paths array
 	for _, account := range accounts {
-		if account.Hash != core.ZERO_VALUE_LEAF.String() {
+		if account.Hash != core.ZeroLeaf.String() {
 			return terminalNodes, errors.New("Account not zero, aborting operation")
 		}
 		terminalNodes = append(terminalNodes, account.Path)
