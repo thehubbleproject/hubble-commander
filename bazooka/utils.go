@@ -35,7 +35,6 @@ func (b *Bazooka) ParseCalldata(txHash ethCmn.Hash, batchType uint8) (calldata C
 	if err != nil {
 		return nil, err
 	}
-
 	switch batchType {
 	case core.TX_GENESIS:
 		return calldata, ErrNoTxs

@@ -3,6 +3,7 @@ package listener
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -246,7 +247,8 @@ func (s *Syncer) processEvents(logs []ethTypes.Log, header ethTypes.Header) {
 	defer s.wg.Done()
 	for _, vLog := range logs {
 		topic := vLog.Topics[0].Bytes()
-		for _, abiObject := range s.abis {
+		for i := 0; i < len(s.abis); i++ {
+			abiObject := s.abis[i]
 			selectedEvent := EventByID(&abiObject, topic)
 			if selectedEvent != nil {
 				s.Logger.Debug("Found an event", "name", selectedEvent.Name)
@@ -264,6 +266,7 @@ func (s *Syncer) processEvents(logs []ethTypes.Log, header ethTypes.Header) {
 				case "DepositsFinalised":
 					s.processDepositFinalised(selectedEvent.Name, &abiObject, &vLog)
 				default:
+					fmt.Println("Default here")
 					s.Logger.Debug("Unable to match with any event", "event", selectedEvent.Name)
 				}
 			} else {

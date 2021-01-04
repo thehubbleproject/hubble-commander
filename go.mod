@@ -6,6 +6,7 @@ require (
 	github.com/Djarvur/go-err113 v0.1.0 // indirect
 	github.com/aristanetworks/goarista v0.0.0-20191106175434-873d404c7f40 // indirect
 	github.com/btcsuite/btcd v0.20.1-beta // indirect
+	github.com/common-nighthawk/go-figure v0.0.0-20200609044655-c4b36f998cf2
 	github.com/daixiang0/gci v0.2.5 // indirect
 	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/ethereum/go-ethereum v1.9.15

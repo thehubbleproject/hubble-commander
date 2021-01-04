@@ -40,10 +40,6 @@ func NewTree(leaves []ByteArray) (newTree Tree, err error) {
 	treeDepth := minTreeDepth(len(leaves))
 	totalLevels := treeDepth + 1
 
-	if totalLeaves == 0 {
-		return newTree, errors.New("Cannot create empty tree")
-	}
-
 	if totalLeaves%2 != 0 {
 		return newTree, errors.New("Even number of leaves expected")
 	}
@@ -51,6 +47,12 @@ func NewTree(leaves []ByteArray) (newTree Tree, err error) {
 	newTree.TotalLeaves = uint64(totalLeaves)
 	newTree.Depth = treeDepth
 	newTree.TotalLevels = int(totalLevels)
+
+	if totalLeaves == 0 {
+		newTree.Nodes = make([][]ByteArray, 1)
+		newTree.Nodes[0] = append(newTree.Nodes[0], ZeroLeaf)
+		return newTree, nil
+	}
 
 	// initialize the array
 	newTree.Nodes = make([][]ByteArray, int(totalLevels))
@@ -70,6 +72,12 @@ func NewTree(leaves []ByteArray) (newTree Tree, err error) {
 
 // GetWitnessForLeaf creates a witness for a given leaf
 func (t *Tree) GetWitnessForLeaf(leafIndex uint64) (leaf ByteArray, witness []ByteArray, err error) {
+	if leafIndex == 0 {
+		return t.Nodes[0][0], t.Nodes[0], nil
+	}
+	if leafIndex > t.TotalLeaves {
+		return leaf, witness, errors.New("Leaf index out of range")
+	}
 	leaf = t.Nodes[t.TotalLevels-1][leafIndex]
 	depth := int(t.Depth)
 	witness = make([]ByteArray, depth)

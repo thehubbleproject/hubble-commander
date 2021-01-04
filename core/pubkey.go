@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/hex"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -40,6 +41,10 @@ func (p Pubkey) ToSol() (pubkey [4]*big.Int, err error) {
 	pubkey[2] = new(big.Int).SetBytes(p[96:128])
 
 	return pubkey, nil
+}
+
+func (p Pubkey) String() string {
+	return hex.EncodeToString(p)
 }
 
 func (p Pubkey) ToHash() (str string, err error) {

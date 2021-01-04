@@ -83,9 +83,11 @@ func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog
 	)
 	// add new account in pending state to DB and
 	newAccount := core.NewPendingUserState(event.PubkeyID.Uint64(), event.Data)
-	if err := s.DBInstance.AddNewPendingAccount(*newAccount); err != nil {
+	if err := s.DBInstance.AddNewPendingUserState(*newAccount); err != nil {
+		fmt.Println("error here", err)
 		panic(err)
 	}
+	fmt.Println("deposit queue done")
 }
 
 func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
@@ -108,11 +110,12 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 	// send deposit finalisation transction to ethereum chain
 	catchingup, err := IsCatchingUp(s.loadedBazooka, s.DBInstance)
 	if err != nil {
+		fmt.Println("Unable to determine")
 		panic(err)
 	}
 
 	if !catchingup {
-		s.SendDepositFinalisationTx()
+		s.sendDepositFinalisationTx()
 	} else {
 		s.Logger.Info("Still cathing up, aborting deposit finalisation")
 	}
@@ -224,27 +227,31 @@ func (s *Syncer) processRegisteredToken(eventName string, abiObject *abi.ABI, vL
 	}
 }
 
-func (s *Syncer) SendDepositFinalisationTx() {
+func (s *Syncer) sendDepositFinalisationTx() {
 	params, err := s.DBInstance.GetParams()
 	if err != nil {
+		fmt.Println("error while getting params")
 		return
 	}
 	nodeToBeReplaced, siblings, err := s.DBInstance.GetDepositNodeAndSiblings()
 	if err != nil {
+		fmt.Println("error finding replaced nodes", err)
 		return
 	}
 	totalBatches, err := s.DBInstance.GetBatchCount()
 	if err != nil {
+		fmt.Println("error find total batches", err)
 		return
 	}
-
 	commitmentMP, err := s.DBInstance.GetLastCommitmentMP(uint64(totalBatches))
 	if err != nil {
+		fmt.Println("error creating commitmentMP", err)
 		return
 	}
 
 	err = s.loadedBazooka.FireDepositFinalisation(nodeToBeReplaced, siblings, commitmentMP, params.MaxDepositSubTreeHeight)
 	if err != nil {
+		fmt.Println("errir sending tx", err)
 		return
 	}
 }
@@ -412,7 +419,7 @@ func (s *Syncer) decompressMassMigrations(decompressedTxs [][]byte, meta [][4]*b
 
 func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoot core.ByteArray, commitments []core.Commitment, err error) {
 	calldata, err := s.loadedBazooka.ParseCalldata(txHash, batchType)
-	if err != bazooka.ErrNoTxs {
+	if err == bazooka.ErrNoTxs {
 		return newRoot, commitments, nil
 	}
 	if err != nil {

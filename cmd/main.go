@@ -12,6 +12,7 @@ import (
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/wallet"
+	"github.com/common-nighthawk/go-figure"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -28,6 +29,8 @@ type Executor struct {
 }
 
 func main() {
+	myFigure := figure.NewColorFigure("Hubble", "", "red", true)
+	myFigure.Print()
 	rootCmd := &cobra.Command{
 		Use:   "hubble",
 		Short: "Optimistic Rollup Daemon (server)",

@@ -108,16 +108,18 @@ func (db *DB) UpdateState(state core.UserState) error {
 	}
 
 	db.Logger.Debug("Updating state", "Hash", state.Hash, "Path", state.Path, "countOfSiblings", len(siblings))
-	return db.StoreLeaf(state, state.Path, siblings)
+	return db.storeLeaf(state, state.Path, siblings)
 }
 
 // ReserveEmptyLeaf reserve an empty leaf
 func (db *DB) ReserveEmptyLeaf() (id uint64, err error) {
 	var states []core.UserState
+
 	// find empty state leaf
 	if err := db.Instance.Where("type = ? AND status = ?", core.TYPE_TERMINAL, core.STATUS_INACTIVE).Find(&states).Error; err != nil {
 		return 0, err
 	}
+
 	// update status to status_active
 	states[1].Status = core.STATUS_ACTIVE
 	if err := db.updateState(states[1], states[1].Path); err != nil {
@@ -126,7 +128,7 @@ func (db *DB) ReserveEmptyLeaf() (id uint64, err error) {
 	return core.StringToUint(states[1].Path)
 }
 
-func (db *DB) StoreLeaf(state core.UserState, path string, siblings []core.UserState) error {
+func (db *DB) storeLeaf(state core.UserState, path string, siblings []core.UserState) error {
 	var err error
 	var isLeft bool
 	computedNode := state
@@ -208,7 +210,7 @@ func (db *DB) UpdateRootNodeHashes(newRoot core.ByteArray) error {
 	return db.updateState(tempAccount, tempAccount.Path)
 }
 
-func (db *DB) AddNewPendingAccount(acc core.UserState) error {
+func (db *DB) AddNewPendingUserState(acc core.UserState) error {
 	return db.Instance.Create(&acc).Error
 }
 

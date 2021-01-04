@@ -1,8 +1,11 @@
 package rest
 
 import (
+	"fmt"
+
 	"github.com/BOPR/bazooka"
 	"github.com/BOPR/db"
+	"github.com/common-nighthawk/go-figure"
 	"github.com/gorilla/mux"
 )
 
@@ -11,6 +14,8 @@ var bazookaI bazooka.Bazooka
 
 // LoadRouters loads router
 func LoadRouters() (r *mux.Router, err error) {
+	myFigure := figure.NewColorFigure("Hubble", "", "red", true)
+	myFigure.Print()
 	tempDB, err := db.NewDB()
 	if err != nil {
 		return
@@ -24,8 +29,25 @@ func LoadRouters() (r *mux.Router, err error) {
 	bazookaI = bz
 
 	r = mux.NewRouter()
-	r.HandleFunc("/tx", TxHandler).Methods("POST")
-	r.HandleFunc("/account", GetAccountHandler).Methods("GET")
 	r.HandleFunc("/state/{id}", stateDecoderHandler).Methods("GET")
+	r.HandleFunc("/account/{id}", accountDecoderHandler).Methods("GET")
+
+	r.HandleFunc("/tx", TxHandler).Methods("POST")
+	r.HandleFunc("/transfer", transferTx).Methods("POST")
+	r.HandleFunc("/massmigration", massMigrationTx).Methods("POST")
+	r.HandleFunc("/create2transfer", create2transferTx).Methods("POST")
+
+	fmt.Println("Here are the available routes...")
+	err = r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		t, err := route.GetPathTemplate()
+		if err != nil {
+			return err
+		}
+		fmt.Println(t)
+		return nil
+	})
+	if err != nil {
+		return
+	}
 	return r, nil
 }

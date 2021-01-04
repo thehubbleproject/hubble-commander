@@ -61,6 +61,9 @@ func (db *DB) CommitBatch(ID uint64) error {
 }
 
 func (db *DB) addCommitmentsWithBatchID(commitments []core.Commitment, batchID uint64) error {
+	if len(commitments) == 0 {
+		return nil
+	}
 	dbCommitments := core.NewCommitments(commitments, batchID)
 	return db.Instance.Create(&dbCommitments).Error
 }
@@ -92,8 +95,7 @@ func (db *DB) GetLastCommitmentMP(id uint64) (commitmentMP bazooka.TypesCommitme
 	if err != nil {
 		return
 	}
-
-	lastCommitment := len(commitments) - 1
+	lastCommitment := len(commitments)
 	_, witnesses, err := tree.GetWitnessForLeaf(uint64(lastCommitment))
 	if err != nil {
 		return
