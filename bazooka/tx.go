@@ -284,15 +284,18 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 	stateProof := NewStateMerkleProof(TBreplaced, siblings)
 	solStateProof, err := stateProof.ToABIVersion(*b)
 	if err != nil {
-		return nil
-
+		return err
 	}
 	pathAtDepth := core.StringToBigInt(TBreplaced.Path)
 
 	commitmentIP := rollup.TypesCommitmentInclusionProof{
 		Commitment: rollup.TypesCommitment{
 			StateRoot: commitmentMP.Commitment.StateRoot, BodyRoot: commitmentMP.Commitment.BodyRoot,
-		}}
+		},
+		Path:    commitmentMP.Path,
+		Witness: commitmentMP.Witness,
+	}
+
 	vacancyProof := rollup.TypesSubtreeVacancyProof{
 		Depth:       big.NewInt(int64(subTreeHeight)),
 		Witness:     solStateProof.Witness,
@@ -305,7 +308,7 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 		return err
 	}
 
-	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(config.GlobalCfg.AccountRegistry), big.NewInt(32), input)
+	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(config.GlobalCfg.RollupAddress), big.NewInt(32), input)
 	if err != nil {
 		b.log.Error("Error sending register batch", "err", err)
 		return

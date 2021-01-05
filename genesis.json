@@ -1,5 +1,5 @@
 {
-    "max_tree_depth": 10,
+    "max_tree_depth": 8,
     "max_deposit_subtree": 1,
     "stake_amount": 32
 }

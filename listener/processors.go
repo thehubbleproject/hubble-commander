@@ -83,11 +83,10 @@ func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog
 	)
 	// add new account in pending state to DB and
 	newAccount := core.NewPendingUserState(event.PubkeyID.Uint64(), event.Data)
-	if err := s.DBInstance.AddNewPendingUserState(*newAccount); err != nil {
-		fmt.Println("error here", err)
+	err = s.DBInstance.AddNewPendingUserState(*newAccount)
+	if err != nil {
 		panic(err)
 	}
-	fmt.Println("deposit queue done")
 }
 
 func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
@@ -100,12 +99,6 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 		fmt.Println("Unable to unpack log:", err)
 		panic(err)
 	}
-	err = s.DBInstance.AttachDepositInfo(event.Root)
-	if err != nil {
-		// TODO do something with this error
-		fmt.Println("Unable to attack deposit information:", err)
-		panic(err)
-	}
 
 	// send deposit finalisation transction to ethereum chain
 	catchingup, err := IsCatchingUp(s.loadedBazooka, s.DBInstance)
@@ -115,11 +108,16 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 	}
 
 	if !catchingup {
+		err = s.DBInstance.AttachDepositInfo(event.Root)
+		if err != nil {
+			// TODO do something with this error
+			fmt.Println("Unable to attack deposit information:", err)
+			panic(err)
+		}
 		s.sendDepositFinalisationTx()
 	} else {
 		s.Logger.Info("Still cathing up, aborting deposit finalisation")
 	}
-
 }
 
 func (s *Syncer) processDepositFinalised(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
@@ -251,7 +249,7 @@ func (s *Syncer) sendDepositFinalisationTx() {
 
 	err = s.loadedBazooka.FireDepositFinalisation(nodeToBeReplaced, siblings, commitmentMP, params.MaxDepositSubTreeHeight)
 	if err != nil {
-		fmt.Println("errir sending tx", err)
+		fmt.Println("error sending tx", err)
 		return
 	}
 }

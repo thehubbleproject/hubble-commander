@@ -69,6 +69,10 @@ type CommitmentData struct {
 	BodyRoot  ByteArray
 }
 
+func NewCommitmentData(stateRoot, bodyRoot ByteArray) *CommitmentData {
+	return &CommitmentData{StateRoot: stateRoot, BodyRoot: bodyRoot}
+}
+
 func (c CommitmentData) Leaf() (leaf ByteArray, err error) {
 	data, err := c.Bytes()
 	if err != nil {
@@ -98,10 +102,6 @@ func (c CommitmentData) Bytes() ([]byte, error) {
 		return []byte(""), err
 	}
 	return data, nil
-}
-
-func NewCommitmentData(stateRoot, bodyRoot ByteArray) *CommitmentData {
-	return &CommitmentData{StateRoot: stateRoot, BodyRoot: bodyRoot}
 }
 
 type TxCommitment interface {

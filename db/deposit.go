@@ -7,7 +7,8 @@ import (
 	"github.com/BOPR/core"
 )
 
-func (db *DB) GetDepositNodeAndSiblings() (NodeToBeReplaced core.UserState, siblings []core.UserState, err error) {
+// GetDepositNodeAndSiblings fetches the right intermediate node that has to be replaced for deposits
+func (db *DB) GetDepositNodeAndSiblings() (nodeToBeReplaced core.UserState, siblings []core.UserState, err error) {
 	// get params
 	params, err := db.GetParams()
 	if err != nil {
@@ -19,13 +20,13 @@ func (db *DB) GetDepositNodeAndSiblings() (NodeToBeReplaced core.UserState, sibl
 	expectedHash := core.DefaultHashes[params.MaxDepositSubTreeHeight]
 
 	// getNode with the expectedHash
-	NodeToBeReplaced, err = db.GetDepositSubTreeRoot(expectedHash.String(), params.MaxDepth-params.MaxDepositSubTreeHeight)
+	nodeToBeReplaced, err = db.GetDepositSubTreeRoot(expectedHash.String(), params.MaxDepth-params.MaxDepositSubTreeHeight)
 	if err != nil {
 		return
 	}
 
 	// get siblings for the path to node
-	siblings, err = db.GetSiblings(NodeToBeReplaced.Path)
+	siblings, err = db.GetSiblings(nodeToBeReplaced.Path)
 	if err != nil {
 		return
 	}
@@ -33,6 +34,7 @@ func (db *DB) GetDepositNodeAndSiblings() (NodeToBeReplaced core.UserState, sibl
 	return
 }
 
+// FinaliseDepositsAndAddBatch finalises deposits and a
 func (db *DB) FinaliseDepositsAndAddBatch(depositRoot core.ByteArray, pathToDepositSubTree uint64) (string, error) {
 	var root string
 	db.Logger.Info("Finalising accounts", "depositRoot", depositRoot, "pathToDepositSubTree", pathToDepositSubTree)
@@ -70,7 +72,6 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.Byt
 		return err
 	}
 
-	// TODO add error for if no account found
 	terminalNodes, err := db.GetAllTerminalNodes(getTerminalNodesOf)
 	if err != nil {
 		return err

@@ -100,12 +100,10 @@ func loadGenesisData(bz *bazooka.Bazooka, DBI *db.DB, genesis config.Genesis) {
 
 	var states []core.UserState
 	var accounts []core.Account
-	var zeroData []byte
 
 	for i := 0; i < int(math.Exp2(float64(genesis.MaxTreeDepth))); i++ {
 		// create empty state
 		newEmptyState := core.EmptyUserState()
-		newEmptyState.Data = zeroData
 		newEmptyState.Hash = core.ZeroLeaf.String()
 		states = append(states, newEmptyState)
 

@@ -107,10 +107,21 @@ func (db *DB) GetLastCommitmentMP(id uint64) (commitmentMP bazooka.TypesCommitme
 		solWitness = append(solWitness, witness)
 	}
 
-	commitmentMP = bazooka.TypesCommitmentInclusionProof{
-		Commitment: commitments[lastCommitment].CommitmentData,
-		Path:       big.NewInt(int64(lastCommitment)),
-		Witness:    solWitness,
+	if lastCommitment == 0 {
+		root, _ := db.GetRoot()
+		rootHash, _ := core.HexToByteArray(root.Hash)
+
+		commitmentMP = bazooka.TypesCommitmentInclusionProof{
+			Commitment: *core.NewCommitmentData(rootHash, core.ZeroLeaf),
+			Path:       big.NewInt(int64(lastCommitment)),
+			Witness:    solWitness,
+		}
+	} else {
+		commitmentMP = bazooka.TypesCommitmentInclusionProof{
+			Commitment: commitments[lastCommitment].CommitmentData,
+			Path:       big.NewInt(int64(lastCommitment)),
+			Witness:    solWitness,
+		}
 	}
 
 	return commitmentMP, nil

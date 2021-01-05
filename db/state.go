@@ -22,6 +22,7 @@ func (db *DB) InitStateTree(depth uint64, genesisAccounts []core.UserState) erro
 
 	var insertRecords []interface{}
 	prevNodePath := genesisAccounts[0].Path
+	db.Logger.Info("Num of genesis account", len(genesisAccounts))
 
 	for i := 0; i < len(genesisAccounts); i++ {
 		var path string
@@ -280,7 +281,7 @@ func (db *DB) GetDepositSubTreeRoot(hash string, level uint64) (core.UserState, 
 
 func (db *DB) GetRoot() (core.UserState, error) {
 	var account core.UserState
-	err := db.Instance.Where("level = ?", 0).Find(&account).GetErrors()
+	err := db.Instance.Where("level = ? AND status = ?", 0, core.STATUS_INACTIVE).Find(&account).GetErrors()
 	if len(err) != 0 {
 		return account, core.ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v", err))
 	}
@@ -324,7 +325,8 @@ func (db *DB) AttachDepositInfo(root core.ByteArray) error {
 	// find all pending accounts
 	var account core.UserState
 	account.CreatedByDepositSubTree = root.String()
-	if err := db.Instance.Model(&account).Where("status = ?", core.STATUS_PENDING).Update(&account).Error; err != nil {
+	result := db.Instance.Model(&account).Where("status = ?", core.STATUS_PENDING).Update(&account)
+	if err := result.Error; err != nil {
 		return err
 	}
 	return nil
@@ -333,7 +335,8 @@ func (db *DB) AttachDepositInfo(root core.ByteArray) error {
 func (db *DB) GetPendingAccByDepositRoot(root core.ByteArray) ([]core.UserState, error) {
 	// find all accounts with CreatedByDepositSubTree as `root`
 	var pendingAccounts []core.UserState
-	if err := db.Instance.Where("created_by_deposit_sub_tree = ? AND status = ?", root.String(), core.STATUS_PENDING).Find(&pendingAccounts).Error; err != nil {
+	query := db.Instance.Where("created_by_deposit_sub_tree = ? AND status = ?", root.String(), core.STATUS_PENDING).Find(&pendingAccounts)
+	if err := query.Error; err != nil {
 		return pendingAccounts, err
 	}
 
