@@ -259,8 +259,8 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, isSyncing bool) (co
 		if err != nil {
 			return commitments, err
 		}
-		if i%core.COMMITMENT_SIZE == 0 {
-			txInCommitment := txs[i : i+core.COMMITMENT_SIZE]
+		if i%int(config.GlobalCfg.TxsPerBatch) == 0 {
+			txInCommitment := txs[i : i+int(config.GlobalCfg.TxsPerBatch)]
 			aggregatedSig, err := aggregateSignatures(txInCommitment)
 			if err != nil {
 				if isSyncing && err == core.ErrSignatureNotPresent {

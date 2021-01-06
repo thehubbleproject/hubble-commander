@@ -95,8 +95,8 @@ func NewPreLoadedBazooka() (bazooka Bazooka, err error) {
 	return bazooka, nil
 }
 
-// GetMainChainBlock fetches the eth chain block for a block num
-func (b *Bazooka) GetMainChainBlock(blockNum *big.Int) (header *ethTypes.Header, err error) {
+// GetEthBlock fetches the eth chain block for a block num
+func (b *Bazooka) GetEthBlock(blockNum *big.Int) (header *ethTypes.Header, err error) {
 	latestBlock, err := b.EthClient.HeaderByNumber(context.Background(), blockNum)
 	if err != nil {
 		return

@@ -9,9 +9,14 @@ import (
 	"github.com/BOPR/core"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 	ethCmn "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+)
+
+var (
+	ErrNoEnoughConfirmations = errors.New("Not enough confirmations")
 )
 
 func (b *Bazooka) getTxDataByHash(txHash ethCmn.Hash) (data []byte, err error) {
@@ -113,4 +118,35 @@ func (b *Bazooka) generateAuthObj(client *ethclient.Client, toAddr ethCmn.Addres
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.GasLimit = uint64(gasLimit)
 	return
+}
+
+// GetConfirmedTxReceipt returns confirmed tx receipt
+func (b *Bazooka) GetConfirmedTxReceipt(tx common.Hash, requiredConfirmations uint64) (txReceipt *types.Receipt, err error) {
+	// get main tx receipt
+	receipt, err := b.GetReceipt(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	// get main chain block
+	latestBlk, err := b.GetEthBlock(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	diff := latestBlk.Number.Uint64() - receipt.BlockNumber.Uint64()
+	if diff < requiredConfirmations {
+		return nil, ErrNoEnoughConfirmations
+	}
+
+	return receipt, nil
+}
+
+// GetReceipt returns main tx receipt
+func (b *Bazooka) GetReceipt(txHash common.Hash) (*types.Receipt, error) {
+	return b.getTxReceipt(b.EthClient, txHash)
+}
+
+func (b *Bazooka) getTxReceipt(client *ethclient.Client, txHash common.Hash) (*types.Receipt, error) {
+	return client.TransactionReceipt(context.Background(), txHash)
 }
