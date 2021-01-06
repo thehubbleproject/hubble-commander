@@ -46,15 +46,6 @@ func (db *DB) GetBatchByIndex(index uint64) (batch core.Batch, err error) {
 	return batch, nil
 }
 
-func (db *DB) AttachTxHash(batchID uint64, txHash string) (err error) {
-	batch, err := db.GetBatchByIndex(batchID)
-	if err != nil {
-		return err
-	}
-	batch.SubmissionHash = txHash
-	return db.Instance.Model(&batch).Where("batch_id = ?", batch.BatchID).Update(batch).Error
-}
-
 func (db *DB) CommitBatch(ID uint64) error {
 	batch, err := db.GetBatchByIndex(ID)
 	if err != nil {
