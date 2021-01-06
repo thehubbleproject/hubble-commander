@@ -14,7 +14,7 @@ var (
 type Account struct {
 	// ID is the path of the user account in the Account Tree
 	// Cannot be changed once created
-	ID uint64 `gorm:"not null;column:account_id"`
+	ID uint64 `gorm:"column:account_id"`
 
 	// Public key for the user
 	PublicKey []byte `gorm:"type:varbinary(255)"`

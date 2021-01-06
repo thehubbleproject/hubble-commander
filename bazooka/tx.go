@@ -86,7 +86,7 @@ func (b *Bazooka) submitTransferBatch(commitments []core.Commitment, accountRoot
 			return commitmentData, "", err
 		}
 		txs = append(txs, compressedTxs)
-		updatedRoots = append(updatedRoots, commitment.StateRoot)
+		updatedRoots = append(updatedRoots, core.BytesToByteArray(commitment.StateRoot))
 		totalTxs += len(commitment.Txs)
 
 		sig, err := core.BytesToSolSignature(commitment.AggregatedSignature)
@@ -141,7 +141,7 @@ func (b *Bazooka) submitCreate2TransferBatch(commitments []core.Commitment, acco
 			return commitmentData, "", err
 		}
 		txs = append(txs, compressedTxs)
-		updatedRoots = append(updatedRoots, commitment.StateRoot)
+		updatedRoots = append(updatedRoots, core.BytesToByteArray(commitment.StateRoot))
 		totalTxs += len(commitment.Txs)
 
 		sig, err := core.BytesToSolSignature(commitment.AggregatedSignature)
@@ -195,7 +195,7 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment, accoun
 			return commitmentData, "", err
 		}
 		txs = append(txs, compressedTxs)
-		updatedRoots = append(updatedRoots, commitment.StateRoot)
+		updatedRoots = append(updatedRoots, core.BytesToByteArray(commitment.StateRoot))
 		totalTxs += len(commitment.Txs)
 
 		sig, err := core.BytesToSolSignature(commitment.AggregatedSignature)
@@ -290,7 +290,7 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 
 	commitmentIP := rollup.TypesCommitmentInclusionProof{
 		Commitment: rollup.TypesCommitment{
-			StateRoot: commitmentMP.Commitment.StateRoot, BodyRoot: commitmentMP.Commitment.BodyRoot,
+			StateRoot: core.BytesToByteArray(commitmentMP.Commitment.StateRoot), BodyRoot: core.BytesToByteArray(commitmentMP.Commitment.BodyRoot),
 		},
 		Path:    commitmentMP.Path,
 		Witness: commitmentMP.Witness,

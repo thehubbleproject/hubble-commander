@@ -2,10 +2,15 @@ package core
 
 import (
 	"encoding/hex"
+	"errors"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+)
+
+var (
+	ErrInvalidPubkeyLen = errors.New("invalid pubkey length")
 )
 
 // Pubkey is an alias for public key

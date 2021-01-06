@@ -9,7 +9,7 @@ import (
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
 )
 
-// GetAccount gets the account of the given path from the DB
+// GetAccountLeafByPath gets the account of the given path from the DB
 func (db *DB) GetAccountLeafByPath(path string) (core.Account, error) {
 	var pdaLeaf core.Account
 	err := db.Instance.Where("path = ?", path).Find(&pdaLeaf).GetErrors()

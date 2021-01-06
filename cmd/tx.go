@@ -18,7 +18,7 @@ var (
 	ErrStateInActive = errors.New("User state inactive")
 )
 
-//  sendTransferTx generated init command to initialise the config file
+// sendTransferTx generated init command to initialise the config file
 func sendTransferTx() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer",
@@ -42,6 +42,7 @@ func sendTransferTx() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			pubKey, err := flags.GetString(FlagPubKey)
 			if err != nil {
 				return err
@@ -58,6 +59,11 @@ func sendTransferTx() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			wallet, err := wallet.SecretToWallet(privKeyBytes, pubkeyBytes)
+			if err != nil {
+				return err
+			}
+			secretBytes, pubkeyBytes := wallet.Bytes()
 
 			DBI, err := db.NewDB()
 			if err != nil {
@@ -70,7 +76,7 @@ func sendTransferTx() *cobra.Command {
 				return err
 			}
 
-			txHash, err := validateAndTransfer(&DBI, &bazooka, fromIndex, toIndex, amount, fee, privKeyBytes, pubkeyBytes)
+			txHash, err := validateAndTransfer(&DBI, &bazooka, fromIndex, toIndex, amount, fee, secretBytes, pubkeyBytes)
 			if err != nil {
 				return err
 			}
@@ -79,11 +85,12 @@ func sendTransferTx() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP(FlagToID, "", "", "--to=<to-account>")
-	cmd.Flags().StringP(FlagFromID, "", "", "--from=<from-account>")
+	cmd.Flags().Uint64P(FlagToID, "", 0, "--to=<to-account>")
+	cmd.Flags().Uint64P(FlagFee, "", 0, "--fee=<fee>")
+	cmd.Flags().Uint64P(FlagFromID, "", 0, "--from=<from-account>")
 	cmd.Flags().StringP(FlagPubKey, "", "", "--pubkey=<pubkey>")
 	cmd.Flags().StringP(FlagPrivKey, "", "", "--privkey=<privkey>")
-	cmd.Flags().StringP(FlagAmount, "", "", "--amount=<amount>")
+	cmd.Flags().Uint64P(FlagAmount, "", 0, "--amount=<amount>")
 	err := cmd.MarkFlagRequired(FlagToID)
 	common.PanicIfError(err)
 	err = cmd.MarkFlagRequired(FlagFromID)

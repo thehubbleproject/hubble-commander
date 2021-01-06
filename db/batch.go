@@ -22,10 +22,10 @@ func (db *DB) GetBatchCount() (int, error) {
 	return count, nil
 }
 
-func (db *DB) AddNewBatch(batch core.Batch, commitments []core.Commitment) error {
+func (db *DB) AddNewBatch(batch core.Batch, commitments []core.Commitment) (batchID uint64, err error) {
 	batchCount, err := db.GetBatchCount()
 	if err != nil {
-		return err
+		return batchID, err
 	}
 
 	// this is because batch ID starts from 0
@@ -33,10 +33,10 @@ func (db *DB) AddNewBatch(batch core.Batch, commitments []core.Commitment) error
 
 	err = db.addCommitmentsWithBatchID(commitments, batch.BatchID)
 	if err != nil {
-		return err
+		return
 	}
 
-	return db.Instance.Create(batch).Error
+	return batch.BatchID, db.Instance.Create(batch).Error
 }
 
 func (db *DB) GetBatchByIndex(index uint64) (batch core.Batch, err error) {
@@ -44,6 +44,15 @@ func (db *DB) GetBatchByIndex(index uint64) (batch core.Batch, err error) {
 		return batch, err
 	}
 	return batch, nil
+}
+
+func (db *DB) AttachTxHash(batchID uint64, txHash string) (err error) {
+	batch, err := db.GetBatchByIndex(batchID)
+	if err != nil {
+		return err
+	}
+	batch.SubmissionHash = txHash
+	return db.Instance.Model(&batch).Where("batch_id = ?", batch.BatchID).Update(batch).Error
 }
 
 func (db *DB) CommitBatch(ID uint64) error {
@@ -64,8 +73,14 @@ func (db *DB) addCommitmentsWithBatchID(commitments []core.Commitment, batchID u
 	if len(commitments) == 0 {
 		return nil
 	}
-	dbCommitments := core.NewCommitments(commitments, batchID)
-	return db.Instance.Create(&dbCommitments).Error
+	for i, commitment := range commitments {
+		commitment.Offset = uint64(i)
+		commitment.BatchID = batchID
+		if err := db.Instance.Create(&commitment).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // GetCommitmentsForBatch getter for all commitments sent in a batch in order of offset

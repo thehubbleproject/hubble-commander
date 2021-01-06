@@ -175,7 +175,7 @@ func GetVerificationData(bz bazooka.Bazooka, DBI *DB, tx *core.Tx) (fromMerklePr
 }
 
 // Validate creates proofs for validating txs and returns new root post validation
-func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core.Tx) (newRoot core.ByteArray, err error) {
+func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core.Tx, isSyncing bool) (newRoot core.ByteArray, err error) {
 	fromStateProof, toStateProof, txDBConn, err := GetVerificationData(*bz, DBI, tx)
 	if err != nil {
 		return
@@ -190,11 +190,13 @@ func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core
 		return
 	}
 
-	err = authenticate(bz, DBI, tx)
-	if err != nil {
-		txDBConn.Instance.Rollback()
-		txDBConn.Close()
-		return
+	if !isSyncing {
+		err = authenticate(bz, DBI, tx)
+		if err != nil {
+			txDBConn.Instance.Rollback()
+			txDBConn.Close()
+			return
+		}
 	}
 
 	if txDBConn.Instance != nil {
@@ -216,7 +218,17 @@ func authenticate(bz *bazooka.Bazooka, DBI *DB, tx *core.Tx) error {
 		return err
 	}
 
-	fromAcc, err := DBI.GetAccountLeafByID(accID.Uint64())
+	params, err := DBI.GetParams()
+	if err != nil {
+		return err
+	}
+
+	path, err := core.SolidityPathToNodePath(accID.Uint64(), params.MaxDepth)
+	if err != nil {
+		return err
+	}
+
+	fromAcc, err := DBI.GetAccountLeafByPath(path)
 	if err != nil {
 		return err
 	}
@@ -243,7 +255,7 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, isSyncing bool) (co
 		if err != nil {
 			return commitments, err
 		}
-		newRoot, err := Validate(bz, DBI, currentRoot, &tx)
+		newRoot, err := Validate(bz, DBI, currentRoot, &tx, isSyncing)
 		if err != nil {
 			return commitments, err
 		}
