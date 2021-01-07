@@ -103,20 +103,19 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 	// send deposit finalisation transction to ethereum chain
 	catchingup, err := IsCatchingUp(s.loadedBazooka, s.DBInstance)
 	if err != nil {
-		fmt.Println("Unable to determine")
 		panic(err)
 	}
-
 	if !catchingup {
-		err = s.DBInstance.AttachDepositInfo(event.Root)
-		if err != nil {
-			// TODO do something with this error
-			fmt.Println("Unable to attack deposit information:", err)
-			panic(err)
-		}
 		s.sendDepositFinalisationTx()
 	} else {
 		s.Logger.Info("Still cathing up, aborting deposit finalisation")
+	}
+
+	err = s.DBInstance.AttachDepositInfo(event.Root)
+	if err != nil {
+		// TODO do something with this error
+		fmt.Println("Unable to attack deposit information:", err)
+		panic(err)
 	}
 }
 
@@ -227,33 +226,35 @@ func (s *Syncer) processRegisteredToken(eventName string, abiObject *abi.ABI, vL
 	}
 }
 
-func (s *Syncer) sendDepositFinalisationTx() {
+func (s *Syncer) sendDepositFinalisationTx() error {
 	params, err := s.DBInstance.GetParams()
 	if err != nil {
 		fmt.Println("error while getting params")
-		return
+		return err
 	}
 	nodeToBeReplaced, siblings, err := s.DBInstance.GetDepositNodeAndSiblings()
 	if err != nil {
 		fmt.Println("error finding replaced nodes", err)
-		return
+		return err
 	}
 	totalBatches, err := s.DBInstance.GetBatchCount()
 	if err != nil {
 		fmt.Println("error find total batches", err)
-		return
+		return err
 	}
 	commitmentMP, err := s.DBInstance.GetLastCommitmentMP(uint64(totalBatches))
 	if err != nil {
 		fmt.Println("error creating commitmentMP", err)
-		return
+		return err
 	}
 
 	err = s.loadedBazooka.FireDepositFinalisation(nodeToBeReplaced, siblings, commitmentMP, params.MaxDepositSubTreeHeight)
 	if err != nil {
 		fmt.Println("error sending tx", err)
-		return
+		return err
 	}
+
+	return nil
 }
 
 func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoot core.ByteArray, commitments []core.Commitment, err error) {
