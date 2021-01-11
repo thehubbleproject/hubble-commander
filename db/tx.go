@@ -181,7 +181,7 @@ func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core
 	if err != nil {
 		return
 	}
-
+	DBI.Logger.Debug("Fetched all verification for transaction", "txType", tx.Type)
 	newRoot, err = bazooka.ProcessTx(*bz, currentRoot, *tx, fromStateProof, toStateProof)
 	if err != nil {
 		if txDBConn.Instance != nil {
@@ -190,6 +190,7 @@ func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core
 		}
 		return
 	}
+	DBI.Logger.Debug("Processed transaction")
 
 	if !isSyncing {
 		err = authenticate(bz, DBI, tx)
@@ -198,9 +199,11 @@ func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core
 			txDBConn.Close()
 			return
 		}
+		DBI.Logger.Debug("Tx successfully authenticated")
 	}
 
 	if txDBConn.Instance != nil {
+		DBI.Logger.Debug("Closing DB instance")
 		txDBConn.Instance.Commit()
 		txDBConn.Close()
 	}
@@ -247,16 +250,19 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, txsPerCommitment []
 	if len(txs) == 0 {
 		return commitments, core.ErrNoTxsFound
 	}
+
 	currentCommitmentIdx := 0
 	for i, tx := range txs {
 		rootAcc, err := DBI.GetRoot()
 		if err != nil {
 			return commitments, err
 		}
+
 		currentRoot, err := core.HexToByteArray(rootAcc.Hash)
 		if err != nil {
 			return commitments, err
 		}
+
 		_, err = Validate(bz, DBI, currentRoot, &tx, isSyncing)
 		if err != nil {
 			return commitments, err

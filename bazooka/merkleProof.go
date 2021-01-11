@@ -34,7 +34,7 @@ func (m *StateMerkleProof) ToABIVersion(b Bazooka) (stateMP TypesStateMerkleProo
 
 func ToABIAccount(b Bazooka, s core.UserState) (solState TypesUserState, err error) {
 	if len(s.Data) == 0 {
-		return
+		return *(NewEmptyTypesUserState()), nil
 	}
 	solState.PubkeyID, solState.Balance, solState.Nonce, solState.TokenID, err = b.DecodeState(s.Data)
 	return

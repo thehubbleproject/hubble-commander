@@ -270,12 +270,16 @@ func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoo
 	if err != nil {
 		return newRoot, commitments, fmt.Errorf("unable to parse calldata %s", err)
 	}
+
+	s.Logger.Info("Calldata parsed, applying batch", "batchType", batchType)
+
 	newRoot, commitments, err = s.applyBatch(calldata, txHash, uint64(batchType), true)
 	if err != nil {
 		return
 	}
 
-	// apply transactions
+	s.Logger.Info("Batch applied successfully!", "newRoot", newRoot)
+
 	return newRoot, commitments, nil
 }
 
@@ -300,7 +304,6 @@ func (s *Syncer) applyBatch(calldata bazooka.Calldata, txHash ethCmn.Hash, txTyp
 		if err != nil {
 			return newRoot, commitments, err
 		}
-
 		commitmentData, err = batchInfo.Commitments(accountRoot)
 		if err != nil {
 			return newRoot, commitments, err
