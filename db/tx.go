@@ -20,24 +20,24 @@ func (DBI *DB) InsertTx(tx *core.Tx) error {
 	return DBI.Instance.Create(tx).Error
 }
 
-// PopTxs
+// PopTxs pops tranasctions from the tx pool
 func (DBI *DB) PopTxs() (txs []core.Tx, err error) {
 	txType, err := DBI.FetchTxType()
 	tx := DBI.Instance.Begin()
-
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
 		}
 	}()
-
 	if err := tx.Error; err != nil {
 		return txs, err
 	}
 
 	var pendingTxs []core.Tx
+	totalTxs := config.GlobalCfg.TxsPerCommitment * config.GlobalCfg.MaxCommitmentsPerBatch
+
 	// select N number of transactions which are pending in mempool and
-	if err := tx.Limit(config.GlobalCfg.TxsPerBatch).Where(&core.Tx{Status: core.TX_STATUS_PENDING, Type: txType}).Find(&pendingTxs).Error; err != nil {
+	if err := tx.Limit(totalTxs).Where(&core.Tx{Status: core.TX_STATUS_PENDING, Type: txType}).Find(&pendingTxs).Error; err != nil {
 		DBI.Logger.Error("error while fetching pending transactions", err)
 		tx.Rollback()
 		return txs, err
@@ -56,6 +56,7 @@ func (DBI *DB) PopTxs() (txs []core.Tx, err error) {
 		DBI.Logger.Error("errors while processing transactions", errs)
 		return
 	}
+
 	return pendingTxs, tx.Commit().Error
 }
 
@@ -242,10 +243,11 @@ func authenticate(bz *bazooka.Bazooka, DBI *DB, tx *core.Tx) error {
 }
 
 // ProcessTxs processes all trasnactions and returns the commitment list
-func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, isSyncing bool) (commitments []core.Commitment, err error) {
+func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, txsPerCommitment []int, isSyncing bool) (commitments []core.Commitment, err error) {
 	if len(txs) == 0 {
 		return commitments, core.ErrNoTxsFound
 	}
+	currentCommitmentIdx := 0
 	for i, tx := range txs {
 		rootAcc, err := DBI.GetRoot()
 		if err != nil {
@@ -260,8 +262,8 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, isSyncing bool) (co
 			return commitments, err
 		}
 
-		if i%int(config.GlobalCfg.TxsPerBatch) == 0 {
-			txInCommitment := txs[i : i+int(config.GlobalCfg.TxsPerBatch)]
+		if i%txsPerCommitment[currentCommitmentIdx] == 0 {
+			txInCommitment := txs[i : i+txsPerCommitment[currentCommitmentIdx]]
 			aggregatedSig, err := aggregateSignatures(txInCommitment)
 			var commitment core.Commitment
 			if isSyncing && err == core.ErrSignatureNotPresent {
@@ -272,6 +274,12 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, isSyncing bool) (co
 				commitment = core.NewCommitment(0, 0, txInCommitment, tx.Type, core.ByteArray{}, core.ByteArray{}, aggregatedSig.ToBytes())
 			}
 			commitments = append(commitments, commitment)
+
+			// TODO remove
+			// doesnt increment currentCommitmentIdx if this is the first commit
+			if len(commitments) != 1 {
+				currentCommitmentIdx++
+			}
 		}
 	}
 

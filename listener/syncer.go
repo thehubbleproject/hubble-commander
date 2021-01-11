@@ -3,7 +3,6 @@ package listener
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -269,7 +268,6 @@ func (s *Syncer) processEvents(logs []ethTypes.Log, header ethTypes.Header) {
 				case "DepositsFinalised":
 					s.processDepositFinalised(selectedEvent.Name, &abiObject, &vLog)
 				default:
-					fmt.Println("Default here")
 					s.Logger.Debug("Unable to match with any event", "event", selectedEvent.Name)
 				}
 			} else {

@@ -2,6 +2,7 @@ package aggregator
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -13,8 +14,9 @@ import (
 	"github.com/BOPR/log"
 )
 
-const (
-	AggregatingService = "aggregator"
+var (
+	AggregatingService  = "aggregator"
+	ErrIncorrectTxCount = errors.New("inaccurate number of transactions")
 )
 
 // Aggregator is the service which is supposed to create batches
@@ -158,7 +160,18 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 }
 
 func (a *Aggregator) processTxs(txs []core.Tx) (commitments []core.Commitment, err error) {
-	return db.ProcessTxs(&a.LoadedBazooka, &a.DB, txs, false)
+	var txsInCommitment []int
+	if len(txs)%int(config.GlobalCfg.TxsPerCommitment) != 0 {
+		return commitments, ErrIncorrectTxCount
+	}
+
+	for i := range txs {
+		if i%int(config.GlobalCfg.TxsPerCommitment) == 0 {
+			txsInCommitment = append(txsInCommitment, int(config.GlobalCfg.TxsPerCommitment))
+		}
+	}
+
+	return db.ProcessTxs(&a.LoadedBazooka, &a.DB, txs, txsInCommitment, false)
 }
 
 // IsCatchingUp returns true/false according to the sync status of the node

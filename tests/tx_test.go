@@ -51,7 +51,7 @@ func TestPopTx(t *testing.T) {
 	defer cleanup()
 
 	var txType uint64 = 1
-	config.GlobalCfg.TxsPerBatch = 2
+	config.GlobalCfg.TxsPerCommitment = 2
 
 	tx1 := core.NewTx(1, 2, txType, []byte{00}, []byte{00})
 	tx2, err := core.NewPendingTx(1, 2, txType, []byte{00}, []byte{01})
