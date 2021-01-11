@@ -67,7 +67,7 @@ type Create2TransferCalldata struct {
 }
 
 func (c Create2TransferCalldata) Pack(b Bazooka) (data []byte, err error) {
-	data, err = b.RollupABI.Pack(SubmitTransferMethod, c.StateRoots, c.Signatures, c.FeeReceivers, c.Txss)
+	data, err = b.RollupABI.Pack(SubmitCreate2TransferMethod, c.StateRoots, c.Signatures, c.FeeReceivers, c.Txss)
 	if err != nil {
 		b.log.Error("Error packing data for submitBatch", "err", err)
 		return data, err
