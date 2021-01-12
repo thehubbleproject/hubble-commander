@@ -105,11 +105,18 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 		panic(err)
 	}
 
+<<<<<<< HEAD
 	// TODO fix duplication of same code below
 	if !catchingup {
 		err = s.sendDepositFinalisationTx()
 		if err != nil {
 			fmt.Println("Unable to send deposit finalisation transaction:", err)
+=======
+	if !catchingup {
+		err := s.sendDepositFinalisationTx()
+		if err != nil {
+			s.Logger.Error("Unable to send deposit finalisation tx", "error", err)
+>>>>>>> 6f9739bfb49ada9fd048a62540df78d77caa935e
 			return
 		}
 	} else {
