@@ -105,8 +105,13 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 	if err != nil {
 		panic(err)
 	}
+
 	if !catchingup {
-		s.sendDepositFinalisationTx()
+		err := s.sendDepositFinalisationTx()
+		if err != nil {
+			s.Logger.Error("Unable to send deposit finalisation tx", "error", err)
+			return
+		}
 	} else {
 		s.Logger.Info("Still cathing up, aborting deposit finalisation")
 	}
