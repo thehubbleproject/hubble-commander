@@ -146,14 +146,15 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 		return
 	}
 
-	// Step-4
 	// Record batch locally
 	lastCommitment := commitments[len(commitments)-1]
-	newBatch := core.NewBatch(lastCommitment.StateRoot.String(), config.GlobalCfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
-	err = a.DB.AddNewBatch(newBatch, commitments)
+	newBatch := core.NewBatch(core.BytesToByteArray(lastCommitment.StateRoot).String(), config.GlobalCfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
+	batchID, err := a.DB.AddNewBatch(newBatch, commitments)
 	if err != nil {
 		return
 	}
+
+	a.Logger.Info("Added new batch to DB", "ID", batchID, "numOfCommitments", len(commitments))
 }
 
 func (a *Aggregator) processTxs(txs []core.Tx) (commitments []core.Commitment, err error) {

@@ -11,7 +11,7 @@ const (
 	TYPE_NON_TERMINAL = 2
 
 	NONCE_ZERO         = 0
-	UNINITIALIZED_PATH = "-1"
+	UNINITIALIZED_PATH = ""
 	ZERO               = 0
 
 	// TX Status constants

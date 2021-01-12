@@ -22,6 +22,7 @@ func (db *DB) InitStateTree(depth uint64, genesisAccounts []core.UserState) erro
 
 	var insertRecords []interface{}
 	prevNodePath := genesisAccounts[0].Path
+	db.Logger.Info("Num of genesis account", len(genesisAccounts))
 
 	for i := 0; i < len(genesisAccounts); i++ {
 		var path string
@@ -108,16 +109,18 @@ func (db *DB) UpdateState(state core.UserState) error {
 	}
 
 	db.Logger.Debug("Updating state", "Hash", state.Hash, "Path", state.Path, "countOfSiblings", len(siblings))
-	return db.StoreLeaf(state, state.Path, siblings)
+	return db.storeLeaf(state, state.Path, siblings)
 }
 
 // ReserveEmptyLeaf reserve an empty leaf
 func (db *DB) ReserveEmptyLeaf() (id uint64, err error) {
 	var states []core.UserState
+
 	// find empty state leaf
 	if err := db.Instance.Where("type = ? AND status = ?", core.TYPE_TERMINAL, core.STATUS_INACTIVE).Find(&states).Error; err != nil {
 		return 0, err
 	}
+
 	// update status to status_active
 	states[1].Status = core.STATUS_ACTIVE
 	if err := db.updateState(states[1], states[1].Path); err != nil {
@@ -126,7 +129,7 @@ func (db *DB) ReserveEmptyLeaf() (id uint64, err error) {
 	return core.StringToUint(states[1].Path)
 }
 
-func (db *DB) StoreLeaf(state core.UserState, path string, siblings []core.UserState) error {
+func (db *DB) storeLeaf(state core.UserState, path string, siblings []core.UserState) error {
 	var err error
 	var isLeft bool
 	computedNode := state
@@ -208,7 +211,7 @@ func (db *DB) UpdateRootNodeHashes(newRoot core.ByteArray) error {
 	return db.updateState(tempAccount, tempAccount.Path)
 }
 
-func (db *DB) AddNewPendingAccount(acc core.UserState) error {
+func (db *DB) AddNewPendingUserState(acc core.UserState) error {
 	return db.Instance.Create(&acc).Error
 }
 
@@ -278,7 +281,7 @@ func (db *DB) GetDepositSubTreeRoot(hash string, level uint64) (core.UserState, 
 
 func (db *DB) GetRoot() (core.UserState, error) {
 	var account core.UserState
-	err := db.Instance.Where("level = ?", 0).Find(&account).GetErrors()
+	err := db.Instance.Where("level = ? AND status = ?", 0, core.STATUS_INACTIVE).Find(&account).GetErrors()
 	if len(err) != 0 {
 		return account, core.ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v", err))
 	}
@@ -322,7 +325,8 @@ func (db *DB) AttachDepositInfo(root core.ByteArray) error {
 	// find all pending accounts
 	var account core.UserState
 	account.CreatedByDepositSubTree = root.String()
-	if err := db.Instance.Model(&account).Where("status = ?", core.STATUS_PENDING).Update(&account).Error; err != nil {
+	result := db.Instance.Model(&account).Where("status = ?", core.STATUS_PENDING).Update(&account)
+	if err := result.Error; err != nil {
 		return err
 	}
 	return nil
@@ -331,7 +335,8 @@ func (db *DB) AttachDepositInfo(root core.ByteArray) error {
 func (db *DB) GetPendingAccByDepositRoot(root core.ByteArray) ([]core.UserState, error) {
 	// find all accounts with CreatedByDepositSubTree as `root`
 	var pendingAccounts []core.UserState
-	if err := db.Instance.Where("created_by_deposit_sub_tree = ? AND status = ?", root.String(), core.STATUS_PENDING).Find(&pendingAccounts).Error; err != nil {
+	query := db.Instance.Where("created_by_deposit_sub_tree = ? AND status = ?", root.String(), core.STATUS_PENDING).Find(&pendingAccounts)
+	if err := query.Error; err != nil {
 		return pendingAccounts, err
 	}
 

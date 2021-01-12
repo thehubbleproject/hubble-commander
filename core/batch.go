@@ -50,8 +50,8 @@ type Commitment struct {
 func NewCommitment(batchID uint64, offset uint64, txs []Tx, batchType uint64, stateRoot, bodyRoot ByteArray, signature []byte) Commitment {
 	return Commitment{
 		CommitmentData: CommitmentData{
-			StateRoot: stateRoot,
-			BodyRoot:  bodyRoot,
+			StateRoot: stateRoot[:],
+			BodyRoot:  bodyRoot[:],
 		},
 
 		BatchID:   batchID,
@@ -65,8 +65,12 @@ func NewCommitment(batchID uint64, offset uint64, txs []Tx, batchType uint64, st
 
 // CommitmentData is the crutial information per commitment that needs to be stored
 type CommitmentData struct {
-	StateRoot ByteArray
-	BodyRoot  ByteArray
+	StateRoot []byte
+	BodyRoot  []byte
+}
+
+func NewCommitmentData(stateRoot, bodyRoot ByteArray) *CommitmentData {
+	return &CommitmentData{StateRoot: stateRoot[:], BodyRoot: bodyRoot[:]}
 }
 
 func (c CommitmentData) Leaf() (leaf ByteArray, err error) {
@@ -98,10 +102,6 @@ func (c CommitmentData) Bytes() ([]byte, error) {
 		return []byte(""), err
 	}
 	return data, nil
-}
-
-func NewCommitmentData(stateRoot, bodyRoot ByteArray) *CommitmentData {
-	return &CommitmentData{StateRoot: stateRoot, BodyRoot: bodyRoot}
 }
 
 type TxCommitment interface {

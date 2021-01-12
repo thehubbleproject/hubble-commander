@@ -6,12 +6,12 @@ type UserState struct {
 	// Cannot be changed once created
 	AccountID uint64 `gorm:"not null;index:AccountID"`
 
-	Data []byte `gorm:"type:varbinary(255)" sql:"DEFAULT:0"`
+	Data []byte `gorm:"type:varbinary(255)"`
 
 	// Path from root to leaf
 	// NOTE: not a part of the leaf
 	// Path is a string to that we can run LIKE queries
-	Path string `gorm:"not null;index:Path"`
+	Path string `gorm:"index:Path"`
 
 	// Pending = 0 means has deposit but not merged to balance tree
 	// Active = 1
@@ -119,7 +119,7 @@ func (acc *UserState) CreateAccountHash() {
 // Utils
 //
 
-// EmptyUserState creates a new account which has the same hash as ZERO_VALUE_LEAF
+// EmptyUserState creates a new account which has the same hash as ZeroLeaf
 func EmptyUserState() UserState {
-	return *NewUserState(ZERO, STATUS_INACTIVE, "", []byte(""))
+	return *NewUserState(ZERO, STATUS_INACTIVE, "", nil)
 }

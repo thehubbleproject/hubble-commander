@@ -24,28 +24,35 @@ func (DBI *DB) InsertTx(tx *core.Tx) error {
 func (DBI *DB) PopTxs() (txs []core.Tx, err error) {
 	txType, err := DBI.FetchTxType()
 	tx := DBI.Instance.Begin()
+
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
 		}
 	}()
+
 	if err := tx.Error; err != nil {
 		return txs, err
 	}
+
 	var pendingTxs []core.Tx
 	// select N number of transactions which are pending in mempool and
 	if err := tx.Limit(config.GlobalCfg.TxsPerBatch).Where(&core.Tx{Status: core.TX_STATUS_PENDING, Type: txType}).Find(&pendingTxs).Error; err != nil {
 		DBI.Logger.Error("error while fetching pending transactions", err)
+		tx.Rollback()
 		return txs, err
 	}
+
 	DBI.Logger.Info("Found txs", "pendingTxs", len(pendingTxs))
 	var ids []string
 	for _, tx := range pendingTxs {
 		ids = append(ids, tx.ID)
 	}
+
 	// update the transactions from pending to processing
 	errs := tx.Table("txes").Where("id IN (?)", ids).Updates(map[string]interface{}{"status": core.TX_STATUS_PROCESSING}).GetErrors()
 	if err != nil {
+		tx.Rollback()
 		DBI.Logger.Error("errors while processing transactions", errs)
 		return
 	}
@@ -168,7 +175,7 @@ func GetVerificationData(bz bazooka.Bazooka, DBI *DB, tx *core.Tx) (fromMerklePr
 }
 
 // Validate creates proofs for validating txs and returns new root post validation
-func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core.Tx) (newRoot core.ByteArray, err error) {
+func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core.Tx, isSyncing bool) (newRoot core.ByteArray, err error) {
 	fromStateProof, toStateProof, txDBConn, err := GetVerificationData(*bz, DBI, tx)
 	if err != nil {
 		return
@@ -183,11 +190,13 @@ func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core
 		return
 	}
 
-	err = authenticate(bz, DBI, tx)
-	if err != nil {
-		txDBConn.Instance.Rollback()
-		txDBConn.Close()
-		return
+	if !isSyncing {
+		err = authenticate(bz, DBI, tx)
+		if err != nil {
+			txDBConn.Instance.Rollback()
+			txDBConn.Close()
+			return
+		}
 	}
 
 	if txDBConn.Instance != nil {
@@ -209,7 +218,17 @@ func authenticate(bz *bazooka.Bazooka, DBI *DB, tx *core.Tx) error {
 		return err
 	}
 
-	fromAcc, err := DBI.GetAccountLeafByID(accID.Uint64())
+	params, err := DBI.GetParams()
+	if err != nil {
+		return err
+	}
+
+	path, err := core.SolidityPathToNodePath(accID.Uint64(), params.MaxDepth)
+	if err != nil {
+		return err
+	}
+
+	fromAcc, err := DBI.GetAccountLeafByPath(path)
 	if err != nil {
 		return err
 	}
@@ -236,21 +255,22 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, isSyncing bool) (co
 		if err != nil {
 			return commitments, err
 		}
-		newRoot, err := Validate(bz, DBI, currentRoot, &tx)
+		_, err = Validate(bz, DBI, currentRoot, &tx, isSyncing)
 		if err != nil {
 			return commitments, err
 		}
-		if i%core.COMMITMENT_SIZE == 0 {
-			txInCommitment := txs[i : i+core.COMMITMENT_SIZE]
+
+		if i%int(config.GlobalCfg.TxsPerBatch) == 0 {
+			txInCommitment := txs[i : i+int(config.GlobalCfg.TxsPerBatch)]
 			aggregatedSig, err := aggregateSignatures(txInCommitment)
-			if err != nil {
-				if isSyncing && err == core.ErrSignatureNotPresent {
-					continue
-				} else {
-					return commitments, err
-				}
+			var commitment core.Commitment
+			if isSyncing && err == core.ErrSignatureNotPresent {
+				commitment = core.NewCommitment(0, 0, txInCommitment, tx.Type, core.ByteArray{}, core.ByteArray{}, []byte(""))
+			} else if err != nil {
+				return commitments, err
+			} else {
+				commitment = core.NewCommitment(0, 0, txInCommitment, tx.Type, core.ByteArray{}, core.ByteArray{}, aggregatedSig.ToBytes())
 			}
-			commitment := core.NewCommitment(0, 0, txInCommitment, tx.Type, newRoot, core.ByteArray{}, aggregatedSig.ToBytes())
 			commitments = append(commitments, commitment)
 		}
 	}

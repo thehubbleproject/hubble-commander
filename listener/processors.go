@@ -79,11 +79,12 @@ func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog
 		"⬜ New event found",
 		"event", eventName,
 		"pubkeyID", event.PubkeyID.String(),
-		"Amount", hex.EncodeToString(event.Data),
+		"Data", hex.EncodeToString(event.Data),
 	)
 	// add new account in pending state to DB and
 	newAccount := core.NewPendingUserState(event.PubkeyID.Uint64(), event.Data)
-	if err := s.DBInstance.AddNewPendingAccount(*newAccount); err != nil {
+	err = s.DBInstance.AddNewPendingUserState(*newAccount)
+	if err != nil {
 		panic(err)
 	}
 }
@@ -98,12 +99,6 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 		fmt.Println("Unable to unpack log:", err)
 		panic(err)
 	}
-	err = s.DBInstance.AttachDepositInfo(event.Root)
-	if err != nil {
-		// TODO do something with this error
-		fmt.Println("Unable to attack deposit information:", err)
-		panic(err)
-	}
 
 	// send deposit finalisation transction to ethereum chain
 	catchingup, err := IsCatchingUp(s.loadedBazooka, s.DBInstance)
@@ -112,11 +107,21 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 	}
 
 	if !catchingup {
-		s.SendDepositFinalisationTx()
+		err := s.sendDepositFinalisationTx()
+		if err != nil {
+			s.Logger.Error("Unable to send deposit finalisation tx", "error", err)
+			return
+		}
 	} else {
 		s.Logger.Info("Still cathing up, aborting deposit finalisation")
 	}
 
+	err = s.DBInstance.AttachDepositInfo(event.Root)
+	if err != nil {
+		// TODO do something with this error
+		fmt.Println("Unable to attack deposit information:", err)
+		panic(err)
+	}
 }
 
 func (s *Syncer) processDepositFinalised(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
@@ -180,11 +185,13 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 			return
 		}
 		newBatch := core.NewBatch(newRoot.String(), event.Committer.String(), vLog.TxHash.String(), uint64(event.BatchType), core.BATCH_COMMITTED)
-		err = s.DBInstance.AddNewBatch(newBatch, commitments)
+		batchID, err := s.DBInstance.AddNewBatch(newBatch, commitments)
 		if err != nil {
 			s.Logger.Error("Error adding new batch to DB", "error", err)
 			return
 		}
+
+		s.Logger.Info("Added new batch", "ID", batchID)
 		return
 	} else if err != nil {
 		s.Logger.Error("Unable to fetch batch", "index", event.Index, "err", err)
@@ -224,20 +231,52 @@ func (s *Syncer) processRegisteredToken(eventName string, abiObject *abi.ABI, vL
 	}
 }
 
-func (s *Syncer) SendDepositFinalisationTx() {
+func (s *Syncer) sendDepositFinalisationTx() error {
 	params, err := s.DBInstance.GetParams()
 	if err != nil {
-		return
+		fmt.Println("error while getting params")
+		return err
 	}
 	nodeToBeReplaced, siblings, err := s.DBInstance.GetDepositNodeAndSiblings()
+	if err != nil {
+		fmt.Println("error finding replaced nodes", err)
+		return err
+	}
+	totalBatches, err := s.DBInstance.GetBatchCount()
+	if err != nil {
+		fmt.Println("error find total batches", err)
+		return err
+	}
+	commitmentMP, err := s.DBInstance.GetLastCommitmentMP(uint64(totalBatches))
+	if err != nil {
+		fmt.Println("error creating commitmentMP", err)
+		return err
+	}
+
+	err = s.loadedBazooka.FireDepositFinalisation(nodeToBeReplaced, siblings, commitmentMP, params.MaxDepositSubTreeHeight)
+	if err != nil {
+		fmt.Println("error sending tx", err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoot core.ByteArray, commitments []core.Commitment, err error) {
+	calldata, err := s.loadedBazooka.ParseCalldata(txHash, batchType)
+	if err == bazooka.ErrNoTxs {
+		return newRoot, commitments, nil
+	}
+	if err != nil {
+		return newRoot, commitments, fmt.Errorf("unable to parse calldata %s", err)
+	}
+	newRoot, commitments, err = s.applyBatch(calldata, txHash, uint64(batchType), true)
 	if err != nil {
 		return
 	}
 
-	err = s.loadedBazooka.FireDepositFinalisation(nodeToBeReplaced, siblings, params.MaxDepositSubTreeHeight)
-	if err != nil {
-		return
-	}
+	// apply transactions
+	return newRoot, commitments, nil
 }
 
 func (s *Syncer) applyBatch(calldata bazooka.Calldata, txHash ethCmn.Hash, txType uint64, isSyncing bool) (newRoot core.ByteArray, commitments []core.Commitment, err error) {
@@ -247,9 +286,7 @@ func (s *Syncer) applyBatch(calldata bazooka.Calldata, txHash ethCmn.Hash, txTyp
 	}
 
 	accountRoot := rootNode.Hash
-
 	var transactions []core.Tx
-
 	var commitmentData []core.CommitmentData
 
 	switch txType {
@@ -298,6 +335,8 @@ func (s *Syncer) applyBatch(calldata bazooka.Calldata, txHash ethCmn.Hash, txTyp
 		return newRoot, commitments, errors.New("Didn't match any options")
 	}
 
+	s.Logger.Info("Parsed calldata", "totalTxs", len(transactions))
+
 	commitments, err = db.ProcessTxs(&s.loadedBazooka, &s.DBInstance, transactions, isSyncing)
 	if err != nil {
 		return newRoot, commitments, err
@@ -308,7 +347,7 @@ func (s *Syncer) applyBatch(calldata bazooka.Calldata, txHash ethCmn.Hash, txTyp
 		commitments[i].StateRoot = commitmentData[i].StateRoot
 	}
 
-	return commitments[len(commitments)-1].StateRoot, commitments, nil
+	return core.BytesToByteArray(commitments[len(commitments)-1].StateRoot), commitments, nil
 }
 
 // decompressTransfers decompresses transfer bytes to TX
@@ -399,50 +438,4 @@ func (s *Syncer) decompressMassMigrations(decompressedTxs [][]byte, meta [][4]*b
 	}
 
 	return transactions, nil
-}
-
-func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoot core.ByteArray, commitments []core.Commitment, err error) {
-	calldata, err := s.loadedBazooka.ParseCalldata(txHash, batchType)
-	if err != bazooka.ErrNoTxs {
-		return newRoot, commitments, nil
-	}
-	if err != nil {
-		return newRoot, commitments, fmt.Errorf("unable to parse calldata %s", err)
-	}
-	newRoot, commitments, err = s.applyBatch(calldata, txHash, uint64(batchType), true)
-	if err != nil {
-		return
-	}
-
-	// parse input data according to the batch type
-
-	// apply transactions
-	return newRoot, commitments, nil
-}
-
-// IsCatchingUp returns true/false according to the sync status of the node
-func IsCatchingUp(b bazooka.Bazooka, db db.DB) (bool, error) {
-	totalBatches, err := b.TotalBatches()
-	if err != nil {
-		return false, err
-	}
-
-	totalBatchedStored, err := db.GetBatchCount()
-	if err != nil {
-		return false, err
-	}
-
-	// if total batchse are greater than what we recorded we are still catching up
-	if totalBatches > uint64(totalBatchedStored) {
-		return true, err
-	}
-
-	return false, nil
-}
-
-func concatTxs(txss [][]byte) (txs []byte) {
-	for _, tx := range txss {
-		txs = append(txs, tx[:]...)
-	}
-	return txs
 }

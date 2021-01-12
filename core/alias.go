@@ -2,13 +2,8 @@ package core
 
 import (
 	"encoding/hex"
-	"errors"
 
 	ethCmn "github.com/ethereum/go-ethereum/common"
-)
-
-var (
-	ErrInvalidPubkeyLen = errors.New("invalid pubkey length")
 )
 
 type Hash ethCmn.Hash
