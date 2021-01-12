@@ -255,21 +255,22 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, isSyncing bool) (co
 		if err != nil {
 			return commitments, err
 		}
-		newRoot, err := Validate(bz, DBI, currentRoot, &tx, isSyncing)
+		_, err = Validate(bz, DBI, currentRoot, &tx, isSyncing)
 		if err != nil {
 			return commitments, err
 		}
-		if i%core.COMMITMENT_SIZE == 0 {
-			txInCommitment := txs[i : i+core.COMMITMENT_SIZE]
+
+		if i%int(config.GlobalCfg.TxsPerBatch) == 0 {
+			txInCommitment := txs[i : i+int(config.GlobalCfg.TxsPerBatch)]
 			aggregatedSig, err := aggregateSignatures(txInCommitment)
-			if err != nil {
-				if isSyncing && err == core.ErrSignatureNotPresent {
-					continue
-				} else {
-					return commitments, err
-				}
+			var commitment core.Commitment
+			if isSyncing && err == core.ErrSignatureNotPresent {
+				commitment = core.NewCommitment(0, 0, txInCommitment, tx.Type, core.ByteArray{}, core.ByteArray{}, []byte(""))
+			} else if err != nil {
+				return commitments, err
+			} else {
+				commitment = core.NewCommitment(0, 0, txInCommitment, tx.Type, core.ByteArray{}, core.ByteArray{}, aggregatedSig.ToBytes())
 			}
-			commitment := core.NewCommitment(0, 0, txInCommitment, tx.Type, newRoot, core.ByteArray{}, aggregatedSig.ToBytes())
 			commitments = append(commitments, commitment)
 		}
 	}

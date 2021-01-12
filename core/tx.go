@@ -15,10 +15,6 @@ var (
 	ErrSignatureNotPresent = errors.New("signature not present")
 )
 
-const (
-	COMMITMENT_SIZE = 1
-)
-
 // Tx represets the transaction on hubble
 type Tx struct {
 	ID        string `json:"-" gorm:"primary_key;size:100;default:'6ba7b810-9dad-11d1-80b4-00c04fd430c8'"`

@@ -174,9 +174,17 @@ func (s *Syncer) startPolling(ctx context.Context, pollInterval time.Duration) {
 		select {
 		case <-ticker.C:
 			s.Logger.Info("Searching for new logs...")
-			header, err := s.loadedBazooka.EthClient.HeaderByNumber(ctx, nil)
-			if err == nil && header != nil {
-				// send data to channel
+			syncStatus, err := s.DBInstance.GetSyncStatus()
+			if err != nil {
+				s.Logger.Error("Unable to fetch listener log", "error", err)
+				return
+			}
+			header, err := s.loadedBazooka.GetEthBlock(nil)
+			if err != nil {
+				s.Logger.Error("Error fetching latest blocks", "error", err)
+				return
+			}
+			if header.Number.Uint64()-syncStatus.LastEthBlockRecorded >= config.GlobalCfg.ConfirmationBlocks {
 				s.HeaderChannel <- header
 			}
 		case <-ctx.Done():
@@ -208,11 +216,6 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 	syncStatus, err := s.DBInstance.GetSyncStatus()
 	if err != nil {
 		s.Logger.Error("Unable to fetch listener log", "error", err)
-		return
-	}
-	s.Logger.Info("Sync status", "LastLogIndexed", syncStatus.LastEthBlockBigInt().String())
-	if header.Number.Uint64() <= syncStatus.LastEthBlockBigInt().Uint64() {
-		s.Logger.Error("No need to sync more events", "currentEthBlock", header.Number.String(), "lastSyncedBlock", syncStatus.LastEthBlockBigInt().String())
 		return
 	}
 
