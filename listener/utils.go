@@ -41,13 +41,6 @@ func IsCatchingUp(b bazooka.Bazooka, db db.DB) (bool, error) {
 	return false, nil
 }
 
-func concatTxs(txss [][]byte) (txs []byte) {
-	for _, tx := range txss {
-		txs = append(txs, tx[:]...)
-	}
-	return txs
-}
-
 // decompressTransfers decompresses transfer bytes to TX
 func decompressTransfers(b bazooka.Bazooka, DBInstance db.DB, compressedTxs [][]byte) (txs []core.Tx, txsPerCommitment []int, err error) {
 	fmt.Printf("here here %+v", compressedTxs)
