@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/BOPR/bazooka"
+	"github.com/BOPR/config"
 	db "github.com/BOPR/db"
 	"github.com/spf13/cobra"
 )
@@ -14,17 +15,18 @@ func viewState() *cobra.Command {
 		Use:   "state-info",
 		Short: "returns decoded state info",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg, err := config.ParseConfig()
 			stateID, err := cmd.Flags().GetUint64(FlagStateID)
 			if err != nil {
 				return err
 			}
-			DBI, err := db.NewDB()
+			DBI, err := db.NewDB(cfg)
 			if err != nil {
 				return err
 			}
 			defer DBI.Close()
 
-			bazooka, err := bazooka.NewPreLoadedBazooka()
+			bazooka, err := bazooka.NewPreLoadedBazooka(cfg)
 			if err != nil {
 				return err
 			}
