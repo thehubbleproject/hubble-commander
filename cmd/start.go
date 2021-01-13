@@ -29,19 +29,21 @@ func startCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			// populate global config objects
-			initConfigAndGlobals()
-
-			bz, err := bazooka.NewPreLoadedBazooka()
+			cfg := readAndInitGlobalConfig()
+			err = config.SetOperatorKeys(cfg.OperatorKey)
 			common.PanicIfError(err)
 
-			DBI, err := db.NewDB()
+			bz, err := bazooka.NewPreLoadedBazooka(cfg)
+			common.PanicIfError(err)
+
+			DBI, err := db.NewDB(cfg)
 			common.PanicIfError(err)
 
 			logger := hlog.Logger.With("module", "start")
 			// create aggregator service
-			aggregator := agg.NewAggregator()
+			aggregator := agg.NewAggregator(cfg)
 			// create the syncer service
-			syncer := listener.NewSyncer()
+			syncer := listener.NewSyncer(cfg)
 
 			// if no row is found then we are starting the node for the first time
 			syncStatus, err := DBI.GetSyncStatus()
@@ -135,11 +137,7 @@ func loadGenesisData(bz *bazooka.Bazooka, DBI *db.DB, genesis config.Genesis) {
 	common.PanicIfError(err)
 }
 
-func initConfigAndGlobals() {
-	readAndInitGlobalConfig()
-}
-
-func readAndInitGlobalConfig() {
+func readAndInitGlobalConfig() config.Configuration {
 	// create viper object
 	viperObj := viper.New()
 
@@ -160,9 +158,7 @@ func readAndInitGlobalConfig() {
 	if err = viperObj.UnmarshalExact(&cfg); err != nil {
 		common.PanicIfError(err)
 	}
-
-	// init global config
-	config.GlobalCfg = cfg
 	// TODO use a better way to handle priv keys post testnet
 	common.PanicIfError(config.SetOperatorKeys(config.GlobalCfg.OperatorKey))
+	return cfg
 }

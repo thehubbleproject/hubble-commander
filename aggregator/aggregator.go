@@ -32,6 +32,8 @@ type Aggregator struct {
 
 	Bazooka bazooka.Bazooka
 
+	cfg config.Configuration
+
 	// header listener subscription
 	cancelAggregating context.CancelFunc
 
@@ -40,23 +42,24 @@ type Aggregator struct {
 }
 
 // NewAggregator returns new aggregator object
-func NewAggregator() *Aggregator {
+func NewAggregator(cfg config.Configuration) *Aggregator {
 	// create logger
 	logger := log.Logger.With("module", AggregatingService)
-
 	aggregator := &Aggregator{}
 	aggregator.BaseService = *core.NewBaseService(logger, AggregatingService, aggregator)
-	DB, err := db.NewDB()
+	DB, err := db.NewDB(cfg)
 	if err != nil {
 		panic(err)
 	}
-
-	bz, err := bazooka.NewPreLoadedBazooka()
+	bz, err := bazooka.NewPreLoadedBazooka(cfg)
 	if err != nil {
 		panic(err)
 	}
 	aggregator.Bazooka = bz
 	aggregator.DB = DB
+
+	aggregator.cfg = cfg
+
 	return aggregator
 }
 
@@ -71,7 +74,7 @@ func (a *Aggregator) OnStart() error {
 	a.cancelAggregating = cancelAggregating
 
 	// start polling for checkpoint in buffer
-	go a.startAggregating(ctx, config.GlobalCfg.PollingInterval)
+	go a.startAggregating(ctx, a.cfg.PollingInterval)
 	return nil
 }
 
@@ -141,7 +144,7 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 
 	// Record batch locally
 	lastCommitment := commitments[len(commitments)-1]
-	newBatch := core.NewBatch(core.BytesToByteArray(lastCommitment.StateRoot).String(), config.GlobalCfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
+	newBatch := core.NewBatch(core.BytesToByteArray(lastCommitment.StateRoot).String(), a.cfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
 	batchID, err := a.DB.AddNewBatch(newBatch, commitments)
 	if err != nil {
 		return

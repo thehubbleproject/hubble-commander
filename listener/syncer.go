@@ -44,6 +44,8 @@ type Syncer struct {
 	// contract caller to interact with contracts
 	loadedBazooka bazooka.Bazooka
 
+	cfg config.Configuration
+
 	// header channel
 	HeaderChannel chan *ethTypes.Header
 	// cancel function for poll/subscription
@@ -57,7 +59,7 @@ type Syncer struct {
 }
 
 // NewSyncer creates a new syncer object
-func NewSyncer() *Syncer {
+func NewSyncer(cfg config.Configuration) *Syncer {
 	// create logger
 	logger := log.Logger.With("module", SyncerServiceName)
 
@@ -66,7 +68,7 @@ func NewSyncer() *Syncer {
 
 	// create new base service
 	syncerService.BaseService = *core.NewBaseService(logger, SyncerServiceName, syncerService)
-	loadedBazooka, err := bazooka.NewPreLoadedBazooka()
+	loadedBazooka, err := bazooka.NewPreLoadedBazooka(cfg)
 	if err != nil {
 		panic(err)
 	}
@@ -93,7 +95,7 @@ func NewSyncer() *Syncer {
 	syncerService.abis = abis
 	syncerService.loadedBazooka = loadedBazooka
 	syncerService.HeaderChannel = make(chan *ethTypes.Header)
-	syncerService.DBInstance, err = db.NewDB()
+	syncerService.DBInstance, err = db.NewDB(cfg)
 	if err != nil {
 		panic(err)
 	}
@@ -124,7 +126,7 @@ func (s *Syncer) OnStart() error {
 	subscription, err := s.loadedBazooka.EthClient.SubscribeNewHead(ctx, s.HeaderChannel)
 	if err != nil {
 		// start go routine to poll for new header using client object
-		go s.startPolling(ctx, config.GlobalCfg.PollingInterval)
+		go s.startPolling(ctx, s.cfg.PollingInterval)
 	} else {
 		// start go routine to listen new header using subscription
 		go s.startSubscription(ctx, subscription)
@@ -184,7 +186,7 @@ func (s *Syncer) startPolling(ctx context.Context, pollInterval time.Duration) {
 				s.Logger.Error("Error fetching latest blocks", "error", err)
 				return
 			}
-			if header.Number.Uint64()-syncStatus.LastEthBlockRecorded >= config.GlobalCfg.ConfirmationBlocks {
+			if header.Number.Uint64()-syncStatus.LastEthBlockRecorded >= s.cfg.ConfirmationBlocks {
 				s.HeaderChannel <- header
 			}
 		case <-ctx.Done():
@@ -225,11 +227,11 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 		FromBlock: syncStatus.LastEthBlockBigInt(),
 		ToBlock:   header.Number,
 		Addresses: []ethCmn.Address{
-			ethCmn.HexToAddress(config.GlobalCfg.RollupAddress),
-			ethCmn.HexToAddress(config.GlobalCfg.TokenRegistry),
-			ethCmn.HexToAddress(config.GlobalCfg.AccountRegistry),
-			ethCmn.HexToAddress(config.GlobalCfg.DepositManager),
-			ethCmn.HexToAddress(config.GlobalCfg.BurnAuction),
+			ethCmn.HexToAddress(s.cfg.RollupAddress),
+			ethCmn.HexToAddress(s.cfg.TokenRegistry),
+			ethCmn.HexToAddress(s.cfg.AccountRegistry),
+			ethCmn.HexToAddress(s.cfg.DepositManager),
+			ethCmn.HexToAddress(s.cfg.BurnAuction),
 		},
 		Topics: [][]ethCmn.Hash{},
 	}

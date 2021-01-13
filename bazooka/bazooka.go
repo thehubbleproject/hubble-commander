@@ -55,6 +55,8 @@ type (
 
 		RollupABI abi.ABI
 		SC        Contracts
+		cfg       config.Configuration
+		operator  ethCmn.Address
 	}
 
 	Contracts struct {
@@ -69,27 +71,24 @@ type (
 
 // NewPreLoadedBazooka loads all contract and creates a ready to go client
 // NOTE: Reads configration from the config.toml file
-func NewPreLoadedBazooka() (bazooka Bazooka, err error) {
-	err = config.SetOperatorKeys(config.GlobalCfg.OperatorKey)
+func NewPreLoadedBazooka(cfg config.Configuration) (bazooka Bazooka, err error) {
+	RPCClient, err := rpc.Dial(cfg.EthRPC)
 	if err != nil {
-		return
-	}
-
-	if RPCClient, err := rpc.Dial(config.GlobalCfg.EthRPC); err != nil {
 		return bazooka, err
-	} else {
-		bazooka.EthClient = ethclient.NewClient(RPCClient)
 	}
+	bazooka.EthClient = ethclient.NewClient(RPCClient)
 
 	bazooka.RollupABI, err = abi.JSON(strings.NewReader(rollup.RollupABI))
 	if err != nil {
 		return
 	}
 
-	bazooka.SC, err = getContractInstances(bazooka.EthClient)
+	bazooka.SC, err = getContractInstances(bazooka.EthClient, cfg)
 	if err != nil {
 		return bazooka, err
 	}
+	bazooka.cfg = cfg
+	bazooka.operator = ethCmn.HexToAddress(cfg.OperatorAddress)
 
 	bazooka.log = log.Logger.With("module", "bazooka")
 	return bazooka, nil
@@ -114,7 +113,7 @@ func (b *Bazooka) TotalBatches() (uint64, error) {
 }
 
 func (b *Bazooka) ProcessCreate2TransferTx(balanceTreeRoot core.ByteArray, tx core.Tx, fromMerkleProof, toMerkleProof StateMerkleProof) (newBalanceRoot core.ByteArray, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: b.operator}
 	fromMP, err := fromMerkleProof.ToABIVersion(*b)
 	if err != nil {
 		return
@@ -146,7 +145,7 @@ func (b *Bazooka) ProcessCreate2TransferTx(balanceTreeRoot core.ByteArray, tx co
 }
 
 func (b *Bazooka) ProcessTransferTx(balanceTreeRoot core.ByteArray, tx core.Tx, fromMerkleProof, toMerkleProof StateMerkleProof) (newBalanceRoot core.ByteArray, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: b.operator}
 	fromMP, err := fromMerkleProof.ToABIVersion(*b)
 	if err != nil {
 		return
@@ -178,7 +177,7 @@ func (b *Bazooka) ProcessTransferTx(balanceTreeRoot core.ByteArray, tx core.Tx, 
 }
 
 func (b *Bazooka) ProcessMassMigrationTx(balanceTreeRoot core.ByteArray, tx core.Tx, fromMerkleProof, toMerkleProof StateMerkleProof) (newBalanceRoot core.ByteArray, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: b.operator}
 	fromMP, err := fromMerkleProof.ToABIVersion(*b)
 	if err != nil {
 		return
@@ -209,7 +208,7 @@ func (b *Bazooka) ProcessMassMigrationTx(balanceTreeRoot core.ByteArray, tx core
 //
 
 func (b *Bazooka) EncodeTransferTx(from, to, fee, nonce, amount, txType int64) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: b.operator}
 	tx := struct {
 		TxType    *big.Int
 		FromIndex *big.Int
@@ -222,7 +221,7 @@ func (b *Bazooka) EncodeTransferTx(from, to, fee, nonce, amount, txType int64) (
 }
 
 func (b *Bazooka) DecodeTransferTx(txBytes []byte) (from, to, nonce, txType, amount, fee *big.Int, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: b.operator}
 	tx, err := b.SC.Transfer.Decode(&opts, txBytes)
 	if err != nil {
 		return
@@ -231,7 +230,7 @@ func (b *Bazooka) DecodeTransferTx(txBytes []byte) (from, to, nonce, txType, amo
 }
 
 func (b *Bazooka) EncodeCreate2TransferTx(from, to, toAccID, fee, nonce, amount, txType int64) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: b.operator}
 	tx := struct {
 		TxType     *big.Int
 		FromIndex  *big.Int
@@ -245,7 +244,7 @@ func (b *Bazooka) EncodeCreate2TransferTx(from, to, toAccID, fee, nonce, amount,
 }
 
 func (b *Bazooka) DecodeCreate2Transfer(txBytes []byte) (from, to, toAccID, nonce, txType, amount, fee *big.Int, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: b.operator}
 	tx, err := b.SC.Create2Transfer.Decode(&opts, txBytes)
 	if err != nil {
 		return
@@ -255,7 +254,7 @@ func (b *Bazooka) DecodeCreate2Transfer(txBytes []byte) (from, to, toAccID, nonc
 }
 
 func (b *Bazooka) EncodeCreate2TransferTxWithPub(from int64, toPub [4]*big.Int, fee, nonce, amount, txType int64) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: b.operator}
 	tx := struct {
 		TxType    *big.Int
 		FromIndex *big.Int
@@ -268,7 +267,7 @@ func (b *Bazooka) EncodeCreate2TransferTxWithPub(from int64, toPub [4]*big.Int, 
 }
 
 func (b *Bazooka) DecodeCreate2TransferWithPub(txBytes []byte) (fromIndex *big.Int, toPub [4]*big.Int, nonce, txType, amount, fee *big.Int, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: b.operator}
 	tx, err := b.SC.Create2Transfer.DecodeWithPub(&opts, txBytes)
 	if err != nil {
 		return
@@ -277,7 +276,7 @@ func (b *Bazooka) DecodeCreate2TransferWithPub(txBytes []byte) (fromIndex *big.I
 }
 
 func (b *Bazooka) EncodeMassMigrationTx(from, toSpoke, fee, nonce, amount, txType int64) ([]byte, error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: b.operator}
 	tx := struct {
 		TxType    *big.Int
 		FromIndex *big.Int
@@ -290,7 +289,7 @@ func (b *Bazooka) EncodeMassMigrationTx(from, toSpoke, fee, nonce, amount, txTyp
 }
 
 func (b *Bazooka) DecodeMassMigrationTx(txBytes []byte) (from, toSpoke, nonce, txType, amount, fee *big.Int, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: b.operator}
 	tx, err := b.SC.MassMigration.Decode(&opts, txBytes)
 	if err != nil {
 		return
@@ -303,7 +302,7 @@ func (b *Bazooka) DecodeMassMigrationTx(txBytes []byte) (from, toSpoke, nonce, t
 //
 
 func (b *Bazooka) EncodeState(id, balance, nonce, token uint64) (accountBytes []byte, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: b.operator}
 	accountBytes, err = b.SC.State.Encode(&opts, state.TypesUserState{
 		PubkeyIndex: big.NewInt(int64(id)),
 		TokenType:   big.NewInt(int64(token)),
@@ -317,7 +316,7 @@ func (b *Bazooka) EncodeState(id, balance, nonce, token uint64) (accountBytes []
 }
 
 func (b *Bazooka) DecodeState(stateBytes []byte) (ID, balance, nonce, token *big.Int, err error) {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: b.operator}
 
 	state, err := b.SC.State.DecodeState(&opts, stateBytes)
 	if err != nil {
@@ -328,23 +327,23 @@ func (b *Bazooka) DecodeState(stateBytes []byte) (ID, balance, nonce, token *big
 	return state.PubkeyIndex, state.Balance, state.Nonce, state.TokenType, nil
 }
 
-func getContractInstances(client *ethclient.Client) (contracts Contracts, err error) {
-	if contracts.RollupContract, err = rollup.NewRollup(ethCmn.HexToAddress(config.GlobalCfg.RollupAddress), client); err != nil {
+func getContractInstances(client *ethclient.Client, cfg config.Configuration) (contracts Contracts, err error) {
+	if contracts.RollupContract, err = rollup.NewRollup(ethCmn.HexToAddress(cfg.RollupAddress), client); err != nil {
 		return contracts, err
 	}
-	if contracts.AccountRegistry, err = accountregistry.NewAccountregistry(ethCmn.HexToAddress(config.GlobalCfg.AccountRegistry), client); err != nil {
+	if contracts.AccountRegistry, err = accountregistry.NewAccountregistry(ethCmn.HexToAddress(cfg.AccountRegistry), client); err != nil {
 		return contracts, err
 	}
-	if contracts.State, err = state.NewState(ethCmn.HexToAddress(config.GlobalCfg.State), client); err != nil {
+	if contracts.State, err = state.NewState(ethCmn.HexToAddress(cfg.State), client); err != nil {
 		return contracts, err
 	}
-	if contracts.Transfer, err = transfer.NewTransfer(ethCmn.HexToAddress(config.GlobalCfg.Transfer), client); err != nil {
+	if contracts.Transfer, err = transfer.NewTransfer(ethCmn.HexToAddress(cfg.Transfer), client); err != nil {
 		return contracts, err
 	}
-	if contracts.Create2Transfer, err = create2transfer.NewCreate2transfer(ethCmn.HexToAddress(config.GlobalCfg.Create2Transfer), client); err != nil {
+	if contracts.Create2Transfer, err = create2transfer.NewCreate2transfer(ethCmn.HexToAddress(cfg.Create2Transfer), client); err != nil {
 		return contracts, err
 	}
-	if contracts.MassMigration, err = massmigration.NewMassmigration(ethCmn.HexToAddress(config.GlobalCfg.MassMigration), client); err != nil {
+	if contracts.MassMigration, err = massmigration.NewMassmigration(ethCmn.HexToAddress(cfg.MassMigration), client); err != nil {
 		return contracts, err
 	}
 	return contracts, nil
