@@ -37,7 +37,7 @@ func (DBI *DB) PopTxs() (txs []core.Tx, err error) {
 
 	var pendingTxs []core.Tx
 	// select N number of transactions which are pending in mempool and
-	if err := tx.Limit(config.GlobalCfg.TxsPerBatch).Where(&core.Tx{Status: core.TX_STATUS_PENDING, Type: txType}).Find(&pendingTxs).Error; err != nil {
+	if err := tx.Limit(DBI.Cfg.TxsPerBatch).Where(&core.Tx{Status: core.TX_STATUS_PENDING, Type: txType}).Find(&pendingTxs).Error; err != nil {
 		DBI.Logger.Error("error while fetching pending transactions", err)
 		tx.Rollback()
 		return txs, err
@@ -108,7 +108,7 @@ func (DBI *DB) FetchMPWithID(id uint64, stateMP *bazooka.StateMerkleProof) (err 
 }
 
 func GetWitnessTranfer(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkleProof, toMerkleProof bazooka.StateMerkleProof, txDBConn DB, err error) {
-	dbCopy, _ := NewDB()
+	dbCopy, _ := NewDB(bz.Cfg)
 
 	// fetch from state MP
 	err = DBI.FetchMPWithID(tx.From, &fromMerkleProof)
@@ -260,8 +260,8 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, isSyncing bool) (co
 			return commitments, err
 		}
 
-		if i%int(config.GlobalCfg.TxsPerBatch) == 0 {
-			txInCommitment := txs[i : i+int(config.GlobalCfg.TxsPerBatch)]
+		if i%int(DBI.Cfg.TxsPerBatch) == 0 {
+			txInCommitment := txs[i : i+int(DBI.Cfg.TxsPerBatch)]
 			aggregatedSig, err := aggregateSignatures(txInCommitment)
 			var commitment core.Commitment
 			if isSyncing && err == core.ErrSignatureNotPresent {
