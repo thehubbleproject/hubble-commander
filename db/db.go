@@ -44,21 +44,17 @@ type DB struct {
 }
 
 // NewDB creates a new DB instance
-// NOTE: it uses the configrations present in the config.toml file
 // returns error if not able to open the DB
-func NewDB() (DB, error) {
-	if err := config.ParseAndInitGlobalConfig(""); err != nil {
-		return DB{}, err
-	}
-	db, err := gorm.Open(config.GlobalCfg.DB, config.GlobalCfg.FormattedDBURL())
+func NewDB(cfg config.Configuration) (DB, error) {
+	db, err := gorm.Open(cfg.DB, cfg.FormattedDBURL())
 	if err != nil {
 		return DB{}, err
 	}
-	db.LogMode(config.GlobalCfg.DBLogMode)
+	db.LogMode(cfg.DBLogMode)
 	// create logger
 	logger := log.Logger.With("module", "DB")
 
-	bz, err := bazooka.NewPreLoadedBazooka()
+	bz, err := bazooka.NewPreLoadedBazooka(cfg)
 	if err != nil {
 		return DB{}, err
 	}
