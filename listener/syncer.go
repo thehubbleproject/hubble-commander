@@ -99,6 +99,7 @@ func NewSyncer(cfg config.Configuration) *Syncer {
 	if err != nil {
 		panic(err)
 	}
+	syncerService.cfg = cfg
 	//nolint:govet // will fix later in #76
 	return syncerService
 }

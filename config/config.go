@@ -108,7 +108,7 @@ func ParseConfig() (Configuration, error) {
 	if err := v.ReadInConfig(); err != nil {
 		return cfg, err
 	}
-	err = v.UnmarshalExact(cfg)
+	err = v.UnmarshalExact(&cfg)
 	if err != nil {
 		return cfg, err
 	}
