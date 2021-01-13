@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setupDB() (DBI db.DB, cleanup func(), err error) {
+func setupDB(cfg config.Configuration) (DBI db.DB, cleanup func(), err error) {
 	tmpfile, err := ioutil.TempFile("", "test.*.db")
 	if err != nil {
 		return
@@ -26,7 +26,8 @@ func setupDB() (DBI db.DB, cleanup func(), err error) {
 		return
 	}
 	logger := log.Logger.With("module", "tests")
-	DBI = db.DB{Instance: sqliteDb, Logger: logger}
+
+	DBI = db.DB{Instance: sqliteDb, Logger: logger, Cfg: cfg}
 
 	allMigrations := migrations.GetMigrations()
 	m := migrations.NewGormigrate(DBI.Instance, migrations.DefaultOptions, allMigrations)
@@ -44,14 +45,15 @@ func setupDB() (DBI db.DB, cleanup func(), err error) {
 }
 
 func TestPopTx(t *testing.T) {
-	db, cleanup, err := setupDB()
+	cfg := config.GetDefaultConfig()
+	cfg.TxsPerBatch = 2
+	db, cleanup, err := setupDB(cfg)
 	if err != nil {
 		t.Errorf("setupDB error %s", err)
 	}
 	defer cleanup()
 
 	var txType uint64 = 1
-	config.GlobalCfg.TxsPerBatch = 2
 
 	tx1 := core.NewTx(1, 2, txType, []byte{00}, []byte{00})
 	tx2, err := core.NewPendingTx(1, 2, txType, []byte{00}, []byte{01})

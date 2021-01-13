@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/BOPR/config"
 	db "github.com/BOPR/db"
 	"github.com/BOPR/migrations"
 	"github.com/spf13/cobra"
@@ -59,7 +60,8 @@ var upMigrateCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Run up migration",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		IDB, err := db.NewDB()
+		cfg, err := config.ParseConfig()
+		IDB, err := db.NewDB(cfg)
 		if err != nil {
 			return err
 		}
@@ -75,7 +77,8 @@ var downMigrateCmd = &cobra.Command{
 	Use:   "down",
 	Short: "Run down migration",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		db, err := db.NewDB()
+		cfg, err := config.ParseConfig()
+		db, err := db.NewDB(cfg)
 		if err != nil {
 			return err
 		}

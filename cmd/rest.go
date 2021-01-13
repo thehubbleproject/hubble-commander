@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/BOPR/common"
+	"github.com/BOPR/config"
 	"github.com/BOPR/rest"
 	"github.com/spf13/cobra"
 )
@@ -15,7 +16,9 @@ func startRestServerCmd() *cobra.Command {
 		Use:   "server",
 		Short: "Starts hubble rest-server",
 		Run: func(cmd *cobra.Command, args []string) {
-			r, err := rest.LoadRouters()
+			cfg, err := config.ParseConfig()
+			common.PanicIfError(err)
+			r, err := rest.LoadRouters(cfg)
 			common.PanicIfError(err)
 			http.Handle("/", r)
 

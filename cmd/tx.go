@@ -7,6 +7,7 @@ import (
 
 	"github.com/BOPR/bazooka"
 	"github.com/BOPR/common"
+	"github.com/BOPR/config"
 	"github.com/BOPR/core"
 	db "github.com/BOPR/db"
 	"github.com/BOPR/wallet"
@@ -65,13 +66,15 @@ func sendTransferTx() *cobra.Command {
 			}
 			secretBytes, pubkeyBytes := wallet.Bytes()
 
-			DBI, err := db.NewDB()
+			cfg, err := config.ParseConfig()
+
+			DBI, err := db.NewDB(cfg)
 			if err != nil {
 				return err
 			}
 			defer DBI.Close()
 
-			bazooka, err := bazooka.NewPreLoadedBazooka()
+			bazooka, err := bazooka.NewPreLoadedBazooka(cfg)
 			if err != nil {
 				return err
 			}
@@ -109,13 +112,14 @@ func dummyTransfer() *cobra.Command {
 		Use:   "dummy-transfer",
 		Short: "Creates 2 accounts and creates a transfer between them",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			DBI, err := db.NewDB()
+			cfg, err := config.ParseConfig()
+			DBI, err := db.NewDB(cfg)
 			if err != nil {
 				return err
 			}
 			defer DBI.Close()
 
-			bazooka, err := bazooka.NewPreLoadedBazooka()
+			bazooka, err := bazooka.NewPreLoadedBazooka(cfg)
 			if err != nil {
 				return err
 			}
@@ -186,12 +190,13 @@ func dummyCreate2Transfer() *cobra.Command {
 		Use:   "dummy-create2transfer",
 		Short: "Sends a create2transfer transaction",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			DBI, err := db.NewDB()
+			cfg, err := config.ParseConfig()
+			DBI, err := db.NewDB(cfg)
 			if err != nil {
 				return err
 			}
 			defer DBI.Close()
-			bazooka, err := bazooka.NewPreLoadedBazooka()
+			bazooka, err := bazooka.NewPreLoadedBazooka(cfg)
 			if err != nil {
 				return err
 			}
@@ -275,13 +280,14 @@ func dummyMassMigrate() *cobra.Command {
 		Use:   "dummy-massmigrate",
 		Short: "Creates 2 accounts and creates a mass migrate",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			DBI, err := db.NewDB()
+			cfg, err := config.ParseConfig()
+			DBI, err := db.NewDB(cfg)
 			if err != nil {
 				return err
 			}
 			defer DBI.Close()
 
-			bazooka, err := bazooka.NewPreLoadedBazooka()
+			bazooka, err := bazooka.NewPreLoadedBazooka(cfg)
 			if err != nil {
 				return err
 			}
