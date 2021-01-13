@@ -16,6 +16,9 @@ func viewState() *cobra.Command {
 		Short: "returns decoded state info",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.ParseConfig()
+			if err != nil {
+				return err
+			}
 			stateID, err := cmd.Flags().GetUint64(FlagStateID)
 			if err != nil {
 				return err

@@ -67,6 +67,9 @@ func sendTransferTx() *cobra.Command {
 			secretBytes, pubkeyBytes := wallet.Bytes()
 
 			cfg, err := config.ParseConfig()
+			if err != nil {
+				return err
+			}
 
 			DBI, err := db.NewDB(cfg)
 			if err != nil {
@@ -113,6 +116,9 @@ func dummyTransfer() *cobra.Command {
 		Short: "Creates 2 accounts and creates a transfer between them",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.ParseConfig()
+			if err != nil {
+				return err
+			}
 			DBI, err := db.NewDB(cfg)
 			if err != nil {
 				return err
@@ -191,6 +197,9 @@ func dummyCreate2Transfer() *cobra.Command {
 		Short: "Sends a create2transfer transaction",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.ParseConfig()
+			if err != nil {
+				return err
+			}
 			DBI, err := db.NewDB(cfg)
 			if err != nil {
 				return err
@@ -281,6 +290,9 @@ func dummyMassMigrate() *cobra.Command {
 		Short: "Creates 2 accounts and creates a mass migrate",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.ParseConfig()
+			if err != nil {
+				return err
+			}
 			DBI, err := db.NewDB(cfg)
 			if err != nil {
 				return err
