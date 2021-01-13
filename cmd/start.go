@@ -18,7 +18,6 @@ import (
 	"github.com/BOPR/core"
 	"github.com/jinzhu/gorm"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // startCmd starts the daemon
@@ -28,8 +27,9 @@ func startCmd() *cobra.Command {
 		Short: "Starts hubble daemon",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			// populate global config objects
-			cfg := readAndInitGlobalConfig()
+			cfg, err := config.ParseConfig()
+			common.PanicIfError(err)
+
 			bz, err := bazooka.NewPreLoadedBazooka(cfg)
 			common.PanicIfError(err)
 
@@ -132,30 +132,4 @@ func loadGenesisData(bz *bazooka.Bazooka, DBI *db.DB, genesis config.Genesis) {
 	// load sync status
 	err = DBI.InitSyncStatus(genesis.StartEthBlock)
 	common.PanicIfError(err)
-}
-
-func readAndInitGlobalConfig() config.Configuration {
-	// create viper object
-	viperObj := viper.New()
-
-	// get current directory
-	dir, err := os.Getwd()
-	common.PanicIfError(err)
-
-	// set config paths
-	viperObj.SetConfigName(ConfigFileName) // name of config file (without extension)
-	viperObj.AddConfigPath(dir)
-
-	// finally! read config
-	err = viperObj.ReadInConfig()
-	common.PanicIfError(err)
-
-	// unmarshall to the configration object
-	var cfg config.Configuration
-	if err = viperObj.UnmarshalExact(&cfg); err != nil {
-		common.PanicIfError(err)
-	}
-	// TODO use a better way to handle priv keys post testnet
-	common.PanicIfError(config.SetOperatorKeys(cfg.OperatorKey))
-	return cfg
 }
