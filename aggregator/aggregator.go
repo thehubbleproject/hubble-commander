@@ -27,9 +27,6 @@ type Aggregator struct {
 	// Base service
 	core.BaseService
 
-	// contract caller to interact with contracts
-	LoadedBazooka bazooka.Bazooka
-
 	// DB instance
 	DB db.DB
 
@@ -46,10 +43,7 @@ type Aggregator struct {
 func NewAggregator() *Aggregator {
 	// create logger
 	logger := log.Logger.With("module", AggregatingService)
-	LoadedBazooka, err := bazooka.NewPreLoadedBazooka()
-	if err != nil {
-		panic(err)
-	}
+
 	aggregator := &Aggregator{}
 	aggregator.BaseService = *core.NewBaseService(logger, AggregatingService, aggregator)
 	DB, err := db.NewDB()
@@ -63,7 +57,6 @@ func NewAggregator() *Aggregator {
 	}
 	aggregator.Bazooka = bz
 	aggregator.DB = DB
-	aggregator.LoadedBazooka = LoadedBazooka
 	return aggregator
 }
 
@@ -140,7 +133,7 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 
 	// Step-3
 	// Submit all commitments on-chain
-	txHash, commitments, err := a.LoadedBazooka.SubmitBatch(commitments, accountTreeRoot)
+	txHash, commitments, err := a.Bazooka.SubmitBatch(commitments, accountTreeRoot)
 	if err != nil {
 		fmt.Println("Error while submitting batch", "error", err)
 		return
@@ -158,7 +151,7 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 }
 
 func (a *Aggregator) processTxs(txs []core.Tx) (commitments []core.Commitment, err error) {
-	return db.ProcessTxs(&a.LoadedBazooka, &a.DB, txs, false)
+	return db.ProcessTxs(&a.Bazooka, &a.DB, txs, false)
 }
 
 // IsCatchingUp returns true/false according to the sync status of the node
