@@ -37,20 +37,20 @@ func (db *DB) GetDepositNodeAndSiblings() (nodeToBeReplaced core.UserState, sibl
 // FinaliseDepositsAndAddBatch finalises deposits and a
 func (db *DB) FinaliseDepositsAndAddBatch(depositRoot core.ByteArray, pathToDepositSubTree uint64) (string, error) {
 	var root string
-	db.Logger.Info("Finalising accounts", "depositRoot", depositRoot, "pathToDepositSubTree", pathToDepositSubTree)
+	db.Logger.Info("Finalising states", "depositRoot", depositRoot, "pathToDepositSubTree", pathToDepositSubTree)
 
-	// update the empty leaves with new accounts
+	// update the empty leaves with new states
 	err := db.FinaliseDeposits(pathToDepositSubTree, depositRoot)
 	if err != nil {
 		return root, err
 	}
 
-	rootAccount, err := db.GetRoot()
+	rootStateNode, err := db.GetRoot()
 	if err != nil {
 		return root, err
 	}
 
-	return rootAccount.Hash, nil
+	return rootStateNode.Hash, nil
 }
 
 func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.ByteArray) error {
@@ -59,8 +59,8 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.Byt
 		return err
 	}
 
-	// find out the accounts that are finalised
-	accounts, err := db.GetPendingAccByDepositRoot(depositRoot)
+	// find out the states that are finalised
+	userStates, err := db.GetPendingStateByDepositRoot(depositRoot)
 	if err != nil {
 		return err
 	}
@@ -77,17 +77,17 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.Byt
 		return err
 	}
 
-	for i, acc := range accounts {
-		acc.Status = core.STATUS_ACTIVE
-		acc.UpdatePath(terminalNodes[i])
-		acc.UpdateHash()
-		err := db.UpdateState(acc)
+	for i, node := range userStates {
+		node.Status = core.STATUS_ACTIVE
+		node.UpdatePath(terminalNodes[i])
+		node.UpdateHash()
+		err := db.UpdateState(node)
 		if err != nil {
 			return err
 		}
 
-		// delete pending account
-		err = db.DeletePendingAccount(acc.AccountID)
+		// delete pending states
+		err = db.DeletePendingState(node.AccountID)
 		if err != nil {
 			return err
 		}
@@ -96,32 +96,29 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.Byt
 	return nil
 }
 
-func (db *DB) GetPendingDeposits(numberOfAccs uint64) ([]core.UserState, error) {
-	var accounts []core.UserState
-	err := db.Instance.Limit(numberOfAccs).Where("status = ?", 0).Find(&accounts).Error
-	if err != nil {
-		return accounts, err
-	}
-	return accounts, nil
+func (db *DB) GetPendingDeposits(numberOfStates uint64) ([]core.UserState, error) {
+	var states []core.UserState
+	err := db.Instance.Limit(numberOfStates).Where("status = ?", 0).Find(&states).Error
+	return states, err
 }
 
 func (db *DB) GetAllTerminalNodes(pathToDepositSubTree string) (terminalNodes []string, err error) {
 	buf := bytes.Buffer{}
 	buf.WriteString(pathToDepositSubTree)
 	buf.WriteString("%")
-	var accounts []core.UserState
+	var states []core.UserState
 
 	// LIKE query with search for terminal nodes to DB
-	if err = db.Instance.Where("path LIKE ? AND type = ?", buf.String(), core.TYPE_TERMINAL).Find(&accounts).Error; err != nil {
+	if err = db.Instance.Where("path LIKE ? AND type = ?", buf.String(), core.TYPE_TERMINAL).Find(&states).Error; err != nil {
 		return
 	}
 
-	// get all accounts while making sure they are empty and append to paths array
-	for _, account := range accounts {
-		if account.Hash != core.ZeroLeaf.String() {
-			return terminalNodes, errors.New("Account not zero, aborting operation")
+	// get all states while making sure they are empty and append to paths array
+	for _, node := range states {
+		if node.Hash != core.ZeroLeaf.String() {
+			return terminalNodes, errors.New("State not zero, aborting operation")
 		}
-		terminalNodes = append(terminalNodes, account.Path)
+		terminalNodes = append(terminalNodes, node.Path)
 	}
 	return
 }

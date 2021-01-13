@@ -309,10 +309,10 @@ func (db *DB) GetFirstEmptyAccount() (acc core.UserState, err error) {
 	return db.GetAccountByHash(expectedHash.String())
 }
 
-func (db *DB) DeletePendingAccount(ID uint64) error {
-	var account core.UserState
-	if err := db.Instance.Where("account_id = ? AND status = ?", ID, core.STATUS_PENDING).Delete(&account).Error; err != nil {
-		return core.ErrRecordNotFound(fmt.Sprintf("unable to delete record for ID: %v", ID))
+func (db *DB) DeletePendingState(accountID uint64) error {
+	var state core.UserState
+	if err := db.Instance.Where("account_id = ? AND status = ?", accountID, core.STATUS_PENDING).Delete(&state).Error; err != nil {
+		return core.ErrRecordNotFound(fmt.Sprintf("unable to delete record for ID: %v", accountID))
 	}
 	return nil
 }
@@ -332,13 +332,13 @@ func (db *DB) AttachDepositInfo(root core.ByteArray) error {
 	return nil
 }
 
-func (db *DB) GetPendingAccByDepositRoot(root core.ByteArray) ([]core.UserState, error) {
+func (db *DB) GetPendingStateByDepositRoot(root core.ByteArray) ([]core.UserState, error) {
 	// find all accounts with CreatedByDepositSubTree as `root`
-	var pendingAccounts []core.UserState
-	query := db.Instance.Where("created_by_deposit_sub_tree = ? AND status = ?", root.String(), core.STATUS_PENDING).Find(&pendingAccounts)
+	var pendingStates []core.UserState
+	query := db.Instance.Where("created_by_deposit_sub_tree = ? AND status = ?", root.String(), core.STATUS_PENDING).Find(&pendingStates)
 	if err := query.Error; err != nil {
-		return pendingAccounts, err
+		return pendingStates, err
 	}
 
-	return pendingAccounts, nil
+	return pendingStates, nil
 }

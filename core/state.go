@@ -58,7 +58,7 @@ func NewStateNode(path, hash string) *UserState {
 		Type:      TYPE_NON_TERMINAL,
 	}
 	node.UpdatePath(node.Path)
-	node.UpdateHash()
+	node.Hash = hash
 	return node
 }
 
