@@ -5,9 +5,7 @@ import (
 )
 
 var (
-	ErrAccAlreadyExists     = errors.New("Account already exists")
 	ErrUnableToInsertLeaves = errors.New("Unable to insert leaves")
-	EmptyByteSlice          = []byte{}
 )
 
 // Account is the copy of the accounts tree
@@ -35,57 +33,54 @@ type Account struct {
 
 // NewAccount creates a new account
 func NewAccount(id uint64, pubkey []byte, path string) (*Account, error) {
-	newAccount := &Account{
+	node := &Account{
 		ID:        id,
 		PublicKey: pubkey,
 		Path:      path,
 		Type:      TYPE_TERMINAL,
 	}
-	err := newAccount.PopulateHash()
-	if err != nil {
-		return nil, err
-	}
-	return newAccount, nil
+	err := node.PopulateHash()
+	return node, err
 }
 
 func NewAccountNode(path, hash string) *Account {
-	newAccount := &Account{
+	node := &Account{
 		ID:   ZERO,
 		Path: path,
 		Type: TYPE_NON_TERMINAL,
 	}
-	newAccount.UpdatePath(path)
-	newAccount.Hash = hash
-	return newAccount
+	node.UpdatePath(path)
+	node.Hash = hash
+	return node
 }
 
 // NewEmptyAccount creates new empty account which generates zero hash
 func NewEmptyAccount() *Account {
-	return &Account{ID: ZERO, PublicKey: EmptyByteSlice, Type: TYPE_TERMINAL}
+	return &Account{ID: ZERO, PublicKey: []byte{}, Type: TYPE_TERMINAL}
 }
 
-func (p *Account) UpdatePath(path string) {
-	p.Path = path
-	p.Level = uint64(len(path))
+func (node *Account) UpdatePath(path string) {
+	node.Path = path
+	node.Level = uint64(len(path))
 }
 
-func (p *Account) HashToByteArray() ByteArray {
-	ba, err := HexToByteArray(p.Hash)
+func (node *Account) HashToByteArray() ByteArray {
+	ba, err := HexToByteArray(node.Hash)
 	if err != nil {
 		panic(err)
 	}
 	return ba
 }
 
-func (p *Account) PopulateHash() error {
-	if len(p.PublicKey) == 0 {
-		p.Hash = ZeroLeaf.String()
+func (node *Account) PopulateHash() error {
+	if len(node.PublicKey) == 0 {
+		node.Hash = ZeroLeaf.String()
 		return nil
 	}
-	hash, err := Pubkey(p.PublicKey).ToHash()
+	hash, err := Pubkey(node.PublicKey).ToHash()
 	if err != nil {
 		return err
 	}
-	p.Hash = hash
+	node.Hash = hash
 	return nil
 }

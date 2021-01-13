@@ -80,7 +80,7 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.Byt
 	for i, acc := range accounts {
 		acc.Status = core.STATUS_ACTIVE
 		acc.UpdatePath(terminalNodes[i])
-		acc.CreateAccountHash()
+		acc.UpdateHash()
 		err := db.UpdateState(acc)
 		if err != nil {
 			return err

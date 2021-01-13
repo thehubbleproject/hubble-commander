@@ -30,96 +30,70 @@ type UserState struct {
 
 	Level uint64 `gorm:"not null;index:Level"`
 
-	// Add the deposit hash for the account
+	// Add the deposit hash for the state
 	CreatedByDepositSubTree string
 }
 
-// NewUserState creates a new user account
+// NewUserState creates a new user state
 func NewUserState(id, status uint64, path string, data []byte) *UserState {
-	newState := &UserState{
+	node := &UserState{
 		AccountID: id,
 		Path:      path,
 		Status:    status,
 		Type:      TYPE_TERMINAL,
 		Data:      data,
 	}
-	newState.UpdatePath(newState.Path)
-	newState.CreateAccountHash()
-	return newState
+	node.UpdatePath(node.Path)
+	node.UpdateHash()
+	return node
 }
 
-// NewStateNode creates a new non-terminal user account, the only this useful in this is
+// NewStateNode creates a new non-terminal user state, the only this useful in this is
 // Path, Status, Hash, PubkeyHash
 func NewStateNode(path, hash string) *UserState {
-	newUserState := &UserState{
+	node := &UserState{
 		AccountID: ZERO,
 		Path:      path,
 		Status:    STATUS_INACTIVE,
 		Type:      TYPE_NON_TERMINAL,
 	}
-	newUserState.UpdatePath(newUserState.Path)
-	newUserState.Hash = hash
-	return newUserState
+	node.UpdatePath(node.Path)
+	node.UpdateHash()
+	return node
 }
 
-// NewPendingUserState creates a new terminal user account but in pending state
+// NewPendingUserState creates a new terminal user state but in pending state
 // It is to be used while adding new deposits while they are not finalised
 func NewPendingUserState(id uint64, data []byte) *UserState {
-	newAcccount := &UserState{
-		AccountID: id,
-		Path:      UNINITIALIZED_PATH,
-		Status:    STATUS_PENDING,
-		Type:      TYPE_TERMINAL,
-		Data:      data,
-	}
-	newAcccount.UpdatePath(newAcccount.Path)
-	newAcccount.CreateAccountHash()
-	return newAcccount
+	return NewUserState(id, STATUS_PENDING, UNINITIALIZED_PATH, data)
 }
 
-func (acc *UserState) UpdatePath(path string) {
-	acc.Path = path
-	acc.Level = uint64(len(path))
+func (node *UserState) UpdatePath(path string) {
+	node.Path = path
+	node.Level = uint64(len(path))
 }
 
-func (acc *UserState) HashToByteArray() ByteArray {
-	ba, err := HexToByteArray(acc.Hash)
+func (node *UserState) UpdateHash() {
+	node.Hash = Keccak256(node.Data).String()
+}
+
+func (node *UserState) HashToByteArray() ByteArray {
+	ba, err := HexToByteArray(node.Hash)
 	if err != nil {
 		panic(err)
 	}
 	return ba
 }
 
-func (acc *UserState) IsActive() bool {
-	return acc.Status == STATUS_ACTIVE
-}
-
-func (acc *UserState) IsCoordinator() bool {
-	if acc.Path != "" {
-		return false
-	}
-
-	if acc.Status != 1 {
-		return false
-	}
-
-	if acc.Type != 0 {
-		return false
-	}
-
-	return true
-}
-
-func (acc *UserState) CreateAccountHash() {
-	accountHash := Keccak256(acc.Data)
-	acc.Hash = accountHash.String()
+func (node *UserState) IsActive() bool {
+	return node.Status == STATUS_ACTIVE
 }
 
 //
 // Utils
 //
 
-// EmptyUserState creates a new account which has the same hash as ZeroLeaf
+// EmptyUserState creates a new state which has the same hash as ZeroLeaf
 func EmptyUserState() UserState {
 	return *NewUserState(ZERO, STATUS_INACTIVE, "", nil)
 }

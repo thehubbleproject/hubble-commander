@@ -102,7 +102,7 @@ func (db *DB) GetStatesAtDepth(depth uint64) ([]core.UserState, error) {
 }
 
 func (db *DB) UpdateState(state core.UserState) error {
-	state.CreateAccountHash()
+	state.UpdateHash()
 	siblings, err := db.GetSiblings(state.Path)
 	if err != nil {
 		return err
