@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -25,9 +26,10 @@ const (
 	DefaultConfirmationBlocks   = 5
 	DefaultDepositSubTreeHeight = 4
 	DefaultMaxDepth             = 2
+
+	ConfigFileName = "config"
 )
 
-var GlobalCfg Configuration
 var OperatorKey *ecdsa.PrivateKey
 var OperatorPubKey *ecdsa.PublicKey
 var OperatorAddress ethCmn.Address
@@ -92,31 +94,22 @@ func GetDefaultConfig() Configuration {
 
 // ParseConfig retrieves the default environment configuration for the
 // application.
-func ParseConfig(path string) (*Configuration, error) {
-	conf := new(Configuration)
+func ParseConfig() (Configuration, error) {
+	var cfg Configuration
+	dir, err := os.Getwd()
+
 	v := viper.New()
-	v.SetConfigName("config")
-	if path == "" {
-		v.AddConfigPath(".")
-	} else {
-		v.AddConfigPath(path)
-	}
+	v.SetConfigName(ConfigFileName) // name of config file (without extension)
+	v.AddConfigPath(dir)
 
 	if err := v.ReadInConfig(); err != nil {
-		return conf, err
+		return cfg, err
 	}
-	err := v.Unmarshal(conf)
+	err = v.UnmarshalExact(cfg)
 
-	return conf, err
-}
+	SetOperatorKeys(cfg.OperatorKey)
 
-func ParseAndInitGlobalConfig(path string) error {
-	conf, err := ParseConfig(path)
-	if err != nil {
-		return err
-	}
-	GlobalCfg = *conf
-	return nil
+	return cfg, err
 }
 
 // FormattedDBURL returns formatted db url

@@ -9,7 +9,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/wallet"
 	"github.com/common-nighthawk/go-figure"
@@ -55,7 +54,6 @@ func main() {
 	rootCmd.AddCommand(initCmd())
 	rootCmd.AddCommand(startCmd())
 	rootCmd.AddCommand(startRestServerCmd())
-	rootCmd.AddCommand(addGenesisAcccountsCmd())
 	rootCmd.AddCommand(sendTransferTx())
 	rootCmd.AddCommand(dummyTransfer())
 	rootCmd.AddCommand(dummyCreate2Transfer())
@@ -124,30 +122,6 @@ func createUsers() *cobra.Command {
 	return cmd
 }
 
-func addGenesisAcccountsCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "add-gen-accounts",
-		Short: "Adds the accounts present in genesis account to the contract",
-		Run: func(cmd *cobra.Command, args []string) {
-			viperObj := viper.New()
-			dir, err := os.Getwd()
-			common.PanicIfError(err)
-
-			viperObj.SetConfigName(ConfigFileName) // name of config file (without extension)
-			viperObj.AddConfigPath(dir)
-			err = viperObj.ReadInConfig()
-			common.PanicIfError(err)
-
-			var cfg config.Configuration
-			if err = viperObj.UnmarshalExact(&cfg); err != nil {
-				common.PanicIfError(err)
-			}
-			// init global config
-			config.GlobalCfg = cfg
-		},
-	}
-}
-
 // createDatabase creates the database
 func createDatabase() *cobra.Command {
 	cmd := &cobra.Command{
@@ -158,10 +132,11 @@ func createDatabase() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := config.ParseAndInitGlobalConfig(""); err != nil {
+			cfg, err := config.ParseConfig()
+			if err != nil {
 				return err
 			}
-			splitStrings := strings.Split(config.GlobalCfg.FormattedDBURL(), "/")
+			splitStrings := strings.Split(cfg.FormattedDBURL(), "/")
 			connectionString := []string{splitStrings[0], "/"}
 			dbNew, err := sql.Open("mysql", strings.Join(connectionString, ""))
 			if err != nil {
