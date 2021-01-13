@@ -97,6 +97,9 @@ func GetDefaultConfig() Configuration {
 func ParseConfig() (Configuration, error) {
 	var cfg Configuration
 	dir, err := os.Getwd()
+	if err != nil {
+		return cfg, err
+	}
 
 	v := viper.New()
 	v.SetConfigName(ConfigFileName) // name of config file (without extension)
@@ -106,8 +109,11 @@ func ParseConfig() (Configuration, error) {
 		return cfg, err
 	}
 	err = v.UnmarshalExact(cfg)
+	if err != nil {
+		return cfg, err
+	}
 
-	SetOperatorKeys(cfg.OperatorKey)
+	err = SetOperatorKeys(cfg.OperatorKey)
 
 	return cfg, err
 }

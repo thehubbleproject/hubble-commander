@@ -61,6 +61,9 @@ var upMigrateCmd = &cobra.Command{
 	Short: "Run up migration",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg, err := config.ParseConfig()
+		if err != nil {
+			return err
+		}
 		IDB, err := db.NewDB(cfg)
 		if err != nil {
 			return err
@@ -78,6 +81,9 @@ var downMigrateCmd = &cobra.Command{
 	Short: "Run down migration",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg, err := config.ParseConfig()
+		if err != nil {
+			return err
+		}
 		db, err := db.NewDB(cfg)
 		if err != nil {
 			return err

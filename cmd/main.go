@@ -18,7 +18,6 @@ import (
 
 const (
 	WithConfigPathFlag = "config-path"
-	ConfigFileName     = "config"
 )
 
 // Executor wraps the cobra Command with a nicer Execute method
