@@ -30,9 +30,6 @@ func startCmd() *cobra.Command {
 			var err error
 			// populate global config objects
 			cfg := readAndInitGlobalConfig()
-			err = config.SetOperatorKeys(cfg.OperatorKey)
-			common.PanicIfError(err)
-
 			bz, err := bazooka.NewPreLoadedBazooka(cfg)
 			common.PanicIfError(err)
 
@@ -159,6 +156,6 @@ func readAndInitGlobalConfig() config.Configuration {
 		common.PanicIfError(err)
 	}
 	// TODO use a better way to handle priv keys post testnet
-	common.PanicIfError(config.SetOperatorKeys(config.GlobalCfg.OperatorKey))
+	common.PanicIfError(config.SetOperatorKeys(cfg.OperatorKey))
 	return cfg
 }
