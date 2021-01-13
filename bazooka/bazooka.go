@@ -55,7 +55,7 @@ type (
 
 		RollupABI abi.ABI
 		SC        Contracts
-		cfg       config.Configuration
+		Cfg       config.Configuration
 		operator  ethCmn.Address
 	}
 
@@ -87,7 +87,7 @@ func NewPreLoadedBazooka(cfg config.Configuration) (bazooka Bazooka, err error) 
 	if err != nil {
 		return bazooka, err
 	}
-	bazooka.cfg = cfg
+	bazooka.Cfg = cfg
 	bazooka.operator = ethCmn.HexToAddress(cfg.OperatorAddress)
 
 	bazooka.log = log.Logger.With("module", "bazooka")

@@ -4,7 +4,6 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/BOPR/config"
 	"github.com/BOPR/contracts/accountregistry"
 	"github.com/BOPR/contracts/rollup"
 	"github.com/BOPR/core"
@@ -97,7 +96,7 @@ func (b *Bazooka) submitTransferBatch(commitments []core.Commitment, accountRoot
 	}
 	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
 
-	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
+	rollupAddress := ethCmn.HexToAddress(b.Cfg.RollupAddress)
 
 	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
 	stakeAmount := big.NewInt(1000000000000000000)
@@ -152,7 +151,7 @@ func (b *Bazooka) submitCreate2TransferBatch(commitments []core.Commitment, acco
 	}
 	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
 
-	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
+	rollupAddress := ethCmn.HexToAddress(b.Cfg.RollupAddress)
 
 	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
 	stakeAmount := big.NewInt(1000000000000000000)
@@ -245,7 +244,7 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment, accoun
 
 	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
 
-	rollupAddress := ethCmn.HexToAddress(config.GlobalCfg.RollupAddress)
+	rollupAddress := ethCmn.HexToAddress(b.Cfg.RollupAddress)
 
 	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
 	stakeAmount := big.NewInt(100000000000000000)
@@ -308,7 +307,7 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 		return err
 	}
 
-	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(config.GlobalCfg.RollupAddress), big.NewInt(32), input)
+	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(b.Cfg.RollupAddress), big.NewInt(32), input)
 	if err != nil {
 		b.log.Error("Error sending register batch", "err", err)
 		return
@@ -330,7 +329,7 @@ func (b *Bazooka) RegisterPubkeys(pubkeys [16][4]*big.Int) (txHash string, err e
 		return
 	}
 
-	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(config.GlobalCfg.AccountRegistry), big.NewInt(0), data)
+	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(b.Cfg.AccountRegistry), big.NewInt(0), data)
 	if err != nil {
 		b.log.Error("Error sending register batch", "err", err)
 		return

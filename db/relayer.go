@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/BOPR/bazooka"
+	"github.com/BOPR/config"
 	"github.com/BOPR/core"
 	"github.com/jinzhu/gorm"
 	uuid "github.com/satori/go.uuid"
@@ -35,7 +36,7 @@ func (rp *RelayPacket) BeforeCreate(scope *gorm.Scope) error {
 	return nil
 }
 
-func (rp *RelayPacket) AfterCreate(tx *gorm.DB) (err error) {
+func (rp *RelayPacket) AfterCreate(tx *gorm.DB, cfg config.Configuration) (err error) {
 	query := tx.Model(&RelayPacket{}).Where("status = ?", statusPackedReceived)
 
 	var count int
@@ -50,7 +51,7 @@ func (rp *RelayPacket) AfterCreate(tx *gorm.DB) (err error) {
 	if err := query.Find(&packets).Error; err != nil {
 		return err
 	}
-	bz, err := bazooka.NewPreLoadedBazooka()
+	bz, err := bazooka.NewPreLoadedBazooka(cfg)
 	if err != nil {
 		return err
 	}

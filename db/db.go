@@ -41,6 +41,7 @@ type DB struct {
 	Instance *gorm.DB
 	Bazooka  bazooka.Bazooka
 	Logger   tmLog.Logger
+	Cfg      config.Configuration
 }
 
 // NewDB creates a new DB instance
@@ -58,7 +59,7 @@ func NewDB(cfg config.Configuration) (DB, error) {
 	if err != nil {
 		return DB{}, err
 	}
-	return DB{Instance: db, Logger: logger, Bazooka: bz}, nil
+	return DB{Instance: db, Logger: logger, Bazooka: bz, Cfg: cfg}, nil
 }
 
 func (db *DB) Close() {
