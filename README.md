@@ -41,7 +41,7 @@ In `config.toml` you also have various params for entering ethereum RPC's and co
 ## Run migrations
 
 ```bash
-$ ./build/hubble create-database
+$ ./build/hubble create-database --dbname=hubble
 $ make migrate-up
 ```
 
