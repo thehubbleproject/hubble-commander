@@ -2,6 +2,9 @@ package core
 
 import (
 	"errors"
+
+	"github.com/jinzhu/gorm"
+	uuid "github.com/satori/go.uuid"
 )
 
 var (
@@ -12,16 +15,16 @@ var (
 
 // Account is the copy of the accounts tree
 type Account struct {
+	ID string `json:"-" gorm:"primary_key;size:100;default:'6ba7b810-9dad-11d1-80b4-00c04fd430c8'"`
 	// ID is the path of the user account in the Account Tree
 	// Cannot be changed once created
-	ID uint64 `gorm:"column:account_id"`
+	AccountID uint64 `gorm:"column:account_id"`
 
 	// Public key for the user
 	PublicKey []byte `gorm:"type:varbinary(255)"`
 
 	// Path from root to leaf
-	// Path is a string to that we can run LIKE queries
-	Path string `gorm:"not null;index:Path"`
+	Path string `gorm:"not null;unique;index:Path"`
 
 	// Type of node
 	Type uint64 `gorm:"not null"`
@@ -33,14 +36,24 @@ type Account struct {
 	Level uint64 `gorm:"not null"`
 }
 
+// BeforeCreate sets id before creating
+func (acc *Account) BeforeCreate(scope *gorm.Scope) error {
+	err := scope.SetColumn("id", uuid.NewV4().String())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // NewAccount creates a new account
-func NewAccount(id uint64, pubkey []byte, path string) (*Account, error) {
+func NewAccount(accID uint64, pubkey []byte, path string, nodeType uint64) (*Account, error) {
 	newAccount := &Account{
-		ID:        id,
+		AccountID: accID,
 		PublicKey: pubkey,
 		Path:      path,
-		Type:      TYPE_TERMINAL,
+		Type:      nodeType,
 	}
+	newAccount.UpdatePath(newAccount.Path)
 	err := newAccount.PopulateHash()
 	if err != nil {
 		return nil, err
@@ -48,11 +61,23 @@ func NewAccount(id uint64, pubkey []byte, path string) (*Account, error) {
 	return newAccount, nil
 }
 
-func NewAccountNode(path, hash string) *Account {
+func NewAccountRoot(depth int) *Account {
 	newAccount := &Account{
-		ID:   ZERO,
-		Path: path,
-		Type: TYPE_NON_TERMINAL,
+		AccountID: 0,
+		PublicKey: []byte(""),
+		Path:      "",
+		Type:      TYPE_ROOT,
+	}
+	newAccount.Hash = DefaultHashes[depth].String()
+	return newAccount
+
+}
+
+func NewAccountNode(path, hash string, nodeType uint64) *Account {
+	newAccount := &Account{
+		AccountID: ZERO,
+		Path:      path,
+		Type:      nodeType,
 	}
 	newAccount.UpdatePath(path)
 	newAccount.Hash = hash
@@ -61,7 +86,7 @@ func NewAccountNode(path, hash string) *Account {
 
 // NewEmptyAccount creates new empty account which generates zero hash
 func NewEmptyAccount() *Account {
-	return &Account{ID: ZERO, PublicKey: EmptyByteSlice, Type: TYPE_TERMINAL}
+	return &Account{AccountID: ZERO, PublicKey: EmptyByteSlice, Type: TYPE_TERMINAL}
 }
 
 func (p *Account) UpdatePath(path string) {

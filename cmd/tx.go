@@ -270,9 +270,12 @@ func dummyTransfer() *cobra.Command {
 				if err != nil {
 					return err
 				}
-
+				nodeType, err := DBI.FindNodeType(path)
+				if err != nil {
+					panic(err)
+				}
 				// add accounts to tree
-				acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path)
+				acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path, nodeType)
 				if err != nil {
 					return err
 				}
@@ -344,8 +347,13 @@ func dummyCreate2Transfer() *cobra.Command {
 					return err
 				}
 
+				nodeType, err := DBI.FindNodeType(path)
+				if err != nil {
+					panic(err)
+				}
+
 				// add accounts to tree
-				user1Acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path)
+				user1Acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path, nodeType)
 				if err != nil {
 					return err
 				}
@@ -443,8 +451,12 @@ func dummyMassMigrate() *cobra.Command {
 					return err
 				}
 
+				nodeType, err := DBI.FindNodeType(path)
+				if err != nil {
+					panic(err)
+				}
 				// add accounts to tree
-				acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path)
+				acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path, nodeType)
 				if err != nil {
 					return err
 				}
@@ -550,7 +562,6 @@ func signAndBroadcast(b *bazooka.Bazooka, DBI *db.DB, tx core.Tx, priv, pub []by
 	}
 
 	fmt.Println("Sending new tx", tx.String())
-
 	err = DBI.InsertTx(&tx)
 	if err != nil {
 		return err

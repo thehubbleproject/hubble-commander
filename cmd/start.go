@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"math"
 	"os"
 	"os/signal"
 	"runtime"
@@ -100,25 +99,12 @@ func loadGenesisData(bz *bazooka.Bazooka, DBI *db.DB, genesis config.Genesis) {
 		common.PanicIfError(err)
 	}
 
-	var states []core.UserState
-	var accounts []core.Account
+	depth := int(genesis.MaxTreeDepth)
 
-	for i := 0; i < int(math.Exp2(float64(genesis.MaxTreeDepth))); i++ {
-		// create empty state
-		newEmptyState := core.EmptyUserState()
-		newEmptyState.Hash = core.ZeroLeaf.String()
-		states = append(states, newEmptyState)
-
-		// create empty account
-		newAccount := core.NewEmptyAccount()
-		newAccount.Hash = core.ZeroLeaf.String()
-		accounts = append(accounts, *newAccount)
-	}
-
-	err = DBI.InitStateTree(genesis.MaxTreeDepth, states)
+	err = DBI.InitStateTree(depth)
 	common.PanicIfError(err)
 
-	err = DBI.InitAccountTree(genesis.MaxTreeDepth, accounts)
+	err = DBI.InitAccountTree(depth)
 	common.PanicIfError(err)
 
 	// load params

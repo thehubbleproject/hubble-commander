@@ -2,7 +2,6 @@ package listener
 
 import (
 	"bytes"
-	"fmt"
 	"math/big"
 
 	"github.com/BOPR/bazooka"
@@ -43,7 +42,6 @@ func IsCatchingUp(b bazooka.Bazooka, db db.DB) (bool, error) {
 
 // decompressTransfers decompresses transfer bytes to TX
 func decompressTransfers(b bazooka.Bazooka, DBInstance db.DB, compressedTxs [][]byte) (txs []core.Tx, txsPerCommitment []int, err error) {
-	fmt.Printf("here here %+v", compressedTxs)
 	var transactions []core.Tx
 	for _, txSet := range compressedTxs {
 		froms, tos, amounts, fees, errr := b.DecompressTransferTxs(txSet)

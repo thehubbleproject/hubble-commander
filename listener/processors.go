@@ -49,7 +49,12 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 	}
 
 	pubkey := core.NewPubkey(event.Pubkey)
-	newAcc, err := core.NewAccount(event.PubkeyID.Uint64(), pubkey, pathToNode)
+	nodeType, err := s.DBInstance.FindNodeType(pathToNode)
+	if err != nil {
+		panic(err)
+	}
+
+	newAcc, err := core.NewAccount(event.PubkeyID.Uint64(), pubkey, pathToNode, nodeType)
 	if err != nil {
 		fmt.Println("unable to create new account")
 		panic(err)
@@ -67,6 +72,7 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 
 func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
 	s.Logger.Info("New deposit found")
+
 	// unpack event
 	event := new(depositmanager.DepositmanagerDepositQueued)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
@@ -74,15 +80,17 @@ func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog
 		fmt.Println("Unable to unpack log:", err)
 		panic(err)
 	}
+
 	s.Logger.Info(
 		"⬜ New event found",
 		"event", eventName,
 		"pubkeyID", event.PubkeyID.String(),
 		"Data", hex.EncodeToString(event.Data),
 	)
+
 	// add new account in pending state to DB and
-	newAccount := core.NewPendingUserState(event.PubkeyID.Uint64(), event.Data)
-	err = s.DBInstance.AddNewPendingUserState(*newAccount)
+	newUserState := core.NewPendingUserState(event.PubkeyID.Uint64(), event.Data)
+	err = s.DBInstance.AddNewPendingUserState(*newUserState)
 	if err != nil {
 		panic(err)
 	}
@@ -149,12 +157,11 @@ func (s *Syncer) processDepositFinalised(eventName string, abiObject *abi.ABI, v
 	)
 
 	// TODO handle error
-	newRoot, err := s.DBInstance.FinaliseDepositsAndAddBatch(depositRoot, pathToDepositSubTree.Uint64())
+	err = s.DBInstance.FinaliseDepositsAndAddBatch(depositRoot, pathToDepositSubTree.Uint64())
 	if err != nil {
 		fmt.Println("Error while finalising deposits", err)
 	}
 
-	fmt.Println("new root", newRoot)
 }
 
 func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {

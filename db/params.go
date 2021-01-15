@@ -1,6 +1,10 @@
 package db
 
-import "github.com/BOPR/core"
+import (
+	"errors"
+
+	"github.com/BOPR/core"
+)
 
 func (db *DB) InitSyncStatus(startBlock uint64) error {
 	return db.Instance.Create(&core.SyncStatus{LastEthBlockRecorded: startBlock}).Error
@@ -80,4 +84,54 @@ func (db *DB) GetParams() (params core.Params, err error) {
 		return params, err
 	}
 	return params, nil
+}
+
+func (db *DB) IDToPath(id uint64) (path string, err error) {
+	params, err := db.GetParams()
+	if err != nil {
+		return
+	}
+	path, err = core.SolidityPathToNodePath(id, params.MaxDepth)
+	if err != nil {
+		return
+	}
+	return path, nil
+}
+
+func (db *DB) IsPathInBounds(path string) bool {
+	return false
+}
+
+func (db *DB) DepthToHeight(depth int) (height int, err error) {
+	params, err := db.GetParams()
+	if err != nil {
+		return
+	}
+	if depth > int(params.MaxDepth) {
+		return 0, errors.New("depth cannot be greater than max depth")
+	}
+	return int(params.MaxDepth) - depth, nil
+}
+
+// FindNodeType finds the node type using the path
+// it can be terminal, non terminal or root
+func (db *DB) FindNodeType(path string) (uint64, error) {
+	params, err := db.GetParams()
+	if err != nil {
+		return 0, err
+	}
+
+	depth := len(path)
+	if depth > int(params.MaxDepth) {
+		return 0, errors.New("depth cannot be greater than max depth")
+	}
+
+	switch depth {
+	case 0:
+		return core.TYPE_ROOT, nil
+	case int(params.MaxDepth):
+		return core.TYPE_TERMINAL, nil
+	default:
+		return core.TYPE_NON_TERMINAL, nil
+	}
 }
