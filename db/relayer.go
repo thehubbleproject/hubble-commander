@@ -149,7 +149,7 @@ func (db *DB) MarkPacketDone(pubkey []byte) error {
 	txData, err := db.Bazooka.EncodeCreate2TransferTx(
 		fromIndex.Int64(),
 		int64(toStateID),
-		int64(toAcc.ID),
+		int64(toAcc.AccountID),
 		fee.Int64(),
 		nonce.Int64(),
 		amount.Int64(),

@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/hex"
 	"errors"
+	"math"
 	"math/big"
 	"strconv"
 	"strings"
@@ -86,7 +87,7 @@ func GetAdjacentNodePath(path string) (string, error) {
 	return pad.Left(UintToString(adjacentNodePath), len(path), "0"), nil
 }
 
-// goes from 3 to 000000000011
+// SolidityPathToNodePath goes from 3 to 000000000011
 func SolidityPathToNodePath(path uint64, depth uint64) (string, error) {
 	pathWithoutPrefix := UintToString(path)
 	// pad path with 0's to make it fit depth
@@ -103,31 +104,6 @@ func SolidityPathToNodePath(path uint64, depth uint64) (string, error) {
 	generatedPath := strings.Join([]string{string(pathToNode), pathWithoutPrefix}, "")
 
 	return generatedPath, nil
-}
-
-func encodeChildren(left, right ByteArray) (result []byte, err error) {
-	bytes32Type, err := abi.NewType("bytes32", "bytes32", nil)
-	if err != nil {
-		return
-	}
-
-	arguments := abi.Arguments{
-		{
-			Type: bytes32Type,
-		},
-		{
-			Type: bytes32Type,
-		},
-	}
-	bz, err := arguments.Pack(
-		[32]byte(left),
-		[32]byte(right),
-	)
-	if err != nil {
-		return
-	}
-
-	return bz, nil
 }
 
 func BytesToSolSignature(in []byte) (out [2]*big.Int, err error) {
@@ -159,4 +135,63 @@ func RlpHash(x interface{}) (h ethCmn.Hash, err error) {
 	}
 	hw.Sum(h[:0])
 	return h, nil
+}
+
+// GetAllChildren fetches paths for all children for a particular node
+func GetAllChildren(path string, treeDepth int) (childrenPaths []string, err error) {
+	if len(path) == treeDepth {
+		return
+	}
+	heightDiff := treeDepth - len(path)
+	var suffix []rune
+	for i := 0; i < heightDiff; i++ {
+		suffix = append(suffix, 48)
+	}
+	path = strings.Join([]string{path, string(suffix)}, "")
+	totalChildren := TotalLeavesForDepth(heightDiff)
+	firstIndex, err := StringToUint(path)
+	if err != nil {
+		return
+	}
+	for i := uint64(0); i < uint64(totalChildren); i++ {
+		idx := firstIndex + i
+		// TODO replace with normal uint to string conversion with depth check
+		// this is slow
+		childPath, errr := SolidityPathToNodePath(idx, uint64(treeDepth))
+		if errr != nil {
+			return
+		}
+		childrenPaths = append(childrenPaths, childPath)
+	}
+	return
+}
+
+// TotalLeavesForDepth calculate total leaves for depth
+func TotalLeavesForDepth(depth int) (totalLeaves int) {
+	return int(math.Exp2(float64(depth)))
+}
+
+func encodeChildren(left, right ByteArray) (result []byte, err error) {
+	bytes32Type, err := abi.NewType("bytes32", "bytes32", nil)
+	if err != nil {
+		return
+	}
+
+	arguments := abi.Arguments{
+		{
+			Type: bytes32Type,
+		},
+		{
+			Type: bytes32Type,
+		},
+	}
+	bz, err := arguments.Pack(
+		[32]byte(left),
+		[32]byte(right),
+	)
+	if err != nil {
+		return
+	}
+
+	return bz, nil
 }

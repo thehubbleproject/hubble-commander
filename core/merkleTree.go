@@ -91,7 +91,7 @@ func (t *Tree) GetWitnessForLeaf(leafIndex uint64) (leaf ByteArray, witness []By
 
 // NodeCount returns the number of nodes on a level
 func (t *Tree) NodeCount(level int) int {
-	return int(math.Exp2(float64(level)))
+	return TotalLeavesForDepth(level)
 }
 
 // ascends from the leaf level towards root creating all intermediate nodes
