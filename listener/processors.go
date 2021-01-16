@@ -73,7 +73,6 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
 	s.Logger.Info("New deposit found")
 
-	// unpack event
 	event := new(depositmanager.DepositmanagerDepositQueued)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
@@ -88,9 +87,8 @@ func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog
 		"Data", hex.EncodeToString(event.Data),
 	)
 
-	// add new account in pending state to DB and
-	newUserState := core.NewPendingUserState(event.PubkeyID.Uint64(), event.Data)
-	err = s.DBInstance.AddNewPendingUserState(*newUserState)
+	newDeposit := core.NewDeposit(event.PubkeyID.Uint64(), event.Data)
+	err = s.DBInstance.AddNewDeposit(*newDeposit)
 	if err != nil {
 		panic(err)
 	}
