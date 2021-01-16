@@ -1,12 +1,15 @@
 package db
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 
 	"github.com/BOPR/core"
 )
+
+func (db *DB) AddNewDeposit(deposit core.Deposit) error {
+	return db.Instance.Create(&deposit).Error
+}
 
 // GetDepositNodeAndSiblings fetches the right intermediate node that has to be replaced for deposits
 func (db *DB) GetDepositNodeAndSiblings() (nodeToBeReplaced core.UserState, siblings []core.UserState, err error) {
@@ -62,13 +65,12 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.Byt
 	if err != nil {
 		return err
 	}
-
 	// find out the accounts that are finalised
-	accounts, err := db.GetPendingAccByDepositRoot(depositRoot)
+	deposits, err := db.GetPendingDepositsByDepositRoot(depositRoot)
 	if err != nil {
 		return err
 	}
-	fmt.Println("pending accounts by depositRoot", len(accounts))
+	db.Logger.Info("Got pending deposits", "depositRoot", depositRoot, "PendingDepositCount", len(deposits))
 
 	// find out where the insertion was made
 	height := params.MaxDepth - params.MaxDepositSubTreeHeight
@@ -81,19 +83,19 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.Byt
 	if err != nil {
 		return err
 	}
+	if len(terminalNodes) != len(deposits) {
+		return errors.New("deposit subtree cannot be empty")
+	}
 
-	for i, acc := range accounts {
-		acc.Status = core.STATUS_ACTIVE
-		acc.Type = core.TYPE_TERMINAL
-		acc.UpdatePath(terminalNodes[i])
-		acc.CreateAccountHash()
-		err := db.UpdateState(acc)
+	for i, deposit := range deposits {
+		// convery deposit to user state
+		newUserState := core.NewUserState(deposit.AccountID, terminalNodes[i], deposit.Data)
+		err := db.UpdateState(*newUserState)
 		if err != nil {
 			return err
 		}
-
 		// delete pending account
-		err = db.DeletePendingAccount(acc.AccountID)
+		err = db.DeletePendingDeposit(deposit.AccountID)
 		if err != nil {
 			return err
 		}
@@ -102,32 +104,40 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.Byt
 	return nil
 }
 
-func (db *DB) GetPendingDeposits(numberOfAccs uint64) ([]core.UserState, error) {
-	var accounts []core.UserState
-	err := db.Instance.Limit(numberOfAccs).Where("status = ?", core.STATUS_PENDING).Find(&accounts).Error
-	if err != nil {
-		return accounts, err
+func (db *DB) AttachDepositInfo(root core.ByteArray) error {
+	var deposit core.Deposit
+	result := db.Instance.Model(&deposit).Update("deposit_root", root.String())
+	if err := result.Error; err != nil {
+		return err
 	}
-	return accounts, nil
+	return nil
 }
 
-func (db *DB) GetAllTerminalNodes(pathToDepositSubTree string) (terminalNodes []string, err error) {
-	buf := bytes.Buffer{}
-	buf.WriteString(pathToDepositSubTree)
-	buf.WriteString("%")
-	var accounts []core.UserState
-
-	// LIKE query with search for terminal nodes to DB
-	if err = db.Instance.Where("path LIKE ? AND type = ?", buf.String(), core.TYPE_TERMINAL).Find(&accounts).Error; err != nil {
-		return
+// GetPendingDepositsByDepositRoot fetches all deposits created by a specific deposit subtree
+func (db *DB) GetPendingDepositsByDepositRoot(root core.ByteArray) ([]core.Deposit, error) {
+	var pendingDeposits []core.Deposit
+	query := db.Instance.Scopes(QueryByDepositRoot(root.String())).Find(&pendingDeposits)
+	if err := query.Error; err != nil {
+		return pendingDeposits, err
 	}
 
-	// get all accounts while making sure they are empty and append to paths array
-	for _, account := range accounts {
-		if account.Hash != core.ZeroLeaf.String() {
-			return terminalNodes, errors.New("Account not zero, aborting operation")
-		}
-		terminalNodes = append(terminalNodes, account.Path)
+	return pendingDeposits, nil
+}
+
+func (db *DB) DeletePendingDeposit(ID uint64) error {
+	var deposit core.Deposit
+	err := db.Instance.Scopes(QueryByAccountID(ID)).Delete(&deposit).Error
+	if err != nil {
+		return core.ErrRecordNotFound(fmt.Sprintf("unable to delete record for ID: %v", ID))
 	}
-	return
+	return nil
+}
+
+func (db *DB) GetPendingDeposits(numberOfAccs uint64) ([]core.Deposit, error) {
+	var deposits []core.Deposit
+	err := db.Instance.Limit(numberOfAccs).Find(&deposits).Error
+	if err != nil {
+		return deposits, err
+	}
+	return deposits, nil
 }

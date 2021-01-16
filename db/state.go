@@ -31,7 +31,7 @@ func (db *DB) ReserveEmptyLeaf() (id uint64, err error) {
 	var states []core.UserState
 
 	// find empty state leaf
-	if err := db.Instance.Scopes(QueryByType(core.TYPE_TERMINAL), QueryByStatus(core.STATUS_INACTIVE)).Find(&states).Error; err != nil {
+	if err := db.Instance.Scopes(QueryByType(core.TYPE_TERMINAL)).Find(&states).Error; err != nil {
 		return 0, err
 	}
 
@@ -39,7 +39,7 @@ func (db *DB) ReserveEmptyLeaf() (id uint64, err error) {
 		return 0, errors.New("no empty state leaf found")
 	}
 	// update status to status_active
-	states[0].Status = core.STATUS_ACTIVE
+	states[0].IsReserved = true
 	if err := db.updateState(states[0], states[0].Path); err != nil {
 		return 0, err
 	}
@@ -121,7 +121,6 @@ func (db *DB) UpdateParentWithHash(pathToParent string, newHash core.ByteArray) 
 		return err
 	}
 	tempState.Type = nodeType
-	tempState.Status = core.STATUS_ACTIVE
 	tempState.Hash = newHash.String()
 	return db.updateState(tempState, pathToParent)
 }
@@ -130,13 +129,8 @@ func (db *DB) UpdateRootNodeHashes(newRoot core.ByteArray) error {
 	var tempState core.UserState
 	tempState.Type = core.TYPE_ROOT
 	tempState.Path = ""
-	tempState.Status = core.STATUS_ACTIVE
 	tempState.Hash = newRoot.String()
 	return db.updateState(tempState, tempState.Path)
-}
-
-func (db *DB) AddNewPendingUserState(acc core.UserState) error {
-	return db.Instance.Create(&acc).Error
 }
 
 func (db *DB) GetSiblings(path string) ([]core.UserState, error) {
@@ -155,7 +149,7 @@ func (db *DB) GetSiblings(path string) ([]core.UserState, error) {
 	return siblings, nil
 }
 
-func (db *DB) GetStateByIndex(index uint64) (acc core.UserState, err error) {
+func (db *DB) GetStateByIndex(index uint64) (state core.UserState, err error) {
 	path, err := db.IDToPath(index)
 	if err != nil {
 		return
@@ -196,57 +190,18 @@ func (db *DB) GetRoot() (core.UserState, error) {
 }
 
 // updateState will simply replace all the changed fields
-func (db *DB) updateState(newAcc core.UserState, path string) error {
+func (db *DB) updateState(newState core.UserState, path string) error {
 	var state core.UserState
-	err := db.Instance.Model(&newAcc).Where("path = ?", path).Find(&state).Error
+	err := db.Instance.Model(&state).Scopes(QueryByPath(path)).Find(&state).Error
 	if gorm.IsRecordNotFoundError(err) {
-		db.Instance.Create(&newAcc)
-		return nil
+		return db.Instance.Create(&newState).Error
 	}
 	if err != nil {
 		return err
 	}
-	err = db.Instance.Save(&newAcc).Error
+	err = db.Instance.Model(&state).Scopes(QueryByPath(path)).Update(&newState).Error
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-func (db *DB) DeletePendingAccount(ID uint64) error {
-	leaf, err := db.GetAccountLeafByID(ID)
-	if err != nil {
-		return err
-	}
-
-	if err := db.Instance.Delete(&leaf).Error; err != nil {
-		return core.ErrRecordNotFound(fmt.Sprintf("unable to delete record for ID: %v", ID))
-	}
-	return nil
-}
-
-//
-// Deposit Account Handling
-//
-
-func (db *DB) AttachDepositInfo(root core.ByteArray) error {
-	// find all pending accounts
-	var account core.UserState
-	account.CreatedByDepositSubTree = root.String()
-	result := db.Instance.Model(&account).Scopes(QueryByStatus(core.STATUS_PENDING)).Update(&account)
-	if err := result.Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (db *DB) GetPendingAccByDepositRoot(root core.ByteArray) ([]core.UserState, error) {
-	// find all accounts with CreatedByDepositSubTree as `root`
-	var pendingAccounts []core.UserState
-	query := db.Instance.Where("created_by_deposit_sub_tree = ? AND status = ?", root.String(), core.STATUS_PENDING).Find(&pendingAccounts)
-	if err := query.Error; err != nil {
-		return pendingAccounts, err
-	}
-
-	return pendingAccounts, nil
 }

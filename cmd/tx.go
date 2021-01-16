@@ -288,7 +288,7 @@ func dummyTransfer() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				newUser := core.NewUserState(pubkeyIndex, core.STATUS_ACTIVE, path, userState)
+				newUser := core.NewUserState(pubkeyIndex, path, userState)
 				err = DBI.UpdateState(*newUser)
 				if err != nil {
 					return err
@@ -368,7 +368,7 @@ func dummyCreate2Transfer() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				newUser := core.NewUserState(pubkeyIndex, core.STATUS_ACTIVE, path, user1state)
+				newUser := core.NewUserState(pubkeyIndex, path, user1state)
 				err = DBI.UpdateState(*newUser)
 				if err != nil {
 					return err
@@ -469,7 +469,7 @@ func dummyMassMigrate() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				newUser := core.NewUserState(pubkeyIndex, core.STATUS_ACTIVE, path, userState)
+				newUser := core.NewUserState(pubkeyIndex, path, userState)
 				err = DBI.UpdateState(*newUser)
 				if err != nil {
 					return err
@@ -507,17 +507,9 @@ func validateAndTransfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toInde
 		return
 	}
 
-	if !from.IsActive() {
-		return "", ErrStateInActive
-	}
-
-	to, err := DBI.GetStateByIndex(toIndex)
+	_, err = DBI.GetStateByIndex(toIndex)
 	if err != nil {
 		return
-	}
-
-	if !to.IsActive() {
-		return "", ErrStateInActive
 	}
 
 	_, bal, nonce, _, err := bazooka.DecodeState(from.Data)
