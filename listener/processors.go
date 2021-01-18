@@ -10,7 +10,6 @@ import (
 	"github.com/BOPR/contracts/accountregistry"
 	"github.com/BOPR/contracts/depositmanager"
 	"github.com/BOPR/contracts/rollup"
-	"github.com/BOPR/contracts/tokenregistry"
 	"github.com/BOPR/core"
 	"github.com/BOPR/db"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -19,14 +18,13 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
+func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) error {
 	// unpack event
 	event := new(accountregistry.AccountregistryPubkeyRegistered)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
-		// TODO do something with this error
-		fmt.Println("Unable to unpack log:", err)
-		panic(err)
+		s.Logger.Error("Unable to unpack log", "error", err)
+		return err
 	}
 
 	s.Logger.Info(
@@ -37,47 +35,50 @@ func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, 
 	)
 	params, err := s.DBInstance.GetParams()
 	if err != nil {
-		return
+		s.Logger.Error("Error getting params", "error", err)
+		return err
 	}
 
-	// add new account in pending state to DB and
 	pathToNode, err := core.SolidityPathToNodePath(event.PubkeyID.Uint64(), params.MaxDepth)
 	if err != nil {
-		// TODO do something with this error
-		fmt.Println("Unable to convert path", err)
-		panic(err)
+		s.Logger.Error("Error getting solidity path", "error", err)
+		return err
 	}
 
 	pubkey := core.NewPubkey(event.Pubkey)
 	nodeType, err := s.DBInstance.FindNodeType(pathToNode)
 	if err != nil {
-		panic(err)
+		s.Logger.Error("Error fetching nodetype", "error", err)
+		return err
 	}
 
 	newAcc, err := core.NewAccount(event.PubkeyID.Uint64(), pubkey, pathToNode, nodeType)
 	if err != nil {
-		fmt.Println("unable to create new account")
-		panic(err)
+		s.Logger.Error("Error creating account", "error", err)
+		return err
 	}
 
 	if err := s.DBInstance.AddNewAccount(*newAcc); err != nil {
-		panic(err)
+		s.Logger.Error("Error adding new account", "error", err)
+		return err
 	}
 
 	// if pubkey was added by relayer mark the packet processed
 	if err := s.DBInstance.MarkPacketDone(pubkey); err != nil {
-		panic(err)
+		s.Logger.Error("Error marking packet done", "error", err)
+		return err
 	}
+
+	return nil
 }
 
-func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
+func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) error {
 	s.Logger.Info("New deposit found")
-
 	event := new(depositmanager.DepositmanagerDepositQueued)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
-		fmt.Println("Unable to unpack log:", err)
-		panic(err)
+		s.Logger.Error("Error unpacking log", "error", err)
+		return err
 	}
 
 	s.Logger.Info(
@@ -90,63 +91,57 @@ func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog
 	newDeposit := core.NewDeposit(event.PubkeyID.Uint64(), event.Data)
 	err = s.DBInstance.AddNewDeposit(*newDeposit)
 	if err != nil {
-		panic(err)
+		s.Logger.Error("Error adding new deposit", "error", err)
+		return err
 	}
+	return nil
 }
 
-func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
+func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) error {
 	s.Logger.Info("New deposit subtree created")
 	// unpack event
 	event := new(depositmanager.DepositmanagerDepositSubTreeReady)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
-		// TODO do something with this error
-		fmt.Println("Unable to unpack log:", err)
-		panic(err)
+		s.Logger.Error("Error unpacking new log", "error", err)
+		return err
 	}
 
 	// send deposit finalisation transction to ethereum chain
 	catchingup, err := IsCatchingUp(s.loadedBazooka, s.DBInstance)
 	if err != nil {
-		panic(err)
+		s.Logger.Error("Error catching up", "error", err)
+		return err
 	}
 
-	// TODO fix duplication of same code below
 	if !catchingup {
 		err = s.sendDepositFinalisationTx()
 		if err != nil {
-			fmt.Println("Unable to send deposit finalisation transaction:", err)
-			return
+			s.Logger.Error("Error sending deposit finalisation", "error", err)
+			return err
 		}
 	} else {
 		s.Logger.Info("Still cathing up, aborting deposit finalisation")
 	}
-
 	err = s.DBInstance.AttachDepositInfo(event.Root)
 	if err != nil {
-		// TODO do something with this error
-		fmt.Println("Unable to attack deposit information:", err)
-		panic(err)
+		s.Logger.Error("Unable to attach deposit info", "error", err)
+		return err
 	}
-
+	return nil
 }
 
-func (s *Syncer) processDepositFinalised(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
+func (s *Syncer) processDepositFinalised(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) error {
 	s.Logger.Info("Deposit batch finalised!")
-
-	// unpack event
 	event := new(rollup.RollupDepositsFinalised)
-
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
-		// TODO do something with this error
-		fmt.Println("Unable to unpack log:", err)
-		panic(err)
+		s.Logger.Error("Error unpacking log", "error", err)
+		return err
 	}
 
 	depositRoot := core.ByteArray(event.DepositSubTreeRoot)
 	pathToDepositSubTree := event.PathToSubTree
-
 	s.Logger.Info(
 		"⬜ New event found",
 		"event", eventName,
@@ -157,19 +152,19 @@ func (s *Syncer) processDepositFinalised(eventName string, abiObject *abi.ABI, v
 	// TODO handle error
 	err = s.DBInstance.FinaliseDepositsAndAddBatch(depositRoot, pathToDepositSubTree.Uint64())
 	if err != nil {
-		fmt.Println("Error while finalising deposits", err)
+		s.Logger.Error("Error finalized deposit and adding new batch", "error", err)
+		return err
 	}
-
+	return nil
 }
 
-func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
+func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) error {
 	s.Logger.Info("New batch found!")
 
 	event := new(rollup.RollupNewBatch)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
 	if err != nil {
-		s.Logger.Error("Unable to unpack log:", "error", err)
-		panic(err)
+		return err
 	}
 
 	s.Logger.Info(
@@ -187,21 +182,23 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		s.Logger.Info("Found a new batch, applying transactions and adding new batch", "index", event.Index.Uint64)
 		newRoot, commitments, err := s.parseAndApplyBatch(vLog.TxHash, event.BatchType)
 		if err != nil {
-			fmt.Println("error while applying batch", "error", err)
-			return
+			s.Logger.Error("Error applying batch", "error", err)
+			return err
 		}
 		newBatch := core.NewBatch(newRoot.String(), event.Committer.String(), vLog.TxHash.String(), uint64(event.BatchType), core.BATCH_COMMITTED)
 		batchID, err := s.DBInstance.AddNewBatch(newBatch, commitments)
 		if err != nil {
 			s.Logger.Error("Error adding new batch to DB", "error", err)
-			return
+			return err
 		}
 
 		s.Logger.Info("Added new batch", "ID", batchID)
-		return
-	} else if err != nil {
+		return nil
+	}
+
+	if err != nil {
 		s.Logger.Error("Unable to fetch batch", "index", event.Index, "err", err)
-		return
+		return err
 	}
 
 	// Mark seen batch as committed if we havent already
@@ -210,60 +207,38 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 		err = s.DBInstance.CommitBatch(event.Index.Uint64())
 		if err != nil {
 			s.Logger.Error("Unable to commit batch", "index", event.Index.String(), "err", err)
-			return
+			return err
 		}
 	}
-}
-
-func (s *Syncer) processRegisteredToken(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) {
-	s.Logger.Info("New token registered")
-	event := new(tokenregistry.TokenregistryRegisteredToken)
-	err := common.UnpackLog(abiObject, event, eventName, vLog)
-	if err != nil {
-		// TODO do something with this error
-		fmt.Println("Unable to unpack log:", err)
-		panic(err)
-	}
-	s.Logger.Info(
-		"⬜ New event found",
-		"event", eventName,
-		"TokenAddress", event.TokenContract.String(),
-		"TokenID", event.TokenType,
-	)
-	newToken := db.Token{TokenID: event.TokenType.Uint64(), Address: event.TokenContract.String()}
-	if err := s.DBInstance.AddToken(newToken); err != nil {
-		panic(err)
-	}
+	return nil
 }
 
 func (s *Syncer) sendDepositFinalisationTx() error {
 	params, err := s.DBInstance.GetParams()
 	if err != nil {
-		fmt.Println("error while getting params")
+		s.Logger.Error("Error fetching params", "error", err)
 		return err
 	}
 	nodeToBeReplaced, siblings, err := s.DBInstance.GetDepositNodeAndSiblings()
 	if err != nil {
-		fmt.Println("error finding replaced nodes", err)
+		s.Logger.Error("Error fetching deposit node and siblings", "error", err)
 		return err
 	}
 	totalBatches, err := s.DBInstance.GetBatchCount()
 	if err != nil {
-		fmt.Println("error find total batches", err)
+		s.Logger.Error("Error fetching totalBatches", "error", err)
 		return err
 	}
 	commitmentMP, err := s.DBInstance.GetLastCommitmentMP(uint64(totalBatches))
 	if err != nil {
-		fmt.Println("error creating commitmentMP", err)
+		s.Logger.Error("Error creating commitment merkle proof", "error", err)
 		return err
 	}
-
 	err = s.loadedBazooka.FireDepositFinalisation(nodeToBeReplaced, siblings, commitmentMP, params.MaxDepositSubTreeHeight)
 	if err != nil {
-		fmt.Println("error sending tx", err)
+		s.Logger.Error("Error sending deposit finalisation", "error", err)
 		return err
 	}
-
 	return nil
 }
 
@@ -284,7 +259,6 @@ func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoo
 	}
 
 	s.Logger.Info("Batch applied successfully!", "newRoot", newRoot)
-
 	return newRoot, commitments, nil
 }
 

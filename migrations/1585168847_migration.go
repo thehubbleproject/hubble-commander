@@ -26,9 +26,6 @@ func init() {
 			if !db.HasTable(&types.Params{}) {
 				db.CreateTable(&types.Params{})
 			}
-			if !db.HasTable(&dbI.Token{}) {
-				db.CreateTable(&dbI.Token{})
-			}
 			if !db.HasTable(&types.Account{}) {
 				db.CreateTable(&types.Account{})
 			}
@@ -49,7 +46,6 @@ func init() {
 			db.DropTableIfExists(&types.Commitment{})
 			db.DropTableIfExists(&types.Params{})
 			db.DropTableIfExists(&types.SyncStatus{})
-			db.DropTableIfExists(&dbI.Token{})
 			db.DropTableIfExists(&types.Account{})
 			db.DropTableIfExists(&types.Deposit{})
 			db.DropTableIfExists(&types.UserState{})

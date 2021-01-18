@@ -200,11 +200,9 @@ func (s *Syncer) startSubscription(ctx context.Context, subscription ethereum.Su
 	for {
 		select {
 		case err := <-subscription.Err():
-			// stop service
 			s.Logger.Error("Error while subscribing new blocks", "error", err)
 			err = s.Stop()
 			s.Logger.Error("Error while stopping", "error", err)
-
 			// cancel subscription
 			s.cancelSubscription()
 			return
@@ -220,7 +218,6 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 		s.Logger.Error("Unable to fetch listener log", "error", err)
 		return
 	}
-
 	// we need to filter only by logger contracts
 	// since all events are emitted by it
 	query := ethereum.FilterQuery{
@@ -250,6 +247,7 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 
 func (s *Syncer) processEvents(logs []ethTypes.Log, header ethTypes.Header) {
 	defer s.wg.Done()
+	var err error
 	for _, vLog := range logs {
 		topic := vLog.Topics[0].Bytes()
 		for i := 0; i < len(s.abis); i++ {
@@ -258,18 +256,31 @@ func (s *Syncer) processEvents(logs []ethTypes.Log, header ethTypes.Header) {
 			if selectedEvent != nil {
 				s.Logger.Debug("Found an event", "name", selectedEvent.Name)
 				switch selectedEvent.Name {
-				case "RegisteredToken":
-					s.processRegisteredToken(selectedEvent.Name, &abiObject, &vLog)
 				case "NewBatch":
-					s.processNewBatch(selectedEvent.Name, &abiObject, &vLog)
+					err = s.processNewBatch(selectedEvent.Name, &abiObject, &vLog)
+					if err != nil {
+						break
+					}
 				case "PubkeyRegistered":
-					s.processNewPubkeyAddition(selectedEvent.Name, &abiObject, &vLog)
+					err = s.processNewPubkeyAddition(selectedEvent.Name, &abiObject, &vLog)
+					if err != nil {
+						break
+					}
 				case "DepositQueued":
-					s.processDepositQueued(selectedEvent.Name, &abiObject, &vLog)
+					err = s.processDepositQueued(selectedEvent.Name, &abiObject, &vLog)
+					if err != nil {
+						break
+					}
 				case "DepositSubTreeReady":
-					s.processDepositSubtreeCreated(selectedEvent.Name, &abiObject, &vLog)
+					err = s.processDepositSubtreeCreated(selectedEvent.Name, &abiObject, &vLog)
+					if err != nil {
+						break
+					}
 				case "DepositsFinalised":
-					s.processDepositFinalised(selectedEvent.Name, &abiObject, &vLog)
+					err = s.processDepositFinalised(selectedEvent.Name, &abiObject, &vLog)
+					if err != nil {
+						break
+					}
 				default:
 					s.Logger.Debug("Unable to match with any event", "event", selectedEvent.Name)
 				}
@@ -278,8 +289,13 @@ func (s *Syncer) processEvents(logs []ethTypes.Log, header ethTypes.Header) {
 			}
 		}
 	}
-	err := s.DBInstance.UpdateSyncStatusWithBlockNumber(header.Number.Uint64())
+	if err != nil {
+		s.Logger.Info("Error processing event", "err", err)
+		return
+	}
+	err = s.DBInstance.UpdateSyncStatusWithBlockNumber(header.Number.Uint64())
 	if err != nil {
 		s.Logger.Error("Unable to update listener log", "error", err)
+		return
 	}
 }

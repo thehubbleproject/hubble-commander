@@ -46,7 +46,7 @@ func setupDB(cfg config.Configuration) (DBI db.DB, cleanup func(), err error) {
 
 func TestPopTx(t *testing.T) {
 	cfg := config.GetDefaultConfig()
-	cfg.TxsPerBatch = 2
+	cfg.TxsPerCommitment = 2
 	db, cleanup, err := setupDB(cfg)
 	if err != nil {
 		t.Errorf("setupDB error %s", err)

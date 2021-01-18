@@ -16,7 +16,6 @@ import (
 
 var (
 	ErrInvalidAmount = errors.New("Invalid amount")
-	ErrStateInActive = errors.New("User state inactive")
 )
 
 // sendTransferTx generated init command to initialise the config file
