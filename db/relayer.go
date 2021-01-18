@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	"github.com/BOPR/bazooka"
-	"github.com/BOPR/config"
 	"github.com/BOPR/core"
 	"github.com/jinzhu/gorm"
 	uuid "github.com/satori/go.uuid"
@@ -14,7 +13,7 @@ import (
 const (
 	statusPackedReceived   = 1
 	statusPackedProcessing = 2
-	minPacketCount         = 16
+	minPacketCount         = 4
 )
 
 // RelayPacket is the relay packet for some specific actions
@@ -36,7 +35,11 @@ func (rp *RelayPacket) BeforeCreate(scope *gorm.Scope) error {
 	return nil
 }
 
-func (rp *RelayPacket) AfterCreate(tx *gorm.DB, cfg config.Configuration) (err error) {
+func (rp *RelayPacket) AfterCreate(tx *gorm.DB) (err error) {
+	bz, err := bazooka.NewPreLoadedBazooka()
+	if err != nil {
+		return err
+	}
 	query := tx.Model(&RelayPacket{}).Where("status = ?", statusPackedReceived)
 
 	var count int
@@ -49,10 +52,6 @@ func (rp *RelayPacket) AfterCreate(tx *gorm.DB, cfg config.Configuration) (err e
 
 	var packets []RelayPacket
 	if err := query.Find(&packets).Error; err != nil {
-		return err
-	}
-	bz, err := bazooka.NewPreLoadedBazooka(cfg)
-	if err != nil {
 		return err
 	}
 

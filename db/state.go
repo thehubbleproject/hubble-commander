@@ -121,12 +121,15 @@ func (db *DB) ReserveEmptyLeaf() (id uint64, err error) {
 		return 0, err
 	}
 
+	if len(states) == 0 {
+		return 0, errors.New("no empty state leaf found")
+	}
 	// update status to status_active
-	states[1].Status = core.STATUS_ACTIVE
-	if err := db.updateState(states[1], states[1].Path); err != nil {
+	states[0].Status = core.STATUS_ACTIVE
+	if err := db.updateState(states[0], states[0].Path); err != nil {
 		return 0, err
 	}
-	return core.StringToUint(states[1].Path)
+	return core.StringToUint(states[0].Path)
 }
 
 func (db *DB) storeLeaf(state core.UserState, path string, siblings []core.UserState) error {
@@ -246,6 +249,7 @@ func (db *DB) GetStateByIndex(index uint64) (acc core.UserState, err error) {
 	if err != nil {
 		return
 	}
+	fmt.Println("her eeee")
 	path, err := core.SolidityPathToNodePath(index, params.MaxDepth)
 	if err != nil {
 		return

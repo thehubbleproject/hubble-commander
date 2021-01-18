@@ -318,7 +318,7 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 }
 
 // RegisterPubkeys registers pubkeys in a batch
-func (b *Bazooka) RegisterPubkeys(pubkeys [16][4]*big.Int) (txHash string, err error) {
+func (b *Bazooka) RegisterPubkeys(pubkeys [4][4]*big.Int) (txHash string, err error) {
 	registryABI, err := abi.JSON(strings.NewReader(accountregistry.AccountregistryABI))
 	if err != nil {
 		return
