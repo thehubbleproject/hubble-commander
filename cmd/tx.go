@@ -116,18 +116,20 @@ func sendCreate2TransferTx() *cobra.Command {
 		Use:   "c2t",
 		Short: "Transfers assets between sender to non existent receiver",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			DBI, err := db.NewDB()
+			cfg, err := config.ParseConfig()
+			if err != nil {
+				return err
+			}
+			DBI, err := db.NewDB(cfg)
 			if err != nil {
 				return err
 			}
 			defer DBI.Close()
-			bazooka, err := bazooka.NewPreLoadedBazooka()
+			bazooka, err := bazooka.NewPreLoadedBazooka(cfg)
 			if err != nil {
 				return err
 			}
-
 			flags := cmd.Flags()
-
 			fromIndex, err := flags.GetUint64(FlagFromID)
 			if err != nil {
 				return err
