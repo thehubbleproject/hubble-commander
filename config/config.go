@@ -42,11 +42,12 @@ type Configuration struct {
 	Trace     bool   `mapstructure:"trace"`
 	DBLogMode bool   `mapstructure:"db_log_mode"`
 
-	EthRPC             string        `mapstructure:"eth_RPC_URL"`
-	PollingInterval    time.Duration `mapstructure:"polling_interval"`
-	TxsPerBatch        uint64        `mapstructure:"txs_per_batch"`
-	ServerPort         string        `mapstructure:"server_port"`
-	ConfirmationBlocks uint64        `mapstructure:"confirmation_blocks"` // Number of blocks for confirmation
+	EthRPC                 string        `mapstructure:"eth_RPC_URL"`
+	PollingInterval        time.Duration `mapstructure:"polling_interval"`
+	TxsPerCommitment       uint64        `mapstructure:"txs_per_commitment"`
+	MaxCommitmentsPerBatch uint64        `mapstructure:"max_commitments_per_batch"`
+	ServerPort             string        `mapstructure:"server_port"`
+	ConfirmationBlocks     uint64        `mapstructure:"confirmation_blocks"` // Number of blocks for confirmation
 
 	RollupAddress   string `mapstructure:"rollup_address"`
 	TokenRegistry   string `mapstructure:"token_registry_address"`
@@ -66,25 +67,25 @@ type Configuration struct {
 // GetDefaultConfig returns the default configration options
 func GetDefaultConfig() Configuration {
 	return Configuration{
-		DB:                 DefaultDB,
-		DBURL:              GetDBURL(),
-		Trace:              false,
-		DBLogMode:          true,
-		EthRPC:             DefaultEthRPC,
-		TxsPerBatch:        2,
-		PollingInterval:    DefaultPollingInterval,
-		ServerPort:         DefaultSeverPort,
-		ConfirmationBlocks: DefaultConfirmationBlocks,
-
-		RollupAddress:   ethCmn.Address{}.String(),
-		BurnAuction:     ethCmn.Address{}.String(),
-		TokenRegistry:   ethCmn.Address{}.String(),
-		AccountRegistry: ethCmn.Address{}.String(),
-		DepositManager:  ethCmn.Address{}.String(),
-		State:           ethCmn.Address{}.String(),
-		Transfer:        ethCmn.Address{}.String(),
-		MassMigration:   ethCmn.Address{}.String(),
-		Create2Transfer: ethCmn.Address{}.String(),
+		DB:                     DefaultDB,
+		DBURL:                  GetDBURL(),
+		Trace:                  false,
+		DBLogMode:              true,
+		EthRPC:                 DefaultEthRPC,
+		TxsPerCommitment:       2,
+		MaxCommitmentsPerBatch: 100,
+		PollingInterval:        DefaultPollingInterval,
+		ServerPort:             DefaultSeverPort,
+		ConfirmationBlocks:     DefaultConfirmationBlocks,
+		RollupAddress:          ethCmn.Address{}.String(),
+		BurnAuction:            ethCmn.Address{}.String(),
+		TokenRegistry:          ethCmn.Address{}.String(),
+		AccountRegistry:        ethCmn.Address{}.String(),
+		DepositManager:         ethCmn.Address{}.String(),
+		State:                  ethCmn.Address{}.String(),
+		Transfer:               ethCmn.Address{}.String(),
+		MassMigration:          ethCmn.Address{}.String(),
+		Create2Transfer:        ethCmn.Address{}.String(),
 
 		OperatorKey:       "",
 		OperatorAddress:   "",

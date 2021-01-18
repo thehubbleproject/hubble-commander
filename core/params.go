@@ -44,7 +44,8 @@ type SyncStatus struct {
 	LastEthBlockRecorded uint64 `json:"lastEthBlockRecorded"`
 }
 
+// LastEthBlockBigInt returns the last eth block recorded
 func (ss *SyncStatus) LastEthBlockBigInt() *big.Int {
 	n := new(big.Int)
-	return n.SetUint64(ss.LastEthBlockRecorded)
+	return n.SetUint64(ss.LastEthBlockRecorded + 1)
 }

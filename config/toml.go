@@ -21,7 +21,8 @@ db_log_mode = "{{ .DBLogMode }}"
 ##### Server configrations #####
 server_port = "{{ .ServerPort }}"
 polling_interval = "{{ .PollingInterval }}"
-txs_per_batch = "{{ .TxsPerBatch }}"
+txs_per_commitment = "{{ .TxsPerCommitment }}"
+max_commitments_per_batch = "{{ .MaxCommitmentsPerBatch }}"
 
 #### Keystore #####
 operator_key = "{{ .OperatorKey }}"
