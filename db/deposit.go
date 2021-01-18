@@ -13,33 +13,14 @@ func (db *DB) AddNewDeposit(deposit core.Deposit) error {
 
 // GetDepositNodeAndSiblings fetches the right intermediate node that has to be replaced for deposits
 func (db *DB) GetDepositNodeAndSiblings() (nodeToBeReplaced core.UserState, siblings []core.UserState, err error) {
-	// get params
 	params, err := db.GetParams()
 	if err != nil {
 		return
 	}
-
-	// find out the number of leves in the level
-	// 2^depth == number of leaves in the depth
-	totalLeaves := core.TotalLeavesForDepth(int(params.MaxDepth))
-	expectedHash := core.DefaultHashes[params.MaxDepositSubTreeHeight]
-
-	for i := 0; i < totalLeaves; i++ {
-		path, errr := core.SolidityPathToNodePath(uint64(i), params.MaxDepth-params.MaxDepositSubTreeHeight)
-		if errr != nil {
-			return
-		}
-
-		nodeToBeReplaced, errr = db.GetStateByPath(path)
-		if errr != nil {
-			return
-		}
-
-		if nodeToBeReplaced.Hash == expectedHash.String() {
-			break
-		}
+	nodeToBeReplaced, err = db.FindEmptyState(int(params.MaxDepth) - int(params.MaxDepositSubTreeHeight))
+	if err != nil {
+		return
 	}
-
 	// get siblings for the path to node
 	siblings, err = db.GetSiblings(nodeToBeReplaced.Path)
 	if err != nil {

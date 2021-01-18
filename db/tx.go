@@ -182,6 +182,7 @@ func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core
 		return
 	}
 	DBI.Logger.Debug("Fetched all verification for transaction", "txType", tx.Type)
+
 	newRoot, err = bazooka.ProcessTx(*bz, currentRoot, *tx, fromStateProof, toStateProof)
 	if err != nil {
 		if txDBConn.Instance != nil {
@@ -190,6 +191,7 @@ func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core
 		}
 		return
 	}
+
 	DBI.Logger.Debug("Processed transaction")
 
 	if !isSyncing {
@@ -241,7 +243,6 @@ func authenticate(bz *bazooka.Bazooka, DBI *DB, tx *core.Tx) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -314,6 +315,7 @@ func authenticateTx(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 	if err != nil {
 		return err
 	}
+
 	signature, err := core.BytesToSolSignature(tx.Signature)
 	if err != nil {
 		return err

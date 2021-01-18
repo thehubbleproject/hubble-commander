@@ -25,25 +25,17 @@ func (db *DB) UpdateState(state core.UserState) error {
 	return db.storeLeaf(state, state.Path, siblings)
 }
 
-// ReserveEmptyLeaf reserve an empty leaf
-// TODO fix
-func (db *DB) ReserveEmptyLeaf() (id uint64, err error) {
-	var states []core.UserState
-
-	// find empty state leaf
-	if err := db.Instance.Scopes(QueryByType(core.TYPE_TERMINAL)).Find(&states).Error; err != nil {
-		return 0, err
+// ReserveEmptyLeaf reserves an empty state leaf and maps the accID to state leaf
+func (db *DB) ReserveEmptyLeaf(accID uint64) (stateID uint64, err error) {
+	params, err := db.GetParams()
+	if err != nil {
+		return
 	}
-
-	if len(states) == 0 {
-		return 0, errors.New("no empty state leaf found")
+	state, err := db.FindEmptyAndReserve(int(params.MaxDepth), accID)
+	if err != nil {
+		return
 	}
-	// update status to status_active
-	states[0].IsReserved = true
-	if err := db.updateState(states[0], states[0].Path); err != nil {
-		return 0, err
-	}
-	return core.StringToUint(states[0].Path)
+	return core.StringToUint(state.Path)
 }
 
 func (db *DB) storeLeaf(state core.UserState, path string, siblings []core.UserState) error {
@@ -204,4 +196,45 @@ func (db *DB) updateState(newState core.UserState, path string) error {
 		return err
 	}
 	return nil
+}
+
+func (db *DB) FindEmptyState(depth int) (state core.UserState, err error) {
+	params, err := db.GetParams()
+	if err != nil {
+		return
+	}
+	if depth > int(params.MaxDepth) {
+		return state, errors.New("depth cannot be greater than max depth")
+	}
+	totalLeaves := core.TotalLeavesForDepth(depth)
+	expectedHash := core.DefaultHashes[int(params.MaxDepth)-depth]
+	for i := 0; i < totalLeaves; i++ {
+		path, errr := core.SolidityPathToNodePath(uint64(i), uint64(depth))
+		if errr != nil {
+			return
+		}
+		state, errr = db.GetStateByPath(path)
+		if errr != nil {
+			return
+		}
+
+		if state.Hash == expectedHash.String() && !state.IsReserved {
+			break
+		}
+	}
+	return state, nil
+}
+
+func (db *DB) FindEmptyAndReserve(depth int, accID uint64) (state core.UserState, err error) {
+	state, err = db.FindEmptyState(depth)
+	if err != nil {
+		return
+	}
+	state.IsReserved = true
+	state.AccountID = accID
+	err = db.updateState(state, state.Path)
+	if err != nil {
+		return
+	}
+	return
 }

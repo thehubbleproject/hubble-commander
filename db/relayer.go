@@ -87,8 +87,6 @@ func NewRelayPacket(data, signature []byte, pubkey []byte, status uint64) *Relay
 	}
 }
 
-// DB
-
 // InsertRelayPacket inserts new relay packet
 func (db *DB) InsertRelayPacket(data, sig []byte) error {
 	// decode data to fetch pubkey
@@ -121,12 +119,10 @@ func (db *DB) GetPacketByPubkey(pubkey []byte) (rp RelayPacket, err error) {
 func (db *DB) MarkPacketDone(pubkey []byte) error {
 	rp, err := db.GetPacketByPubkey(pubkey)
 	if err != nil {
-		if err != gorm.ErrRecordNotFound {
-			return err
-		}
 		if err == gorm.ErrRecordNotFound {
 			return nil
 		}
+		return err
 	}
 
 	// update all records with pubkey as status done
@@ -135,7 +131,7 @@ func (db *DB) MarkPacketDone(pubkey []byte) error {
 		return err
 	}
 
-	toStateID, err := db.ReserveEmptyLeaf()
+	toStateID, err := db.ReserveEmptyLeaf(toAcc.AccountID)
 	if err != nil {
 		return err
 	}
