@@ -59,6 +59,7 @@ func main() {
 	rootCmd.AddCommand(createUsers())
 	rootCmd.AddCommand(viewState())
 	rootCmd.AddCommand(migrationCmd)
+	rootCmd.AddCommand(runSimulator())
 
 	if err := viper.BindPFlag(WithConfigPathFlag, rootCmd.Flags().Lookup(WithConfigPathFlag)); err != nil {
 		fmt.Println("Error binding flags with viper", "Error", err)
