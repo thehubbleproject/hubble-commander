@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	SyncerServiceName = "syncer"
+	syncerServiceName = "syncer"
 )
 
 // Syncer to sync events from ethereum chain
@@ -60,13 +60,13 @@ type Syncer struct {
 // NewSyncer creates a new syncer object
 func NewSyncer(cfg config.Configuration) *Syncer {
 	// create logger
-	logger := log.Logger.With("module", SyncerServiceName)
+	logger := log.Logger.With("module", syncerServiceName)
 
 	// create syncer obj
 	syncerService := &Syncer{}
 
 	// create new base service
-	syncerService.BaseService = *core.NewBaseService(logger, SyncerServiceName, syncerService)
+	syncerService.BaseService = *core.NewBaseService(logger, syncerServiceName, syncerService)
 	loadedBazooka, err := bazooka.NewPreLoadedBazooka(cfg)
 	if err != nil {
 		panic(err)

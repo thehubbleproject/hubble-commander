@@ -239,7 +239,7 @@ func authenticate(bz *bazooka.Bazooka, DBI *DB, tx *core.Tx) error {
 		return err
 	}
 
-	err = authenticateTx(bz, DBI, *tx, fromAcc.PublicKey)
+	err = checkSignature(bz, DBI, *tx, fromAcc.PublicKey)
 	if err != nil {
 		return err
 	}
@@ -309,7 +309,7 @@ func aggregateSignatures(txs []core.Tx) (aggregatedSig bls.Signature, err error)
 	return wallet.NewAggregateSignature(signatures)
 }
 
-func authenticateTx(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte) error {
+func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte) error {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	solPubkeySender, err := core.Pubkey(pubkeySender).ToSol()
 	if err != nil {
