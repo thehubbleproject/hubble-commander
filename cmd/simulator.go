@@ -10,8 +10,7 @@ func runSimulator() *cobra.Command {
 		Use:   "simulator",
 		Short: "Simulates rollup activity",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			simulator.Run()
-			return nil
+			return simulator.Run()
 		},
 	}
 	return cmd
