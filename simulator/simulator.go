@@ -16,7 +16,7 @@ var (
 	ErrStateInActive = errors.New("User state inactive")
 )
 
-func Run() error {
+func Run(n int64) error {
 	cfg, err := config.ParseConfig()
 	if err != nil {
 		return err
@@ -34,14 +34,14 @@ func Run() error {
 	if err != nil {
 		return err
 	}
-	err = run(bazooka, DBI, params)
+	err = run(bazooka, DBI, params, n)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func run(bazooka bazooka.Bazooka, DBI db.DB, params core.Params) error {
+func run(bazooka bazooka.Bazooka, DBI db.DB, params core.Params, n int64) error {
 	wallets, err := makeWallets(bazooka, DBI, params)
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func run(bazooka bazooka.Bazooka, DBI db.DB, params core.Params) error {
 			panic(err)
 		}
 	}
-	perSecond := benchmarkPerSecond(200, f)
+	perSecond := benchmarkPerSecond(n, f)
 	fmt.Println("Transactions per second", perSecond)
 	return nil
 }
