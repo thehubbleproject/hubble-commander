@@ -87,7 +87,7 @@ func createUsers() *cobra.Command {
 		Use:   "create-users",
 		Short: "Create users to be used in simulations",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			userCount, err := cmd.Flags().GetInt(FlagUserCount)
+			userCount, err := cmd.Flags().GetInt(FlagDatabaseName)
 			if err != nil {
 				return err
 			}
