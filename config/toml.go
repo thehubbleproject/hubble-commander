@@ -29,7 +29,6 @@ operator_key = "{{ .OperatorKey }}"
 operator_address = "{{ .OperatorAddress }}"
 
 #### Syncer settings #####
-last_recorded_block = "{{ .LastRecordedBlock }}"
 confirmation_blocks = "{{ .ConfirmationBlocks }}"
 
 ##### Contract Addresses #####
@@ -52,6 +51,10 @@ create2transfer_address = "{{ .Create2Transfer }}"
 max_tree_depth = "{{ .MaxTreeDepth }}"
 max_deposit_subtree = "{{ .MaxDepositSubtree }}"
 stake_amount = "{{ .StakeAmount }}"
+
+### Protocol Auxiliary Values
+
+genesis_eth1_block = "{{ .GenesisEth1Block }}"
 `
 
 var configTemplate *template.Template

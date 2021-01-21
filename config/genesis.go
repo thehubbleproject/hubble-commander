@@ -41,6 +41,11 @@ type Genesis struct {
 		Rollup                  string `json:"rollup"`
 		WithdrawManager         string `json:"withdrawManager"`
 	} `json:"addresses"`
+	Auxiliary struct {
+		Domain           string `json:"domain"`
+		GenesisEth1Block uint64 `json:"genesisEth1Block"`
+		Version          string `json:"version"`
+	} `json:"auxiliary"`
 }
 
 func (g Genesis) Validate() error {

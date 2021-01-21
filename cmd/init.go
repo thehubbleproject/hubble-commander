@@ -50,6 +50,7 @@ func configureGenesisCmd() *cobra.Command {
 
 			cfg.MaxTreeDepth = genesis.Parameters.MAXDEPTH
 			cfg.MaxDepositSubtree = genesis.Parameters.MAXDEPOSITSUBTREEDEPTH
+			cfg.GenesisEth1Block = genesis.Auxiliary.GenesisEth1Block
 
 			config.WriteConfigFile("./config.toml", &cfg)
 		},

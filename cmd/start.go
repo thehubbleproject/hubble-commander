@@ -110,10 +110,6 @@ func storeGenesisData(bz *bazooka.Bazooka, DBI *db.DB, cfg config.Configuration)
 	common.PanicIfError(err)
 	err = DBI.UpdateFinalisationTimePerBatch(40320)
 	common.PanicIfError(err)
-
-	// load sync status
-	// startEthBlock is default to 0 before the genesis file supports it
-	startEthBlock := uint64(0)
-	err = DBI.InitSyncStatus(startEthBlock)
+	err = DBI.InitSyncStatus(cfg.GenesisEth1Block)
 	common.PanicIfError(err)
 }
