@@ -75,9 +75,12 @@ func makeWallets(bazooka bazooka.Bazooka, DBI db.DB, params core.Params) ([]wall
 		if err != nil {
 			return nil, err
 		}
-
+		nodeType, err := DBI.FindNodeType(path)
+		if err != nil {
+			panic(err)
+		}
 		// add accounts to tree
-		acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path)
+		acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path, nodeType)
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +93,7 @@ func makeWallets(bazooka bazooka.Bazooka, DBI db.DB, params core.Params) ([]wall
 		if err != nil {
 			return nil, err
 		}
-		newUser := core.NewUserState(pubkeyIndex, core.STATUS_ACTIVE, path, userState)
+		newUser := core.NewUserState(pubkeyIndex, path, userState)
 		err = DBI.UpdateState(*newUser)
 		if err != nil {
 			return nil, err
@@ -105,17 +108,9 @@ func transfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toIndex, amount, 
 		return
 	}
 
-	if !from.IsActive() {
-		return "", ErrStateInActive
-	}
-
-	to, err := DBI.GetStateByIndex(toIndex)
+	_, err = DBI.GetStateByIndex(toIndex)
 	if err != nil {
 		return
-	}
-
-	if !to.IsActive() {
-		return "", ErrStateInActive
 	}
 
 	_, balance, nonce, _, err := bazooka.DecodeState(from.Data)
