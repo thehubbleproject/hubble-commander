@@ -127,7 +127,7 @@ func accountDecoderHandler(w http.ResponseWriter, r *http.Request) {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to fetch account by ID")
 	}
 	var accountData accountExporter
-	accountData.AccountID = account.ID
+	accountData.AccountID = account.AccountID
 	accountData.Pubkey = core.Pubkey(account.PublicKey).String()
 
 	output, err := json.Marshal(accountData)

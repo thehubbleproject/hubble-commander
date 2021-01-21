@@ -13,6 +13,16 @@ type TypesUserState struct {
 	Nonce    *big.Int
 }
 
+// NewEmptyTypesUserState creates a new empty TypesUserState
+func NewEmptyTypesUserState() *TypesUserState {
+	return &TypesUserState{
+		PubkeyID: big.NewInt(0),
+		TokenID:  big.NewInt(0),
+		Balance:  big.NewInt(0),
+		Nonce:    big.NewInt(0),
+	}
+}
+
 type TypesStateMerkleProof struct {
 	State   TypesUserState
 	Witness [][32]byte

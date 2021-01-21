@@ -14,7 +14,7 @@ import (
 const (
 	statusPackedReceived   = 1
 	statusPackedProcessing = 2
-	minPacketCount         = 16
+	minPacketCount         = 4
 )
 
 // RelayPacket is the relay packet for some specific actions
@@ -36,7 +36,15 @@ func (rp *RelayPacket) BeforeCreate(scope *gorm.Scope) error {
 	return nil
 }
 
-func (rp *RelayPacket) AfterCreate(tx *gorm.DB, cfg config.Configuration) (err error) {
+func (rp *RelayPacket) AfterCreate(tx *gorm.DB) (err error) {
+	cfg, err := config.ParseConfig()
+	if err != nil {
+		return err
+	}
+	bz, err := bazooka.NewPreLoadedBazooka(cfg)
+	if err != nil {
+		return err
+	}
 	query := tx.Model(&RelayPacket{}).Where("status = ?", statusPackedReceived)
 
 	var count int
@@ -49,10 +57,6 @@ func (rp *RelayPacket) AfterCreate(tx *gorm.DB, cfg config.Configuration) (err e
 
 	var packets []RelayPacket
 	if err := query.Find(&packets).Error; err != nil {
-		return err
-	}
-	bz, err := bazooka.NewPreLoadedBazooka(cfg)
-	if err != nil {
 		return err
 	}
 
@@ -88,8 +92,6 @@ func NewRelayPacket(data, signature []byte, pubkey []byte, status uint64) *Relay
 	}
 }
 
-// DB
-
 // InsertRelayPacket inserts new relay packet
 func (db *DB) InsertRelayPacket(data, sig []byte) error {
 	// decode data to fetch pubkey
@@ -122,12 +124,10 @@ func (db *DB) GetPacketByPubkey(pubkey []byte) (rp RelayPacket, err error) {
 func (db *DB) MarkPacketDone(pubkey []byte) error {
 	rp, err := db.GetPacketByPubkey(pubkey)
 	if err != nil {
-		if err != gorm.ErrRecordNotFound {
-			return err
-		}
 		if err == gorm.ErrRecordNotFound {
 			return nil
 		}
+		return err
 	}
 
 	// update all records with pubkey as status done
@@ -136,7 +136,7 @@ func (db *DB) MarkPacketDone(pubkey []byte) error {
 		return err
 	}
 
-	toStateID, err := db.ReserveEmptyLeaf()
+	toStateID, err := db.ReserveEmptyLeaf(toAcc.AccountID)
 	if err != nil {
 		return err
 	}
@@ -149,7 +149,7 @@ func (db *DB) MarkPacketDone(pubkey []byte) error {
 	txData, err := db.Bazooka.EncodeCreate2TransferTx(
 		fromIndex.Int64(),
 		int64(toStateID),
-		int64(toAcc.ID),
+		int64(toAcc.AccountID),
 		fee.Int64(),
 		nonce.Int64(),
 		amount.Int64(),

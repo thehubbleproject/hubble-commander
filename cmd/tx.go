@@ -16,7 +16,6 @@ import (
 
 var (
 	ErrInvalidAmount = errors.New("Invalid amount")
-	ErrStateInActive = errors.New("User state inactive")
 )
 
 // sendTransferTx generated init command to initialise the config file
@@ -110,6 +109,125 @@ func sendTransferTx() *cobra.Command {
 	return cmd
 }
 
+// sendCreate2TransferTx generated init command to initialise the config file
+func sendCreate2TransferTx() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "c2t",
+		Short: "Transfers assets between sender to non existent receiver",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg, err := config.ParseConfig()
+			if err != nil {
+				return err
+			}
+			DBI, err := db.NewDB(cfg)
+			if err != nil {
+				return err
+			}
+			defer DBI.Close()
+			bazooka, err := bazooka.NewPreLoadedBazooka(cfg)
+			if err != nil {
+				return err
+			}
+			flags := cmd.Flags()
+			fromIndex, err := flags.GetUint64(FlagFromID)
+			if err != nil {
+				return err
+			}
+
+			// fetching to pubkey
+			toPubkeyStr, err := flags.GetString(FlagToPubkey)
+			if err != nil {
+				return err
+			}
+			toPubHexBz, err := hex.DecodeString(toPubkeyStr)
+			if err != nil {
+				return err
+			}
+			toPubkey, err := core.Pubkey(toPubHexBz).ToSol()
+			if err != nil {
+				return err
+			}
+
+			// fetching from pubkey
+			pubKey, err := flags.GetString(FlagPubKey)
+			if err != nil {
+				return err
+			}
+			pubkeyBytes, err := hex.DecodeString(pubKey)
+			if err != nil {
+				return err
+			}
+
+			// fetching priv key
+			privKey, err := flags.GetString(FlagPrivKey)
+			if err != nil {
+				return err
+			}
+			privKeyBytes, err := hex.DecodeString(privKey)
+			if err != nil {
+				return err
+			}
+			amount, err := flags.GetUint64(FlagAmount)
+			if err != nil {
+				return err
+			}
+			fee, err := flags.GetUint64(FlagFee)
+			if err != nil {
+				return err
+			}
+
+			wallet, err := wallet.SecretToWallet(privKeyBytes, pubkeyBytes)
+			if err != nil {
+				return err
+			}
+			secretBytes, pubkeyBytes := wallet.Bytes()
+
+			from, err := DBI.GetStateByIndex(fromIndex)
+			if err != nil {
+				return err
+			}
+			_, _, nonce, _, err := bazooka.DecodeState(from.Data)
+			if err != nil {
+				return err
+			}
+			txData, err := bazooka.EncodeCreate2TransferTxWithPub(int64(fromIndex), toPubkey, int64(fee), nonce.Int64(), int64(amount), core.TX_CREATE_2_TRANSFER)
+			if err != nil {
+				return err
+			}
+
+			tx, err := core.NewPendingTx(fromIndex, 0, core.TX_CREATE_2_TRANSFER, []byte(""), txData)
+			if err != nil {
+				return err
+			}
+
+			if err = signAndBroadcast(&bazooka, &DBI, tx, secretBytes, pubkeyBytes); err != nil {
+				return err
+			}
+
+			fmt.Println("Transaction submitted successfully", "hash", tx.TxHash)
+
+			return nil
+		},
+	}
+	cmd.Flags().StringP(FlagToPubkey, "", "", "--to-pub=<to-pubkey>")
+	cmd.Flags().Uint64P(FlagFee, "", 0, "--fee=<fee>")
+	cmd.Flags().Uint64P(FlagFromID, "", 0, "--from=<from-account>")
+	cmd.Flags().StringP(FlagPubKey, "", "", "--pubkey=<pubkey>")
+	cmd.Flags().StringP(FlagPrivKey, "", "", "--privkey=<privkey>")
+	cmd.Flags().Uint64P(FlagAmount, "", 0, "--amount=<amount>")
+	err := cmd.MarkFlagRequired(FlagToPubkey)
+	common.PanicIfError(err)
+	err = cmd.MarkFlagRequired(FlagFromID)
+	common.PanicIfError(err)
+	err = cmd.MarkFlagRequired(FlagPubKey)
+	common.PanicIfError(err)
+	err = cmd.MarkFlagRequired(FlagPrivKey)
+	common.PanicIfError(err)
+	err = cmd.MarkFlagRequired(FlagAmount)
+	common.PanicIfError(err)
+	return cmd
+}
+
 func dummyTransfer() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "dummy-transfer",
@@ -153,9 +271,12 @@ func dummyTransfer() *cobra.Command {
 				if err != nil {
 					return err
 				}
-
+				nodeType, err := DBI.FindNodeType(path)
+				if err != nil {
+					panic(err)
+				}
 				// add accounts to tree
-				acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path)
+				acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path, nodeType)
 				if err != nil {
 					return err
 				}
@@ -168,7 +289,7 @@ func dummyTransfer() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				newUser := core.NewUserState(pubkeyIndex, core.STATUS_ACTIVE, path, userState)
+				newUser := core.NewUserState(pubkeyIndex, path, userState)
 				err = DBI.UpdateState(*newUser)
 				if err != nil {
 					return err
@@ -227,8 +348,13 @@ func dummyCreate2Transfer() *cobra.Command {
 					return err
 				}
 
+				nodeType, err := DBI.FindNodeType(path)
+				if err != nil {
+					panic(err)
+				}
+
 				// add accounts to tree
-				user1Acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path)
+				user1Acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path, nodeType)
 				if err != nil {
 					return err
 				}
@@ -243,7 +369,7 @@ func dummyCreate2Transfer() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				newUser := core.NewUserState(pubkeyIndex, core.STATUS_ACTIVE, path, user1state)
+				newUser := core.NewUserState(pubkeyIndex, path, user1state)
 				err = DBI.UpdateState(*newUser)
 				if err != nil {
 					return err
@@ -326,8 +452,12 @@ func dummyMassMigrate() *cobra.Command {
 					return err
 				}
 
+				nodeType, err := DBI.FindNodeType(path)
+				if err != nil {
+					panic(err)
+				}
 				// add accounts to tree
-				acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path)
+				acc, err := core.NewAccount(pubkeyIndex, publicKeyBytes, path, nodeType)
 				if err != nil {
 					return err
 				}
@@ -340,7 +470,7 @@ func dummyMassMigrate() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				newUser := core.NewUserState(pubkeyIndex, core.STATUS_ACTIVE, path, userState)
+				newUser := core.NewUserState(pubkeyIndex, path, userState)
 				err = DBI.UpdateState(*newUser)
 				if err != nil {
 					return err
@@ -378,17 +508,9 @@ func validateAndTransfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toInde
 		return
 	}
 
-	if !from.IsActive() {
-		return "", ErrStateInActive
-	}
-
-	to, err := DBI.GetStateByIndex(toIndex)
+	_, err = DBI.GetStateByIndex(toIndex)
 	if err != nil {
 		return
-	}
-
-	if !to.IsActive() {
-		return "", ErrStateInActive
 	}
 
 	_, bal, nonce, _, err := bazooka.DecodeState(from.Data)
@@ -433,7 +555,6 @@ func signAndBroadcast(b *bazooka.Bazooka, DBI *db.DB, tx core.Tx, priv, pub []by
 	}
 
 	fmt.Println("Sending new tx", tx.String())
-
 	err = DBI.InsertTx(&tx)
 	if err != nil {
 		return err

@@ -11,7 +11,6 @@ import (
 
 	"github.com/BOPR/config"
 	"github.com/BOPR/wallet"
-	"github.com/common-nighthawk/go-figure"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -27,8 +26,6 @@ type Executor struct {
 }
 
 func main() {
-	myFigure := figure.NewColorFigure("Hubble", "", "red", true)
-	myFigure.Print()
 	rootCmd := &cobra.Command{
 		Use:   "hubble",
 		Short: "Optimistic Rollup Daemon (server)",
@@ -54,6 +51,7 @@ func main() {
 	rootCmd.AddCommand(startCmd())
 	rootCmd.AddCommand(startRestServerCmd())
 	rootCmd.AddCommand(sendTransferTx())
+	rootCmd.AddCommand(sendCreate2TransferTx())
 	rootCmd.AddCommand(dummyTransfer())
 	rootCmd.AddCommand(dummyCreate2Transfer())
 	rootCmd.AddCommand(dummyMassMigrate())
@@ -89,7 +87,7 @@ func createUsers() *cobra.Command {
 		Use:   "create-users",
 		Short: "Create users to be used in simulations",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			userCount, err := cmd.Flags().GetInt(FlagDatabaseName)
+			userCount, err := cmd.Flags().GetInt(FlagUserCount)
 			if err != nil {
 				return err
 			}
