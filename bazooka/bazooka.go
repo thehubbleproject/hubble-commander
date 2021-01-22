@@ -3,7 +3,6 @@ package bazooka
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math/big"
 	"strings"
 
@@ -218,7 +217,6 @@ func (b *Bazooka) EncodeTransferTx(from, to, fee, nonce, amount, txType int64) (
 		Fee       *big.Int
 		Nonce     *big.Int
 	}{big.NewInt(txType), big.NewInt(from), big.NewInt(to), big.NewInt(amount), big.NewInt(fee), big.NewInt(nonce)}
-	fmt.Printf("tx %+v", tx)
 	return b.SC.Transfer.Encode(&opts, tx)
 }
 
