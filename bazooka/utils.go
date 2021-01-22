@@ -13,7 +13,6 @@ import (
 	ethCmn "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/params"
 )
 
 var (
@@ -152,10 +151,10 @@ func (b *Bazooka) getTxReceipt(client *ethclient.Client, txHash common.Hash) (*t
 	return client.TransactionReceipt(context.Background(), txHash)
 }
 
-func etherToWei(val *big.Int) *big.Int {
-	return new(big.Int).Mul(val, big.NewInt(params.Ether))
-}
+// func etherToWei(val *big.Int) *big.Int {
+// 	return new(big.Int).Mul(val, big.NewInt(params.Ether))
+// }
 
-func weiToEther(val *big.Int) *big.Int {
-	return new(big.Int).Div(val, big.NewInt(params.Ether))
-}
+// func weiToEther(val *big.Int) *big.Int {
+// 	return new(big.Int).Div(val, big.NewInt(params.Ether))
+// }
