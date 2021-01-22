@@ -246,8 +246,7 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment, accoun
 
 	rollupAddress := ethCmn.HexToAddress(b.Cfg.RollupAddress)
 
-	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
-	stakeAmount := big.NewInt(100000000000000000)
+	stakeAmount := big.NewInt(1000000000000000000)
 
 	var inputData MassMigrationCalldata
 	inputData.StateRoots = updatedRoots
@@ -307,7 +306,8 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 		return err
 	}
 
-	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(b.Cfg.RollupAddress), big.NewInt(32), input)
+	value := etherToWei(big.NewInt(1))
+	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(b.Cfg.RollupAddress), value, input)
 	if err != nil {
 		b.log.Error("Error sending register batch", "err", err)
 		return
@@ -318,7 +318,7 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 }
 
 // RegisterPubkeys registers pubkeys in a batch
-func (b *Bazooka) RegisterPubkeys(pubkeys [4][4]*big.Int) (txHash string, err error) {
+func (b *Bazooka) RegisterPubkeys(pubkeys [16][4]*big.Int) (txHash string, err error) {
 	registryABI, err := abi.JSON(strings.NewReader(accountregistry.AccountregistryABI))
 	if err != nil {
 		return

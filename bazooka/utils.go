@@ -13,6 +13,7 @@ import (
 	ethCmn "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 var (
@@ -87,6 +88,12 @@ func (b *Bazooka) SignAndBroadcast(client *ethclient.Client, toAddr ethCmn.Addre
 func (b *Bazooka) generateAuthObj(client *ethclient.Client, toAddr ethCmn.Address, value *big.Int, data []byte) (auth *bind.TransactOpts, err error) {
 	// from address
 	fromAddress := config.OperatorAddress
+	callMsg := ethereum.CallMsg{
+		From:  fromAddress,
+		To:    &toAddr,
+		Data:  data,
+		Value: value,
+	}
 
 	// fetch gas price
 	gasprice, err := client.SuggestGasPrice(context.Background())
@@ -100,14 +107,7 @@ func (b *Bazooka) generateAuthObj(client *ethclient.Client, toAddr ethCmn.Addres
 		return
 	}
 
-	callMsg := ethereum.CallMsg{
-		To:    &toAddr,
-		Data:  data,
-		Value: value,
-	}
-
 	// fetch gas limit
-	callMsg.From = fromAddress
 	gasLimit, err := client.EstimateGas(context.Background(), callMsg)
 	if err != nil {
 		return
@@ -115,8 +115,9 @@ func (b *Bazooka) generateAuthObj(client *ethclient.Client, toAddr ethCmn.Addres
 	// create auth
 	auth = bind.NewKeyedTransactor(config.OperatorKey)
 	auth.GasPrice = gasprice
+	auth.Value = value
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.GasLimit = uint64(gasLimit)
+	auth.GasLimit = gasLimit
 	return
 }
 
@@ -149,4 +150,12 @@ func (b *Bazooka) GetReceipt(txHash common.Hash) (*types.Receipt, error) {
 
 func (b *Bazooka) getTxReceipt(client *ethclient.Client, txHash common.Hash) (*types.Receipt, error) {
 	return client.TransactionReceipt(context.Background(), txHash)
+}
+
+func etherToWei(val *big.Int) *big.Int {
+	return new(big.Int).Mul(val, big.NewInt(params.Ether))
+}
+
+func weiToEther(val *big.Int) *big.Int {
+	return new(big.Int).Div(val, big.NewInt(params.Ether))
 }
