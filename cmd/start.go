@@ -10,12 +10,13 @@ import (
 	"github.com/BOPR/bazooka"
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
+	"github.com/BOPR/core"
 	"github.com/BOPR/db"
 	"github.com/BOPR/listener"
 	hlog "github.com/BOPR/log"
 	"github.com/common-nighthawk/go-figure"
-
-	"github.com/BOPR/core"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	ethCmn "github.com/ethereum/go-ethereum/common"
 	"github.com/jinzhu/gorm"
 	"github.com/spf13/cobra"
 )
@@ -47,11 +48,7 @@ func startCmd() *cobra.Command {
 			// if no row is found then we are starting the node for the first time
 			syncStatus, err := DBI.GetSyncStatus()
 			if err != nil && gorm.IsRecordNotFoundError(err) {
-				// read genesis file
-				genesis, err := config.ReadGenesisFile()
-				common.PanicIfError(err)
-				// loads genesis data to the database
-				loadGenesisData(&bz, &DBI, genesis)
+				storeGenesisData(&bz, &DBI, cfg)
 			} else if err != nil && !gorm.IsRecordNotFoundError(err) {
 				logger.Error("Error connecting to database", "error", err)
 				common.PanicIfError(err)
@@ -88,27 +85,23 @@ func startCmd() *cobra.Command {
 			}
 
 			runtime.Goexit()
-
 		},
 	}
 }
 
-func loadGenesisData(bz *bazooka.Bazooka, DBI *db.DB, genesis config.Genesis) {
-	err := genesis.Validate()
-	if err != nil {
-		common.PanicIfError(err)
-	}
+func storeGenesisData(bz *bazooka.Bazooka, DBI *db.DB, cfg config.Configuration) {
 
-	depth := int(genesis.MaxTreeDepth)
-
-	err = DBI.InitStateTree(depth)
+	err := DBI.InitStateTree(int(cfg.MaxTreeDepth))
 	common.PanicIfError(err)
 
-	err = DBI.InitAccountTree(depth)
+	opts := bind.CallOpts{From: ethCmn.HexToAddress(cfg.OperatorAddress)}
+	accountTreeDepth, err := bz.SC.AccountRegistry.DEPTH(&opts)
 	common.PanicIfError(err)
 
-	// load params
-	newParams := core.Params{StakeAmount: genesis.StakeAmount, MaxDepth: genesis.MaxTreeDepth, MaxDepositSubTreeHeight: genesis.MaxDepositSubTreeHeight}
+	err = DBI.InitAccountTree(int(accountTreeDepth.Uint64()))
+	common.PanicIfError(err)
+
+	newParams := core.Params{StakeAmount: cfg.StakeAmount, MaxDepth: cfg.MaxTreeDepth, MaxDepositSubTreeHeight: cfg.MaxDepositSubtree}
 	err = DBI.UpdateStakeAmount(newParams.StakeAmount)
 	common.PanicIfError(err)
 	err = DBI.UpdateMaxDepth(newParams.MaxDepth)
@@ -117,8 +110,6 @@ func loadGenesisData(bz *bazooka.Bazooka, DBI *db.DB, genesis config.Genesis) {
 	common.PanicIfError(err)
 	err = DBI.UpdateFinalisationTimePerBatch(40320)
 	common.PanicIfError(err)
-
-	// load sync status
-	err = DBI.InitSyncStatus(genesis.StartEthBlock)
+	err = DBI.InitSyncStatus(cfg.GenesisEth1Block)
 	common.PanicIfError(err)
 }

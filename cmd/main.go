@@ -48,6 +48,7 @@ func main() {
 	}
 
 	rootCmd.AddCommand(initCmd())
+	rootCmd.AddCommand(configureGenesisCmd())
 	rootCmd.AddCommand(startCmd())
 	rootCmd.AddCommand(startRestServerCmd())
 	rootCmd.AddCommand(sendTransferTx())

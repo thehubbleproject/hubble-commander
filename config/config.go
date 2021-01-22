@@ -59,9 +59,14 @@ type Configuration struct {
 	MassMigration   string `mapstructure:"mass_migration_address"`
 	Create2Transfer string `mapstructure:"create2transfer_address"`
 
-	OperatorKey       string `mapstructure:"operator_key"`
-	OperatorAddress   string `mapstructure:"operator_address"`
-	LastRecordedBlock string `mapstructure:"last_recorded_block"`
+	OperatorKey     string `mapstructure:"operator_key"`
+	OperatorAddress string `mapstructure:"operator_address"`
+
+	MaxTreeDepth      uint64 `mapstructure:"max_tree_depth"`
+	MaxDepositSubtree uint64 `mapstructure:"max_deposit_subtree"`
+	StakeAmount       uint64 `mapstructure:"stake_amount"`
+
+	GenesisEth1Block uint64 `mapstructure:"genesis_eth1_block"`
 }
 
 // GetDefaultConfig returns the default configration options
@@ -87,9 +92,14 @@ func GetDefaultConfig() Configuration {
 		MassMigration:          ethCmn.Address{}.String(),
 		Create2Transfer:        ethCmn.Address{}.String(),
 
-		OperatorKey:       "",
-		OperatorAddress:   "",
-		LastRecordedBlock: "0",
+		OperatorKey:     "",
+		OperatorAddress: "",
+
+		MaxTreeDepth:      32,
+		MaxDepositSubtree: 1,
+		StakeAmount:       32,
+
+		GenesisEth1Block: 0,
 	}
 }
 
