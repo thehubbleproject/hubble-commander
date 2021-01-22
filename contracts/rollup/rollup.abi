@@ -2,8 +2,33 @@
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "_registryAddr",
+          "internalType": "contract Chooser",
+          "name": "_chooser",
+          "type": "address"
+        },
+        {
+          "internalType": "contract IDepositManager",
+          "name": "_depositManager",
+          "type": "address"
+        },
+        {
+          "internalType": "contract BLSAccountRegistry",
+          "name": "_accountRegistry",
+          "type": "address"
+        },
+        {
+          "internalType": "contract Transfer",
+          "name": "_transfer",
+          "type": "address"
+        },
+        {
+          "internalType": "contract MassMigration",
+          "name": "_massMigration",
+          "type": "address"
+        },
+        {
+          "internalType": "contract Create2Transfer",
+          "name": "_create2Transfer",
           "type": "address"
         },
         {
@@ -35,19 +60,6 @@
       "payable": false,
       "stateMutability": "nonpayable",
       "type": "constructor"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "batchID",
-          "type": "uint256"
-        }
-      ],
-      "name": "BatchRollback",
-      "type": "event"
     },
     {
       "anonymous": false,
@@ -99,11 +111,23 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "totalBatchesSlashed",
+          "name": "startID",
           "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "nDeleted",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "completed",
+          "type": "bool"
         }
       ],
-      "name": "RollbackFinalisation",
+      "name": "RollbackStatus",
       "type": "event"
     },
     {
@@ -332,12 +356,12 @@
               "components": [
                 {
                   "internalType": "uint256",
-                  "name": "pubkeyIndex",
+                  "name": "pubkeyID",
                   "type": "uint256"
                 },
                 {
                   "internalType": "uint256",
-                  "name": "tokenType",
+                  "name": "tokenID",
                   "type": "uint256"
                 },
                 {
@@ -482,12 +506,12 @@
               "components": [
                 {
                   "internalType": "uint256",
-                  "name": "pubkeyIndex",
+                  "name": "pubkeyID",
                   "type": "uint256"
                 },
                 {
                   "internalType": "uint256",
-                  "name": "tokenType",
+                  "name": "tokenID",
                   "type": "uint256"
                 },
                 {
@@ -602,12 +626,12 @@
               "components": [
                 {
                   "internalType": "uint256",
-                  "name": "pubkeyIndex",
+                  "name": "pubkeyID",
                   "type": "uint256"
                 },
                 {
                   "internalType": "uint256",
-                  "name": "tokenType",
+                  "name": "tokenID",
                   "type": "uint256"
                 },
                 {
@@ -756,12 +780,12 @@
               "components": [
                 {
                   "internalType": "uint256",
-                  "name": "pubkeyIndex",
+                  "name": "pubkeyID",
                   "type": "uint256"
                 },
                 {
                   "internalType": "uint256",
-                  "name": "tokenType",
+                  "name": "tokenID",
                   "type": "uint256"
                 },
                 {
@@ -920,12 +944,12 @@
               "components": [
                 {
                   "internalType": "uint256",
-                  "name": "pubkeyIndex",
+                  "name": "pubkeyID",
                   "type": "uint256"
                 },
                 {
                   "internalType": "uint256",
-                  "name": "tokenType",
+                  "name": "tokenID",
                   "type": "uint256"
                 },
                 {
@@ -1064,12 +1088,12 @@
               "components": [
                 {
                   "internalType": "uint256",
-                  "name": "pubkeyIndex",
+                  "name": "pubkeyID",
                   "type": "uint256"
                 },
                 {
                   "internalType": "uint256",
-                  "name": "tokenType",
+                  "name": "tokenID",
                   "type": "uint256"
                 },
                 {
@@ -1168,21 +1192,6 @@
       "outputs": [
         {
           "internalType": "contract MassMigration",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "nameRegistry",
-      "outputs": [
-        {
-          "internalType": "contract NameRegistry",
           "name": "",
           "type": "address"
         }

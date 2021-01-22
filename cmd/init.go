@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/hex"
+	"strconv"
 
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
@@ -38,20 +39,23 @@ func configureGenesisCmd() *cobra.Command {
 
 			common.PanicIfError(genesis.Validate())
 
+			// contracts
 			cfg.RollupAddress = genesis.Addresses.Rollup
 			cfg.BurnAuction = genesis.Addresses.Chooser
 			cfg.TokenRegistry = genesis.Addresses.TokenRegistry
 			cfg.AccountRegistry = genesis.Addresses.BlsAccountRegistry
 			cfg.DepositManager = genesis.Addresses.DepositManager
 			cfg.State = genesis.Addresses.FrontendGeneric
-			cfg.Transfer = genesis.Addresses.Transfer
-			cfg.MassMigration = genesis.Addresses.MassMigration
-			cfg.Create2Transfer = genesis.Addresses.Create2Transfer
+			cfg.Transfer = genesis.Addresses.FrontendTransfer
+			cfg.MassMigration = genesis.Addresses.FrontendMassMigration
+			cfg.Create2Transfer = genesis.Addresses.FrontendCreate2Transfer
 
 			cfg.MaxTreeDepth = genesis.Parameters.MAXDEPTH
 			cfg.MaxDepositSubtree = genesis.Parameters.MAXDEPOSITSUBTREEDEPTH
 			cfg.GenesisEth1Block = genesis.Auxiliary.GenesisEth1Block
-
+			stakeAmount, err := strconv.Atoi(genesis.Parameters.STAKEAMOUNT)
+			common.PanicIfError(err)
+			cfg.StakeAmount = uint64(stakeAmount)
 			config.WriteConfigFile("./config.toml", &cfg)
 		},
 	}

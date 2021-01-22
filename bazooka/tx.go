@@ -97,9 +97,7 @@ func (b *Bazooka) submitTransferBatch(commitments []core.Commitment, accountRoot
 	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
 
 	rollupAddress := ethCmn.HexToAddress(b.Cfg.RollupAddress)
-
-	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
-	stakeAmount := big.NewInt(1000000000000000000)
+	stakeAmount := big.NewInt(int64(b.Cfg.StakeAmount))
 
 	var inputData TransferCalldata
 	inputData.StateRoots = updatedRoots
@@ -152,9 +150,7 @@ func (b *Bazooka) submitCreate2TransferBatch(commitments []core.Commitment, acco
 	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
 
 	rollupAddress := ethCmn.HexToAddress(b.Cfg.RollupAddress)
-
-	// TODO https://github.com/thehubbleproject/hubble-commander/issues/68
-	stakeAmount := big.NewInt(1000000000000000000)
+	stakeAmount := big.NewInt(int64(b.Cfg.StakeAmount))
 
 	var inputData Create2TransferCalldata
 	inputData.StateRoots = updatedRoots
@@ -245,8 +241,7 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment, accoun
 	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
 
 	rollupAddress := ethCmn.HexToAddress(b.Cfg.RollupAddress)
-
-	stakeAmount := big.NewInt(1000000000000000000)
+	stakeAmount := big.NewInt(int64(b.Cfg.StakeAmount))
 
 	var inputData MassMigrationCalldata
 	inputData.StateRoots = updatedRoots
@@ -306,8 +301,8 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 		return err
 	}
 
-	value := etherToWei(big.NewInt(1))
-	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(b.Cfg.RollupAddress), value, input)
+	stakeAmount := big.NewInt(int64(b.Cfg.StakeAmount))
+	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(b.Cfg.RollupAddress), stakeAmount, input)
 	if err != nil {
 		b.log.Error("Error sending register batch", "err", err)
 		return

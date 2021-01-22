@@ -25,7 +25,6 @@ func sendTransferTx() *cobra.Command {
 		Short: "Transfers assets between 2 accounts",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			flags := cmd.Flags()
-
 			toIndex, err := flags.GetUint64(FlagToID)
 			if err != nil {
 				return err
@@ -521,9 +520,12 @@ func validateAndTransfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toInde
 	if bal.Int64() <= int64(amount+fee) {
 		return "", ErrInvalidAmount
 	}
+	fmt.Println("here")
+	fmt.Println("fee", int64(fromIndex), int64(toIndex), int64(fee), nonce.Int64(), int64(amount), core.TX_TRANSFER_TYPE)
 
 	txData, err := bazooka.EncodeTransferTx(int64(fromIndex), int64(toIndex), int64(fee), nonce.Int64(), int64(amount), core.TX_TRANSFER_TYPE)
 	if err != nil {
+		fmt.Println("here", err)
 		return
 	}
 

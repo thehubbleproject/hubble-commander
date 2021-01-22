@@ -31,6 +31,9 @@ operator_address = "{{ .OperatorAddress }}"
 #### Syncer settings #####
 confirmation_blocks = "{{ .ConfirmationBlocks }}"
 
+
+#################################### NON CONFIGRABLE FIELDS BELOW #################################
+
 ##### Contract Addresses #####
 
 ### Main contracts ###
@@ -47,13 +50,11 @@ mass_migration_address = "{{ .MassMigration }}"
 create2transfer_address = "{{ .Create2Transfer }}"
 
 ### Protocol Parameters
-
 max_tree_depth = "{{ .MaxTreeDepth }}"
 max_deposit_subtree = "{{ .MaxDepositSubtree }}"
 stake_amount = "{{ .StakeAmount }}"
 
 ### Protocol Auxiliary Values
-
 genesis_eth1_block = "{{ .GenesisEth1Block }}"
 `
 

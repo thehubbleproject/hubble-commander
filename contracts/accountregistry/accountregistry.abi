@@ -107,9 +107,9 @@
           "type": "uint256[4]"
         },
         {
-          "internalType": "bytes32[9]",
+          "internalType": "bytes32[31]",
           "name": "witness",
-          "type": "bytes32[9]"
+          "type": "bytes32[31]"
         }
       ],
       "name": "exists",
@@ -221,9 +221,9 @@
       "constant": false,
       "inputs": [
         {
-          "internalType": "uint256[4][4]",
+          "internalType": "uint256[4][16]",
           "name": "pubkeys",
-          "type": "uint256[4][4]"
+          "type": "uint256[4][16]"
         }
       ],
       "name": "registerBatch",

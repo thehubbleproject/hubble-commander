@@ -3,6 +3,7 @@ package bazooka
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 	"strings"
 
@@ -217,6 +218,7 @@ func (b *Bazooka) EncodeTransferTx(from, to, fee, nonce, amount, txType int64) (
 		Fee       *big.Int
 		Nonce     *big.Int
 	}{big.NewInt(txType), big.NewInt(from), big.NewInt(to), big.NewInt(amount), big.NewInt(fee), big.NewInt(nonce)}
+	fmt.Printf("tx %+v", tx)
 	return b.SC.Transfer.Encode(&opts, tx)
 }
 
@@ -304,10 +306,10 @@ func (b *Bazooka) DecodeMassMigrationTx(txBytes []byte) (from, toSpoke, nonce, t
 func (b *Bazooka) EncodeState(id, balance, nonce, token uint64) (accountBytes []byte, err error) {
 	opts := bind.CallOpts{From: b.operator}
 	accountBytes, err = b.SC.State.Encode(&opts, state.TypesUserState{
-		PubkeyIndex: big.NewInt(int64(id)),
-		TokenType:   big.NewInt(int64(token)),
-		Balance:     big.NewInt(int64(balance)),
-		Nonce:       big.NewInt(int64(nonce)),
+		PubkeyID: big.NewInt(int64(id)),
+		TokenID:  big.NewInt(int64(token)),
+		Balance:  big.NewInt(int64(balance)),
+		Nonce:    big.NewInt(int64(nonce)),
 	})
 	if err != nil {
 		return
@@ -323,8 +325,8 @@ func (b *Bazooka) DecodeState(stateBytes []byte) (ID, balance, nonce, token *big
 		return
 	}
 
-	b.log.Debug("Decoded state", "ID", state.PubkeyIndex, "balance", state.Balance, "token", state.TokenType, "nonce", state.Nonce)
-	return state.PubkeyIndex, state.Balance, state.Nonce, state.TokenType, nil
+	b.log.Debug("Decoded state", "ID", state.PubkeyID, "balance", state.Balance, "token", state.TokenID, "nonce", state.Nonce)
+	return state.PubkeyID, state.Balance, state.Nonce, state.TokenID, nil
 }
 
 func getContractInstances(client *ethclient.Client, cfg config.Configuration) (contracts Contracts, err error) {

@@ -14,12 +14,12 @@
           "components": [
             {
               "internalType": "uint256",
-              "name": "pubkeyIndex",
+              "name": "pubkeyID",
               "type": "uint256"
             },
             {
               "internalType": "uint256",
-              "name": "tokenType",
+              "name": "tokenID",
               "type": "uint256"
             },
             {
@@ -49,12 +49,12 @@
           "components": [
             {
               "internalType": "uint256",
-              "name": "pubkeyIndex",
+              "name": "pubkeyID",
               "type": "uint256"
             },
             {
               "internalType": "uint256",
-              "name": "tokenType",
+              "name": "tokenID",
               "type": "uint256"
             },
             {
