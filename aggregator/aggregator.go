@@ -126,12 +126,13 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 	// Step-2
 	commitments, err := a.processTxs(txs)
 	if err != nil {
-		fmt.Println("Error while processing tx", "error", err)
+		a.Logger.Error("Error processing tx", "error", err)
 		return
 	}
 
 	rootNode, err := a.DB.GetAccountRoot()
 	if err != nil {
+		a.Logger.Info("Error fetching account root", "error", err)
 		return
 	}
 	accountTreeRoot := rootNode.Hash
@@ -140,7 +141,7 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 	// Submit all commitments on-chain
 	txHash, commitments, err := a.Bazooka.SubmitBatch(commitments, accountTreeRoot)
 	if err != nil {
-		fmt.Println("Error while submitting batch", "error", err)
+		a.Logger.Error("Error while submitting batch", "error", err)
 		return
 	}
 
@@ -149,6 +150,7 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 	newBatch := core.NewBatch(core.BytesToByteArray(lastCommitment.StateRoot).String(), a.cfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
 	batchID, err := a.DB.AddNewBatch(newBatch, commitments)
 	if err != nil {
+		a.Logger.Error("Error adding new batch", "error", err)
 		return
 	}
 
