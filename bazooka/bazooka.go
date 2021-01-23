@@ -16,9 +16,11 @@ import (
 
 	"github.com/BOPR/contracts/accountregistry"
 	"github.com/BOPR/contracts/create2transfer"
+	"github.com/BOPR/contracts/depositmanager"
 	"github.com/BOPR/contracts/massmigration"
 	"github.com/BOPR/contracts/rollup"
 	"github.com/BOPR/contracts/state"
+	"github.com/BOPR/contracts/tokenregistry"
 	"github.com/BOPR/contracts/transfer"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -66,6 +68,8 @@ type (
 		Create2Transfer *create2transfer.Create2transfer
 		MassMigration   *massmigration.Massmigration
 		AccountRegistry *accountregistry.Accountregistry
+		DepositManager  *depositmanager.Depositmanager
+		TokenRegistry   *tokenregistry.Tokenregistry
 	}
 )
 
@@ -344,6 +348,12 @@ func getContractInstances(client *ethclient.Client, cfg config.Configuration) (c
 		return contracts, err
 	}
 	if contracts.MassMigration, err = massmigration.NewMassmigration(ethCmn.HexToAddress(cfg.MassMigration), client); err != nil {
+		return contracts, err
+	}
+	if contracts.DepositManager, err = depositmanager.NewDepositmanager(ethCmn.HexToAddress(cfg.DepositManager), client); err != nil {
+		return contracts, err
+	}
+	if contracts.TokenRegistry, err = tokenregistry.NewTokenregistry(ethCmn.HexToAddress(cfg.TokenRegistry), client); err != nil {
 		return contracts, err
 	}
 	return contracts, nil

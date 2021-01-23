@@ -9,6 +9,7 @@ const (
 	FlagPubKey       = "pubkey"
 	FlagAmount       = "amount"
 	FlagFee          = "fee"
+	FlagTokenID      = "token-id"
 	FlagDatabaseName = "dbname"
 	FlagUserCount    = "count"
 )
