@@ -32,6 +32,7 @@ func LoadRouters(cfg config.Configuration) (r *mux.Router, err error) {
 	r = mux.NewRouter()
 	r.HandleFunc("/state/{id}", stateDecoderHandler).Methods("GET")
 	r.HandleFunc("/account/{id}", accountDecoderHandler).Methods("GET")
+	r.HandleFunc("/status/tx/{hash}", txStatusHandler).Methods("GET")
 
 	r.HandleFunc("/tx", TxHandler).Methods("POST")
 	r.HandleFunc("/transfer", transferTx).Methods("POST")

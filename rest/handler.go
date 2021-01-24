@@ -15,7 +15,8 @@ var (
 )
 
 const (
-	KeyID = "id"
+	KeyID   = "id"
+	KeyHash = "hash"
 )
 
 type TxReceiver struct {
@@ -73,25 +74,23 @@ func stateDecoderHandler(w http.ResponseWriter, r *http.Request) {
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
+		return
 	}
 
-	parameters, err := dbI.GetParams()
+	state, err := dbI.GetStateByIndex(uint64(idInt))
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable to get state by path")
+		return
+	}
+	if state.Type != core.TYPE_TERMINAL {
+		WriteErrorResponse(w, http.StatusBadRequest, "Invalid state")
+		return
 	}
 
-	path, err := core.SolidityPathToNodePath(uint64(idInt), parameters.MaxDepth)
-	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
-	}
-
-	state, err := dbI.GetStateByPath(path)
-	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable toID")
-	}
 	ID, balance, nonce, token, err := bazookaI.DecodeState(state.Data)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable toID")
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable to decode state")
+		return
 	}
 	var stateData stateExporter
 	stateData.AccountID = ID.Uint64()
@@ -118,14 +117,24 @@ type accountExporter struct {
 func accountDecoderHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params[KeyID]
+
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
+		return
 	}
+
 	account, err := dbI.GetAccountLeafByID(uint64(idInt))
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to fetch account by ID")
+		return
 	}
+
+	if account.Type != core.TYPE_TERMINAL || len(account.PublicKey) == 0 {
+		WriteErrorResponse(w, http.StatusBadRequest, "Invalid account or account not present")
+		return
+	}
+
 	var accountData accountExporter
 	accountData.AccountID = account.AccountID
 	accountData.Pubkey = core.Pubkey(account.PublicKey).String()
@@ -133,6 +142,7 @@ func accountDecoderHandler(w http.ResponseWriter, r *http.Request) {
 	output, err := json.Marshal(accountData)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
+		return
 	}
 
 	// write headers and data
@@ -170,8 +180,11 @@ func transferTx(w http.ResponseWriter, r *http.Request) {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to json decode transfer")
 		return
 	}
+	var response SignBytesResponse
+	response.Message = signBytes
+	response.Type = core.TX_TRANSFER_TYPE
 
-	output, err := json.Marshal(signBytes)
+	output, err := json.Marshal(response)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to json decode transfer")
 		return
@@ -209,8 +222,11 @@ func massMigrationTx(w http.ResponseWriter, r *http.Request) {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to generate sign bytes")
 		return
 	}
+	var response SignBytesResponse
+	response.Message = signBytes
+	response.Type = core.TX_MASS_MIGRATIONS
 
-	output, err := json.Marshal(signBytes)
+	output, err := json.Marshal(response)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall")
 		return
@@ -255,10 +271,37 @@ func create2transferTx(w http.ResponseWriter, r *http.Request) {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to generate sign bytes")
 		return
 	}
-
-	output, err := json.Marshal(signBytes)
+	var response SignBytesResponse
+	response.Message = signBytes
+	response.Type = core.TX_CREATE_2_TRANSFER
+	output, err := json.Marshal(response)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall")
+		return
+	}
+
+	// write headers and data
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(output)
+}
+
+func txStatusHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	txHash := params[KeyHash]
+	if len(txHash) == 0 {
+		WriteErrorResponse(w, http.StatusBadRequest, "TxHash not present")
+		return
+	}
+
+	tx, err := dbI.GetTxByHash(txHash)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable to find transaction by hash")
+		return
+	}
+
+	output, err := json.Marshal(tx)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
 		return
 	}
 
