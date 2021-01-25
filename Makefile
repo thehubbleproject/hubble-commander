@@ -5,6 +5,7 @@ contracts:
 	abigen --abi=contracts/depositmanager/depositmanager.abi --pkg=depositmanager --out=contracts/depositmanager/depositmanager.go
 	abigen --abi=contracts/tokenregistry/tokenregistry.abi --pkg=tokenregistry --out=contracts/tokenregistry/tokenregistry.go
 	abigen --abi=contracts/burnauction/burnauction.abi --pkg=burnauction --out=contracts/burnauction/burnauction.go
+	abigen --abi=contracts/erc20/erc20.abi --pkg=erc20 --out=contracts/erc20/erc20.go
 	abigen --abi=contracts/transfer/transfer.abi --pkg=transfer --out=contracts/transfer/transfer.go
 	abigen --abi=contracts/massmigration/massmigration.abi --pkg=massmigration --out=contracts/massmigration/massmigration.go
 	abigen --abi=contracts/create2transfer/create2transfer.abi --pkg=create2transfer --out=contracts/create2transfer/create2transfer.go

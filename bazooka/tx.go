@@ -1,13 +1,19 @@
 package bazooka
 
 import (
+	"context"
+	"fmt"
 	"math/big"
 	"strings"
 
 	"github.com/BOPR/contracts/accountregistry"
+	"github.com/BOPR/contracts/depositmanager"
+	"github.com/BOPR/contracts/erc20"
 	"github.com/BOPR/contracts/rollup"
 	"github.com/BOPR/core"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 	ethCmn "github.com/ethereum/go-ethereum/common"
 )
 
@@ -332,5 +338,93 @@ func (b *Bazooka) RegisterPubkeys(pubkeys [16][4]*big.Int) (txHash string, err e
 
 	b.log.Info("Registered pubkeys", "count", len(pubkeys), "txHash", tx.Hash().String())
 
+	return tx.Hash().String(), nil
+}
+
+// ApproveToken approves erc20 token
+func (b *Bazooka) ApproveToken(tokenAddr common.Address, spender common.Address, amount uint64) (txHash string, err error) {
+	tokenABI, err := abi.JSON(strings.NewReader(erc20.Erc20ABI))
+	if err != nil {
+		return
+	}
+
+	amountBigInt := big.NewInt(int64(amount))
+	data, err := tokenABI.Pack("approve", spender, amountBigInt)
+	if err != nil {
+		b.log.Error("Error packing data for token approve", "err", err)
+		return
+	}
+
+	tx, err := b.SignAndBroadcast(b.EthClient, tokenAddr, big.NewInt(0), data)
+	if err != nil {
+		b.log.Error("Error sending register batch", "err", err)
+		return
+	}
+
+	b.log.Info("Token approved", "tokenAdrrress", tokenAddr, "txHash", tx.Hash().String())
+
+	return tx.Hash().String(), nil
+
+}
+
+func (b *Bazooka) Deposit(pubkey [4]*big.Int, tokenID uint64, amount uint64) (txHash string, err error) {
+	depositmanagerABI, err := abi.JSON(strings.NewReader(depositmanager.DepositmanagerABI))
+	if err != nil {
+		return
+	}
+	registryABI, err := abi.JSON(strings.NewReader(accountregistry.AccountregistryABI))
+	if err != nil {
+		return
+	}
+	input, err := registryABI.Pack("register", pubkey)
+	if err != nil {
+		b.log.Error("Error packing data for register batch", "err", err)
+		return
+	}
+	fromAddress := b.operator
+	toAddress := ethCmn.HexToAddress(b.Cfg.AccountRegistry)
+	value := big.NewInt(0)
+	callMsg := ethereum.CallMsg{
+		From:  fromAddress,
+		To:    &toAddress,
+		Data:  input,
+		Value: value,
+	}
+	output, err := b.EthClient.CallContract(context.Background(), callMsg, nil)
+	if err != nil {
+		fmt.Println("Error calling contract: ", err)
+		return
+	}
+	outputMap := map[string]interface{}{}
+	err = registryABI.UnpackIntoMap(outputMap, "register", output)
+	if err != nil {
+		fmt.Println("Error unpacking", err)
+		return
+	}
+
+	var pubkeyID *big.Int
+	for _, v := range outputMap {
+		pubkeyID = v.(*big.Int)
+	}
+
+	tx, err := b.SignAndBroadcast(b.EthClient, toAddress, value, input)
+	if err != nil {
+		b.log.Error("Error sending register batch", "err", err)
+		return
+	}
+
+	b.log.Info("Registered account", "txHash", tx.Hash().String())
+	amountBigInt := big.NewInt(int64(amount))
+	token := big.NewInt(int64(tokenID))
+	data, err := depositmanagerABI.Pack("depositFor", pubkeyID, amountBigInt, token)
+	if err != nil {
+		b.log.Error("Error packing data for token approve", "err", err)
+		return
+	}
+	tx, err = b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(b.Cfg.DepositManager), big.NewInt(0), data)
+	if err != nil {
+		b.log.Error("Error sending register batch", "err", err)
+		return
+	}
 	return tx.Hash().String(), nil
 }
