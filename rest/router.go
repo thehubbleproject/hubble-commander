@@ -35,7 +35,7 @@ func LoadRouters(cfg config.Configuration) (r *mux.Router, err error) {
 	r.HandleFunc("/tx/{hash}", txStatusHandler).Methods("GET")
 
 	r.HandleFunc("/tx", TxHandler).Methods("POST")
-	r.HandleFunc("/user/{pubkey}", userStateHandler).Methods("GET")
+	r.HandleFunc("/user", userStateHandler).Methods("POST")
 	r.HandleFunc("/transfer", transferTx).Methods("POST")
 	r.HandleFunc("/massmigration", massMigrationTx).Methods("POST")
 	r.HandleFunc("/create2transfer", create2transferTx).Methods("POST")
