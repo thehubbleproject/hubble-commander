@@ -30,9 +30,10 @@ func LoadRouters(cfg config.Configuration) (r *mux.Router, err error) {
 	bazookaI = bz
 
 	r = mux.NewRouter()
-	r.HandleFunc("/state/{id}", stateDecoderHandler).Methods("GET")
-	r.HandleFunc("/account/{id}", accountDecoderHandler).Methods("GET")
-	r.HandleFunc("/status/tx/{hash}", txStatusHandler).Methods("GET")
+	r.HandleFunc("/user/state/{id}", stateDecoderHandler).Methods("GET")
+	r.HandleFunc("/user/account/{id}", accountDecoderHandler).Methods("GET")
+	r.HandleFunc("/tx/{hash}", txStatusHandler).Methods("GET")
+	r.HandleFunc("/user/{pubkey}", userStateHandler).Methods("GET")
 
 	r.HandleFunc("/tx", TxHandler).Methods("POST")
 	r.HandleFunc("/transfer", transferTx).Methods("POST")
@@ -40,12 +41,15 @@ func LoadRouters(cfg config.Configuration) (r *mux.Router, err error) {
 	r.HandleFunc("/create2transfer", create2transferTx).Methods("POST")
 
 	fmt.Println("Here are the available routes...")
+
+	var routes []string
 	err = r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		t, err := route.GetPathTemplate()
 		if err != nil {
 			return err
 		}
 		fmt.Println(t)
+		routes = append(routes, t)
 		return nil
 	})
 	if err != nil {

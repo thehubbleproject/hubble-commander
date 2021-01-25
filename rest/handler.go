@@ -1,8 +1,10 @@
 package rest
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -15,8 +17,9 @@ var (
 )
 
 const (
-	KeyID   = "id"
-	KeyHash = "hash"
+	KeyID     = "id"
+	KeyHash   = "hash"
+	KeyPubkey = "pubkey"
 )
 
 type TxReceiver struct {
@@ -300,6 +303,82 @@ func txStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	output, err := json.Marshal(tx)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
+		return
+	}
+
+	// write headers and data
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(output)
+}
+
+// UserDetails is the body
+type UserDetails struct {
+	States    []UserDetailsState `json:"states"`
+	AccountID uint64             `json:"account_id"`
+	Pubkey    string             `json:"pubkey"`
+}
+
+type UserDetailsState struct {
+	Balance uint64 `json:"balance"`
+	StateID uint64 `json:"state_id"`
+	Token   uint64 `json:"token_id"`
+	Nonce   uint64 `json:"nonce"`
+}
+
+func userStateHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	pubkeyStr := params[KeyPubkey]
+	if len(pubkeyStr) == 0 {
+		WriteErrorResponse(w, http.StatusBadRequest, "Pubkey not present")
+		return
+	}
+	pubkeybz, err := hex.DecodeString(pubkeyStr)
+	if err != nil {
+		return
+	}
+
+	var response UserDetails
+
+	acc, err := dbI.GetAccountByPubkey(pubkeybz)
+	if err != nil {
+		return
+	}
+	response.AccountID = acc.AccountID
+	response.Pubkey = hex.EncodeToString(acc.PublicKey)
+
+	states, err := dbI.GetStateByAccID(acc.AccountID)
+	if err != nil {
+		return
+	}
+
+	var userStates []UserDetailsState
+	for _, state := range states {
+		if state.Type != core.TYPE_TERMINAL {
+			continue
+		}
+
+		_, balance, nonce, token, err := bazookaI.DecodeState(state.Data)
+		if err != nil {
+			WriteErrorResponse(w, http.StatusBadRequest, "Unable to decode state")
+			return
+		}
+		var stateData UserDetailsState
+		stateData.Balance = balance.Uint64()
+		stateData.Nonce = nonce.Uint64()
+		stateID, err := core.StringToUint(state.Path)
+		if err != nil {
+			fmt.Println("error converting path to ID")
+			continue
+		}
+		stateData.StateID = stateID
+		stateData.Token = token.Uint64()
+
+		userStates = append(userStates, stateData)
+	}
+	response.States = userStates
+	output, err := json.Marshal(response)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
 		return

@@ -225,6 +225,14 @@ func (db *DB) FindEmptyState(depth int) (state core.UserState, err error) {
 	return state, nil
 }
 
+func (db *DB) GetStateByAccID(accID uint64) (states []core.UserState, err error) {
+	err = db.Instance.Scopes(QueryByAccountID(accID)).Find(&states).Error
+	if err != nil {
+		return
+	}
+	return states, nil
+}
+
 func (db *DB) FindEmptyAndReserve(depth int, accID uint64) (state core.UserState, err error) {
 	state, err = db.FindEmptyState(depth)
 	if err != nil {
