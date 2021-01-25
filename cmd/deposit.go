@@ -86,3 +86,37 @@ func deposit() *cobra.Command {
 	cmd.Flags().Uint64P(FlagAmount, "", 0, "--amount=<amount>")
 	return cmd
 }
+
+// deserialisePubkey converts pubkey bytes to pubkey SOl
+func deserialisePubkey() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deserialise",
+		Short: "Deserialise pubkey bytes to array",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			flags := cmd.Flags()
+			pubKey, err := flags.GetString(FlagPubKey)
+			if err != nil {
+				return err
+			}
+
+			toPubHexBz, err := hex.DecodeString(pubKey)
+			if err != nil {
+				return err
+			}
+			toPubkey := core.Pubkey(toPubHexBz)
+			if err != nil {
+				return err
+			}
+
+			toSol, err := toPubkey.ToSol()
+			if err != nil {
+				return err
+			}
+
+			fmt.Println("deserialised pubkey", toSol, "string", toPubkey.String())
+			return nil
+		},
+	}
+	cmd.Flags().StringP(FlagPubKey, "", "", "--pubkey=<pubkey>")
+	return cmd
+}

@@ -60,6 +60,7 @@ func main() {
 	rootCmd.AddCommand(createUsers())
 	rootCmd.AddCommand(viewState())
 	rootCmd.AddCommand(deposit())
+	rootCmd.AddCommand(deserialisePubkey())
 	rootCmd.AddCommand(migrationCmd)
 
 	if err := viper.BindPFlag(WithConfigPathFlag, rootCmd.Flags().Lookup(WithConfigPathFlag)); err != nil {
