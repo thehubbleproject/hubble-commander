@@ -327,38 +327,37 @@ type UserDetailsState struct {
 	Nonce   uint64 `json:"nonce"`
 }
 
+type pubkeyRequest struct {
+	Pubkey [4]string `json:"pubkey"`
+}
+
 func userStateHandler(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	pubkeyStr := params[KeyPubkey]
-	if len(pubkeyStr) == 0 {
-		WriteErrorResponse(w, http.StatusBadRequest, "Pubkey not present")
-		return
-	}
-	pubkeybz, err := hex.DecodeString(pubkeyStr)
+	fmt.Println("received request", r.Body)
+	var request pubkeyRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Could not decode body")
 		return
 	}
 
+	pubkeybz := core.NewPubkeyFromString(request.Pubkey)
 	var response UserDetails
-
 	acc, err := dbI.GetAccountByPubkey(pubkeybz)
 	if err != nil {
 		return
 	}
+
 	response.AccountID = acc.AccountID
 	response.Pubkey = hex.EncodeToString(acc.PublicKey)
-
 	states, err := dbI.GetStateByAccID(acc.AccountID)
 	if err != nil {
 		return
 	}
-
 	var userStates []UserDetailsState
 	for _, state := range states {
 		if state.Type != core.TYPE_TERMINAL {
 			continue
 		}
-
 		_, balance, nonce, token, err := bazookaI.DecodeState(state.Data)
 		if err != nil {
 			WriteErrorResponse(w, http.StatusBadRequest, "Unable to decode state")
