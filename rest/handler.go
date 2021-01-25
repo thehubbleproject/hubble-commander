@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"net/http"
 	"strconv"
 
@@ -328,7 +329,7 @@ type UserDetailsState struct {
 }
 
 type pubkeyRequest struct {
-	Pubkey [4]string `json:"pubkey"`
+	Pubkey [4]*big.Int `json:"pubkey"`
 }
 
 func userStateHandler(w http.ResponseWriter, r *http.Request) {
@@ -339,7 +340,7 @@ func userStateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pubkeybz := core.NewPubkeyFromString(request.Pubkey)
+	pubkeybz := core.NewPubkey(request.Pubkey)
 	var response UserDetails
 	acc, err := dbI.GetAccountByPubkey(pubkeybz)
 	if err != nil {
