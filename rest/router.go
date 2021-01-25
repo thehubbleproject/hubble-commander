@@ -7,7 +7,6 @@ import (
 	"github.com/BOPR/config"
 	"github.com/BOPR/db"
 	"github.com/common-nighthawk/go-figure"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -40,7 +39,6 @@ func LoadRouters(cfg config.Configuration) (r *mux.Router, err error) {
 	r.HandleFunc("/transfer", transferTx).Methods("POST")
 	r.HandleFunc("/massmigration", massMigrationTx).Methods("POST")
 	r.HandleFunc("/create2transfer", create2transferTx).Methods("POST")
-	originsOk := handlers.AllowedOrigins([]string{"*"})
 
 	fmt.Println("Here are the available routes...")
 

@@ -19,6 +19,7 @@ require (
 	github.com/golangci/revgrep v0.0.0-20180812185044-276a5c0a1039 // indirect
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/google/uuid v1.1.1 // indirect
+	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.7.3
 	github.com/gostaticanalysis/analysisutil v0.6.1 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
