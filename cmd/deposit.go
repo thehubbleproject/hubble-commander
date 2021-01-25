@@ -113,7 +113,12 @@ func deserialisePubkey() *cobra.Command {
 				return err
 			}
 
-			fmt.Println("deserialised pubkey", toSol, "string", toPubkey.String())
+			var toSolStr []string
+			for _, toSolPart := range toSol {
+				toSolStr = append(toSolStr, toSolPart.String())
+			}
+
+			fmt.Println("deserialised pubkey", toSolStr)
 			return nil
 		},
 	}

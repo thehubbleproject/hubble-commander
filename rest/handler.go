@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/big"
 	"net/http"
 	"strconv"
 
@@ -328,20 +327,15 @@ type UserDetailsState struct {
 	Nonce   uint64 `json:"nonce"`
 }
 
-type pubkeyRequest struct {
-	Pubkey [4]*big.Int `json:"pubkey"`
-}
-
 func userStateHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("received request", r.Body)
-	var request pubkeyRequest
-	err := json.NewDecoder(r.Body).Decode(&request)
+	params := mux.Vars(r)
+	pubkeyStr := params[KeyPubkey]
+	pubkeybz, err := hex.DecodeString(pubkeyStr)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Could not decode body")
+		WriteErrorResponse(w, http.StatusBadRequest, "Could not decode string")
 		return
 	}
 
-	pubkeybz := core.NewPubkey(request.Pubkey)
 	var response UserDetails
 	acc, err := dbI.GetAccountByPubkey(pubkeybz)
 	if err != nil {
@@ -351,11 +345,13 @@ func userStateHandler(w http.ResponseWriter, r *http.Request) {
 
 	response.AccountID = acc.AccountID
 	response.Pubkey = hex.EncodeToString(acc.PublicKey)
+
 	states, err := dbI.GetStateByAccID(acc.AccountID)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Could not get state by accID")
 		return
 	}
+
 	var userStates []UserDetailsState
 	for _, state := range states {
 		if state.Type != core.TYPE_TERMINAL {
