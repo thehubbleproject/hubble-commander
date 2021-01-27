@@ -97,11 +97,10 @@ func (db *DB) AttachDepositInfo(root core.ByteArray) error {
 // GetPendingDepositsByDepositRoot fetches all deposits created by a specific deposit subtree
 func (db *DB) GetPendingDepositsByDepositRoot(root core.ByteArray) ([]core.Deposit, error) {
 	var pendingDeposits []core.Deposit
-	query := db.Instance.Scopes(QueryByDepositRoot(root.String())).Find(&pendingDeposits)
+	query := db.Instance.Order("account_id asc").Scopes(QueryByDepositRoot(root.String())).Find(&pendingDeposits)
 	if err := query.Error; err != nil {
 		return pendingDeposits, err
 	}
-
 	return pendingDeposits, nil
 }
 

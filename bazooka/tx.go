@@ -279,7 +279,6 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 		"atDepth",
 		subTreeHeight,
 	)
-
 	stateProof := NewStateMerkleProof(TBreplaced, siblings)
 	solStateProof, err := stateProof.ToABIVersion(*b)
 	if err != nil {

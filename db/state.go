@@ -174,7 +174,7 @@ func (db *DB) GetStateByPath(path string) (core.UserState, error) {
 // GetRoot fetches the root of the state tree
 func (db *DB) GetRoot() (core.UserState, error) {
 	var state core.UserState
-	err := db.Instance.Scopes(QueryByType(core.TYPE_ROOT)).Find(&state).Error
+	err := db.Instance.Scopes(QueryByType(core.TYPE_ROOT), QueryByDepth(0)).Find(&state).Error
 	if err != nil {
 		return state, core.ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v", err))
 	}

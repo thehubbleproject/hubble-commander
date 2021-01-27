@@ -87,7 +87,6 @@ func (db *DB) GetLastCommitmentMP(id uint64) (commitmentMP bazooka.TypesCommitme
 	if err != nil {
 		return
 	}
-
 	var leaves []core.ByteArray
 	for _, commitment := range commitments {
 		leaf, err := commitment.CommitmentData.Leaf()
