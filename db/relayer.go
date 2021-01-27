@@ -14,7 +14,7 @@ import (
 const (
 	statusPackedReceived   = 1
 	statusPackedProcessing = 2
-	minPacketCount         = 4
+	minPacketCount         = 16
 )
 
 // RelayPacket is the relay packet for some specific actions

@@ -8,6 +8,7 @@ import (
 	"github.com/BOPR/config"
 	"github.com/BOPR/core"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // CompressTxs compresses all transactions
@@ -193,4 +194,14 @@ func GetSignBytes(b Bazooka, tx *core.Tx) (signBytes []byte, err error) {
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return []byte(""), errors.New("Did not match any options")
 	}
+}
+
+// GetTokenAddress fetches the token address from token registry
+func (b *Bazooka) GetTokenAddress(tokenID uint64) (tokenAddr common.Address, err error) {
+	opts := bind.CallOpts{From: b.operator}
+	tokenAddr, err = b.SC.TokenRegistry.SafeGetAddress(&opts, big.NewInt(int64(tokenID)))
+	if err != nil {
+		return tokenAddr, err
+	}
+	return tokenAddr, nil
 }

@@ -16,9 +16,11 @@ import (
 
 	"github.com/BOPR/contracts/accountregistry"
 	"github.com/BOPR/contracts/create2transfer"
+	"github.com/BOPR/contracts/depositmanager"
 	"github.com/BOPR/contracts/massmigration"
 	"github.com/BOPR/contracts/rollup"
 	"github.com/BOPR/contracts/state"
+	"github.com/BOPR/contracts/tokenregistry"
 	"github.com/BOPR/contracts/transfer"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -66,6 +68,8 @@ type (
 		Create2Transfer *create2transfer.Create2transfer
 		MassMigration   *massmigration.Massmigration
 		AccountRegistry *accountregistry.Accountregistry
+		DepositManager  *depositmanager.Depositmanager
+		TokenRegistry   *tokenregistry.Tokenregistry
 	}
 )
 
@@ -304,10 +308,10 @@ func (b *Bazooka) DecodeMassMigrationTx(txBytes []byte) (from, toSpoke, nonce, t
 func (b *Bazooka) EncodeState(id, balance, nonce, token uint64) (accountBytes []byte, err error) {
 	opts := bind.CallOpts{From: b.operator}
 	accountBytes, err = b.SC.State.Encode(&opts, state.TypesUserState{
-		PubkeyIndex: big.NewInt(int64(id)),
-		TokenType:   big.NewInt(int64(token)),
-		Balance:     big.NewInt(int64(balance)),
-		Nonce:       big.NewInt(int64(nonce)),
+		PubkeyID: big.NewInt(int64(id)),
+		TokenID:  big.NewInt(int64(token)),
+		Balance:  big.NewInt(int64(balance)),
+		Nonce:    big.NewInt(int64(nonce)),
 	})
 	if err != nil {
 		return
@@ -323,8 +327,8 @@ func (b *Bazooka) DecodeState(stateBytes []byte) (ID, balance, nonce, token *big
 		return
 	}
 
-	b.log.Debug("Decoded state", "ID", state.PubkeyIndex, "balance", state.Balance, "token", state.TokenType, "nonce", state.Nonce)
-	return state.PubkeyIndex, state.Balance, state.Nonce, state.TokenType, nil
+	b.log.Debug("Decoded state", "ID", state.PubkeyID, "balance", state.Balance, "token", state.TokenID, "nonce", state.Nonce)
+	return state.PubkeyID, state.Balance, state.Nonce, state.TokenID, nil
 }
 
 func getContractInstances(client *ethclient.Client, cfg config.Configuration) (contracts Contracts, err error) {
@@ -344,6 +348,12 @@ func getContractInstances(client *ethclient.Client, cfg config.Configuration) (c
 		return contracts, err
 	}
 	if contracts.MassMigration, err = massmigration.NewMassmigration(ethCmn.HexToAddress(cfg.MassMigration), client); err != nil {
+		return contracts, err
+	}
+	if contracts.DepositManager, err = depositmanager.NewDepositmanager(ethCmn.HexToAddress(cfg.DepositManager), client); err != nil {
+		return contracts, err
+	}
+	if contracts.TokenRegistry, err = tokenregistry.NewTokenregistry(ethCmn.HexToAddress(cfg.TokenRegistry), client); err != nil {
 		return contracts, err
 	}
 	return contracts, nil

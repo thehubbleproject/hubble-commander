@@ -90,7 +90,6 @@ func startCmd() *cobra.Command {
 }
 
 func storeGenesisData(bz *bazooka.Bazooka, DBI *db.DB, cfg config.Configuration) {
-
 	err := DBI.InitStateTree(int(cfg.MaxTreeDepth))
 	common.PanicIfError(err)
 

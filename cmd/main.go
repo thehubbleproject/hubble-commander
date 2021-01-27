@@ -59,6 +59,7 @@ func main() {
 	rootCmd.AddCommand(createDatabase())
 	rootCmd.AddCommand(createUsers())
 	rootCmd.AddCommand(viewState())
+	rootCmd.AddCommand(deposit())
 	rootCmd.AddCommand(migrationCmd)
 
 	if err := viper.BindPFlag(WithConfigPathFlag, rootCmd.Flags().Lookup(WithConfigPathFlag)); err != nil {
@@ -88,7 +89,7 @@ func createUsers() *cobra.Command {
 		Use:   "create-users",
 		Short: "Create users to be used in simulations",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			userCount, err := cmd.Flags().GetInt(FlagUserCount)
+			userCount, err := cmd.Flags().GetInt(FlagDatabaseName)
 			if err != nil {
 				return err
 			}

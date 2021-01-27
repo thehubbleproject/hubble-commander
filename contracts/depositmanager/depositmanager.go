@@ -27,7 +27,7 @@ var (
 )
 
 // DepositmanagerABI is the input ABI used to generate the binding from.
-const DepositmanagerABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"pubkeyID\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"DepositQueued\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"root\",\"type\":\"bytes32\"}],\"name\":\"DepositSubTreeReady\",\"type\":\"event\"},{\"constant\":false,\"inputs\":[],\"name\":\"dequeueToSubmit\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"subtreeRoot\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"subtreeRoot\",\"type\":\"bytes32\"}],\"name\":\"reenqueue\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+const DepositmanagerABI = "[{\"inputs\":[{\"internalType\":\"contractITokenRegistry\",\"name\":\"_tokenRegistry\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_vault\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"maxSubtreeDepth\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"pubkeyID\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"DepositQueued\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"root\",\"type\":\"bytes32\"}],\"name\":\"DepositSubTreeReady\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"babyTrees\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"babyTreesLength\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"back\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"depositCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenID\",\"type\":\"uint256\"}],\"name\":\"depositFor\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"dequeueToSubmit\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"subtreeRoot\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"front\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"paramMaxSubtreeSize\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"queue\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"subtreeRoot\",\"type\":\"bytes32\"}],\"name\":\"reenqueue\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"rollup\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_rollup\",\"type\":\"address\"}],\"name\":\"setRollupAddress\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"tokenRegistry\",\"outputs\":[{\"internalType\":\"contractITokenRegistry\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"vault\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Depositmanager is an auto generated Go binding around an Ethereum contract.
 type Depositmanager struct {
@@ -171,6 +171,287 @@ func (_Depositmanager *DepositmanagerTransactorRaw) Transact(opts *bind.Transact
 	return _Depositmanager.Contract.contract.Transact(opts, method, params...)
 }
 
+// BabyTrees is a free data retrieval call binding the contract method 0xee9d68ce.
+//
+// Solidity: function babyTrees(uint256 ) view returns(bytes32)
+func (_Depositmanager *DepositmanagerCaller) BabyTrees(opts *bind.CallOpts, arg0 *big.Int) ([32]byte, error) {
+	var (
+		ret0 = new([32]byte)
+	)
+	out := ret0
+	err := _Depositmanager.contract.Call(opts, out, "babyTrees", arg0)
+	return *ret0, err
+}
+
+// BabyTrees is a free data retrieval call binding the contract method 0xee9d68ce.
+//
+// Solidity: function babyTrees(uint256 ) view returns(bytes32)
+func (_Depositmanager *DepositmanagerSession) BabyTrees(arg0 *big.Int) ([32]byte, error) {
+	return _Depositmanager.Contract.BabyTrees(&_Depositmanager.CallOpts, arg0)
+}
+
+// BabyTrees is a free data retrieval call binding the contract method 0xee9d68ce.
+//
+// Solidity: function babyTrees(uint256 ) view returns(bytes32)
+func (_Depositmanager *DepositmanagerCallerSession) BabyTrees(arg0 *big.Int) ([32]byte, error) {
+	return _Depositmanager.Contract.BabyTrees(&_Depositmanager.CallOpts, arg0)
+}
+
+// BabyTreesLength is a free data retrieval call binding the contract method 0x425e97f2.
+//
+// Solidity: function babyTreesLength() view returns(uint256)
+func (_Depositmanager *DepositmanagerCaller) BabyTreesLength(opts *bind.CallOpts) (*big.Int, error) {
+	var (
+		ret0 = new(*big.Int)
+	)
+	out := ret0
+	err := _Depositmanager.contract.Call(opts, out, "babyTreesLength")
+	return *ret0, err
+}
+
+// BabyTreesLength is a free data retrieval call binding the contract method 0x425e97f2.
+//
+// Solidity: function babyTreesLength() view returns(uint256)
+func (_Depositmanager *DepositmanagerSession) BabyTreesLength() (*big.Int, error) {
+	return _Depositmanager.Contract.BabyTreesLength(&_Depositmanager.CallOpts)
+}
+
+// BabyTreesLength is a free data retrieval call binding the contract method 0x425e97f2.
+//
+// Solidity: function babyTreesLength() view returns(uint256)
+func (_Depositmanager *DepositmanagerCallerSession) BabyTreesLength() (*big.Int, error) {
+	return _Depositmanager.Contract.BabyTreesLength(&_Depositmanager.CallOpts)
+}
+
+// Back is a free data retrieval call binding the contract method 0x8dde0840.
+//
+// Solidity: function back() view returns(uint256)
+func (_Depositmanager *DepositmanagerCaller) Back(opts *bind.CallOpts) (*big.Int, error) {
+	var (
+		ret0 = new(*big.Int)
+	)
+	out := ret0
+	err := _Depositmanager.contract.Call(opts, out, "back")
+	return *ret0, err
+}
+
+// Back is a free data retrieval call binding the contract method 0x8dde0840.
+//
+// Solidity: function back() view returns(uint256)
+func (_Depositmanager *DepositmanagerSession) Back() (*big.Int, error) {
+	return _Depositmanager.Contract.Back(&_Depositmanager.CallOpts)
+}
+
+// Back is a free data retrieval call binding the contract method 0x8dde0840.
+//
+// Solidity: function back() view returns(uint256)
+func (_Depositmanager *DepositmanagerCallerSession) Back() (*big.Int, error) {
+	return _Depositmanager.Contract.Back(&_Depositmanager.CallOpts)
+}
+
+// DepositCount is a free data retrieval call binding the contract method 0x2dfdf0b5.
+//
+// Solidity: function depositCount() view returns(uint256)
+func (_Depositmanager *DepositmanagerCaller) DepositCount(opts *bind.CallOpts) (*big.Int, error) {
+	var (
+		ret0 = new(*big.Int)
+	)
+	out := ret0
+	err := _Depositmanager.contract.Call(opts, out, "depositCount")
+	return *ret0, err
+}
+
+// DepositCount is a free data retrieval call binding the contract method 0x2dfdf0b5.
+//
+// Solidity: function depositCount() view returns(uint256)
+func (_Depositmanager *DepositmanagerSession) DepositCount() (*big.Int, error) {
+	return _Depositmanager.Contract.DepositCount(&_Depositmanager.CallOpts)
+}
+
+// DepositCount is a free data retrieval call binding the contract method 0x2dfdf0b5.
+//
+// Solidity: function depositCount() view returns(uint256)
+func (_Depositmanager *DepositmanagerCallerSession) DepositCount() (*big.Int, error) {
+	return _Depositmanager.Contract.DepositCount(&_Depositmanager.CallOpts)
+}
+
+// Front is a free data retrieval call binding the contract method 0xba75bbd8.
+//
+// Solidity: function front() view returns(uint256)
+func (_Depositmanager *DepositmanagerCaller) Front(opts *bind.CallOpts) (*big.Int, error) {
+	var (
+		ret0 = new(*big.Int)
+	)
+	out := ret0
+	err := _Depositmanager.contract.Call(opts, out, "front")
+	return *ret0, err
+}
+
+// Front is a free data retrieval call binding the contract method 0xba75bbd8.
+//
+// Solidity: function front() view returns(uint256)
+func (_Depositmanager *DepositmanagerSession) Front() (*big.Int, error) {
+	return _Depositmanager.Contract.Front(&_Depositmanager.CallOpts)
+}
+
+// Front is a free data retrieval call binding the contract method 0xba75bbd8.
+//
+// Solidity: function front() view returns(uint256)
+func (_Depositmanager *DepositmanagerCallerSession) Front() (*big.Int, error) {
+	return _Depositmanager.Contract.Front(&_Depositmanager.CallOpts)
+}
+
+// ParamMaxSubtreeSize is a free data retrieval call binding the contract method 0xc7accaa4.
+//
+// Solidity: function paramMaxSubtreeSize() view returns(uint256)
+func (_Depositmanager *DepositmanagerCaller) ParamMaxSubtreeSize(opts *bind.CallOpts) (*big.Int, error) {
+	var (
+		ret0 = new(*big.Int)
+	)
+	out := ret0
+	err := _Depositmanager.contract.Call(opts, out, "paramMaxSubtreeSize")
+	return *ret0, err
+}
+
+// ParamMaxSubtreeSize is a free data retrieval call binding the contract method 0xc7accaa4.
+//
+// Solidity: function paramMaxSubtreeSize() view returns(uint256)
+func (_Depositmanager *DepositmanagerSession) ParamMaxSubtreeSize() (*big.Int, error) {
+	return _Depositmanager.Contract.ParamMaxSubtreeSize(&_Depositmanager.CallOpts)
+}
+
+// ParamMaxSubtreeSize is a free data retrieval call binding the contract method 0xc7accaa4.
+//
+// Solidity: function paramMaxSubtreeSize() view returns(uint256)
+func (_Depositmanager *DepositmanagerCallerSession) ParamMaxSubtreeSize() (*big.Int, error) {
+	return _Depositmanager.Contract.ParamMaxSubtreeSize(&_Depositmanager.CallOpts)
+}
+
+// Queue is a free data retrieval call binding the contract method 0xddf0b009.
+//
+// Solidity: function queue(uint256 ) view returns(bytes32)
+func (_Depositmanager *DepositmanagerCaller) Queue(opts *bind.CallOpts, arg0 *big.Int) ([32]byte, error) {
+	var (
+		ret0 = new([32]byte)
+	)
+	out := ret0
+	err := _Depositmanager.contract.Call(opts, out, "queue", arg0)
+	return *ret0, err
+}
+
+// Queue is a free data retrieval call binding the contract method 0xddf0b009.
+//
+// Solidity: function queue(uint256 ) view returns(bytes32)
+func (_Depositmanager *DepositmanagerSession) Queue(arg0 *big.Int) ([32]byte, error) {
+	return _Depositmanager.Contract.Queue(&_Depositmanager.CallOpts, arg0)
+}
+
+// Queue is a free data retrieval call binding the contract method 0xddf0b009.
+//
+// Solidity: function queue(uint256 ) view returns(bytes32)
+func (_Depositmanager *DepositmanagerCallerSession) Queue(arg0 *big.Int) ([32]byte, error) {
+	return _Depositmanager.Contract.Queue(&_Depositmanager.CallOpts, arg0)
+}
+
+// Rollup is a free data retrieval call binding the contract method 0xcb23bcb5.
+//
+// Solidity: function rollup() view returns(address)
+func (_Depositmanager *DepositmanagerCaller) Rollup(opts *bind.CallOpts) (common.Address, error) {
+	var (
+		ret0 = new(common.Address)
+	)
+	out := ret0
+	err := _Depositmanager.contract.Call(opts, out, "rollup")
+	return *ret0, err
+}
+
+// Rollup is a free data retrieval call binding the contract method 0xcb23bcb5.
+//
+// Solidity: function rollup() view returns(address)
+func (_Depositmanager *DepositmanagerSession) Rollup() (common.Address, error) {
+	return _Depositmanager.Contract.Rollup(&_Depositmanager.CallOpts)
+}
+
+// Rollup is a free data retrieval call binding the contract method 0xcb23bcb5.
+//
+// Solidity: function rollup() view returns(address)
+func (_Depositmanager *DepositmanagerCallerSession) Rollup() (common.Address, error) {
+	return _Depositmanager.Contract.Rollup(&_Depositmanager.CallOpts)
+}
+
+// TokenRegistry is a free data retrieval call binding the contract method 0x9d23c4c7.
+//
+// Solidity: function tokenRegistry() view returns(address)
+func (_Depositmanager *DepositmanagerCaller) TokenRegistry(opts *bind.CallOpts) (common.Address, error) {
+	var (
+		ret0 = new(common.Address)
+	)
+	out := ret0
+	err := _Depositmanager.contract.Call(opts, out, "tokenRegistry")
+	return *ret0, err
+}
+
+// TokenRegistry is a free data retrieval call binding the contract method 0x9d23c4c7.
+//
+// Solidity: function tokenRegistry() view returns(address)
+func (_Depositmanager *DepositmanagerSession) TokenRegistry() (common.Address, error) {
+	return _Depositmanager.Contract.TokenRegistry(&_Depositmanager.CallOpts)
+}
+
+// TokenRegistry is a free data retrieval call binding the contract method 0x9d23c4c7.
+//
+// Solidity: function tokenRegistry() view returns(address)
+func (_Depositmanager *DepositmanagerCallerSession) TokenRegistry() (common.Address, error) {
+	return _Depositmanager.Contract.TokenRegistry(&_Depositmanager.CallOpts)
+}
+
+// Vault is a free data retrieval call binding the contract method 0xfbfa77cf.
+//
+// Solidity: function vault() view returns(address)
+func (_Depositmanager *DepositmanagerCaller) Vault(opts *bind.CallOpts) (common.Address, error) {
+	var (
+		ret0 = new(common.Address)
+	)
+	out := ret0
+	err := _Depositmanager.contract.Call(opts, out, "vault")
+	return *ret0, err
+}
+
+// Vault is a free data retrieval call binding the contract method 0xfbfa77cf.
+//
+// Solidity: function vault() view returns(address)
+func (_Depositmanager *DepositmanagerSession) Vault() (common.Address, error) {
+	return _Depositmanager.Contract.Vault(&_Depositmanager.CallOpts)
+}
+
+// Vault is a free data retrieval call binding the contract method 0xfbfa77cf.
+//
+// Solidity: function vault() view returns(address)
+func (_Depositmanager *DepositmanagerCallerSession) Vault() (common.Address, error) {
+	return _Depositmanager.Contract.Vault(&_Depositmanager.CallOpts)
+}
+
+// DepositFor is a paid mutator transaction binding the contract method 0x966fda62.
+//
+// Solidity: function depositFor(uint256 pubkeyID, uint256 amount, uint256 tokenID) returns()
+func (_Depositmanager *DepositmanagerTransactor) DepositFor(opts *bind.TransactOpts, pubkeyID *big.Int, amount *big.Int, tokenID *big.Int) (*types.Transaction, error) {
+	return _Depositmanager.contract.Transact(opts, "depositFor", pubkeyID, amount, tokenID)
+}
+
+// DepositFor is a paid mutator transaction binding the contract method 0x966fda62.
+//
+// Solidity: function depositFor(uint256 pubkeyID, uint256 amount, uint256 tokenID) returns()
+func (_Depositmanager *DepositmanagerSession) DepositFor(pubkeyID *big.Int, amount *big.Int, tokenID *big.Int) (*types.Transaction, error) {
+	return _Depositmanager.Contract.DepositFor(&_Depositmanager.TransactOpts, pubkeyID, amount, tokenID)
+}
+
+// DepositFor is a paid mutator transaction binding the contract method 0x966fda62.
+//
+// Solidity: function depositFor(uint256 pubkeyID, uint256 amount, uint256 tokenID) returns()
+func (_Depositmanager *DepositmanagerTransactorSession) DepositFor(pubkeyID *big.Int, amount *big.Int, tokenID *big.Int) (*types.Transaction, error) {
+	return _Depositmanager.Contract.DepositFor(&_Depositmanager.TransactOpts, pubkeyID, amount, tokenID)
+}
+
 // DequeueToSubmit is a paid mutator transaction binding the contract method 0xd86ee48d.
 //
 // Solidity: function dequeueToSubmit() returns(bytes32 subtreeRoot)
@@ -211,6 +492,27 @@ func (_Depositmanager *DepositmanagerSession) Reenqueue(subtreeRoot [32]byte) (*
 // Solidity: function reenqueue(bytes32 subtreeRoot) returns()
 func (_Depositmanager *DepositmanagerTransactorSession) Reenqueue(subtreeRoot [32]byte) (*types.Transaction, error) {
 	return _Depositmanager.Contract.Reenqueue(&_Depositmanager.TransactOpts, subtreeRoot)
+}
+
+// SetRollupAddress is a paid mutator transaction binding the contract method 0x07663706.
+//
+// Solidity: function setRollupAddress(address _rollup) returns()
+func (_Depositmanager *DepositmanagerTransactor) SetRollupAddress(opts *bind.TransactOpts, _rollup common.Address) (*types.Transaction, error) {
+	return _Depositmanager.contract.Transact(opts, "setRollupAddress", _rollup)
+}
+
+// SetRollupAddress is a paid mutator transaction binding the contract method 0x07663706.
+//
+// Solidity: function setRollupAddress(address _rollup) returns()
+func (_Depositmanager *DepositmanagerSession) SetRollupAddress(_rollup common.Address) (*types.Transaction, error) {
+	return _Depositmanager.Contract.SetRollupAddress(&_Depositmanager.TransactOpts, _rollup)
+}
+
+// SetRollupAddress is a paid mutator transaction binding the contract method 0x07663706.
+//
+// Solidity: function setRollupAddress(address _rollup) returns()
+func (_Depositmanager *DepositmanagerTransactorSession) SetRollupAddress(_rollup common.Address) (*types.Transaction, error) {
+	return _Depositmanager.Contract.SetRollupAddress(&_Depositmanager.TransactOpts, _rollup)
 }
 
 // DepositmanagerDepositQueuedIterator is returned from FilterDepositQueued and is used to iterate over the raw logs and unpacked data for DepositQueued events raised by the Depositmanager contract.

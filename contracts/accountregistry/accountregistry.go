@@ -27,7 +27,7 @@ var (
 )
 
 // AccountregistryABI is the input ABI used to generate the binding from.
-const AccountregistryABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256[4]\",\"name\":\"pubkey\",\"type\":\"uint256[4]\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"pubkeyID\",\"type\":\"uint256\"}],\"name\":\"PubkeyRegistered\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"BATCH_DEPTH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"BATCH_SIZE\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"DEPTH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"SET_SIZE\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"WITNESS_LENGTH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyID\",\"type\":\"uint256\"},{\"internalType\":\"uint256[4]\",\"name\":\"pubkey\",\"type\":\"uint256[4]\"},{\"internalType\":\"bytes32[9]\",\"name\":\"witness\",\"type\":\"bytes32[9]\"}],\"name\":\"exists\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"filledSubtreesLeft\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"filledSubtreesRight\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"leafIndexLeft\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"leafIndexRight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256[4]\",\"name\":\"pubkey\",\"type\":\"uint256[4]\"}],\"name\":\"register\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256[4][4]\",\"name\":\"pubkeys\",\"type\":\"uint256[4][4]\"}],\"name\":\"registerBatch\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"root\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"rootLeft\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"rootRight\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"zeros\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
+const AccountregistryABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256[4]\",\"name\":\"pubkey\",\"type\":\"uint256[4]\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"pubkeyID\",\"type\":\"uint256\"}],\"name\":\"PubkeyRegistered\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"BATCH_DEPTH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"BATCH_SIZE\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"DEPTH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"SET_SIZE\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"WITNESS_LENGTH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyID\",\"type\":\"uint256\"},{\"internalType\":\"uint256[4]\",\"name\":\"pubkey\",\"type\":\"uint256[4]\"},{\"internalType\":\"bytes32[31]\",\"name\":\"witness\",\"type\":\"bytes32[31]\"}],\"name\":\"exists\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"filledSubtreesLeft\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"filledSubtreesRight\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"leafIndexLeft\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"leafIndexRight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256[4]\",\"name\":\"pubkey\",\"type\":\"uint256[4]\"}],\"name\":\"register\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256[4][16]\",\"name\":\"pubkeys\",\"type\":\"uint256[4][16]\"}],\"name\":\"registerBatch\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"root\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"rootLeft\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"rootRight\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"zeros\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Accountregistry is an auto generated Go binding around an Ethereum contract.
 type Accountregistry struct {
@@ -301,10 +301,10 @@ func (_Accountregistry *AccountregistryCallerSession) WITNESSLENGTH() (*big.Int,
 	return _Accountregistry.Contract.WITNESSLENGTH(&_Accountregistry.CallOpts)
 }
 
-// Exists is a free data retrieval call binding the contract method 0xa61936eb.
+// Exists is a free data retrieval call binding the contract method 0x709a8b2a.
 //
-// Solidity: function exists(uint256 pubkeyID, uint256[4] pubkey, bytes32[9] witness) view returns(bool)
-func (_Accountregistry *AccountregistryCaller) Exists(opts *bind.CallOpts, pubkeyID *big.Int, pubkey [4]*big.Int, witness [9][32]byte) (bool, error) {
+// Solidity: function exists(uint256 pubkeyID, uint256[4] pubkey, bytes32[31] witness) view returns(bool)
+func (_Accountregistry *AccountregistryCaller) Exists(opts *bind.CallOpts, pubkeyID *big.Int, pubkey [4]*big.Int, witness [31][32]byte) (bool, error) {
 	var (
 		ret0 = new(bool)
 	)
@@ -313,17 +313,17 @@ func (_Accountregistry *AccountregistryCaller) Exists(opts *bind.CallOpts, pubke
 	return *ret0, err
 }
 
-// Exists is a free data retrieval call binding the contract method 0xa61936eb.
+// Exists is a free data retrieval call binding the contract method 0x709a8b2a.
 //
-// Solidity: function exists(uint256 pubkeyID, uint256[4] pubkey, bytes32[9] witness) view returns(bool)
-func (_Accountregistry *AccountregistrySession) Exists(pubkeyID *big.Int, pubkey [4]*big.Int, witness [9][32]byte) (bool, error) {
+// Solidity: function exists(uint256 pubkeyID, uint256[4] pubkey, bytes32[31] witness) view returns(bool)
+func (_Accountregistry *AccountregistrySession) Exists(pubkeyID *big.Int, pubkey [4]*big.Int, witness [31][32]byte) (bool, error) {
 	return _Accountregistry.Contract.Exists(&_Accountregistry.CallOpts, pubkeyID, pubkey, witness)
 }
 
-// Exists is a free data retrieval call binding the contract method 0xa61936eb.
+// Exists is a free data retrieval call binding the contract method 0x709a8b2a.
 //
-// Solidity: function exists(uint256 pubkeyID, uint256[4] pubkey, bytes32[9] witness) view returns(bool)
-func (_Accountregistry *AccountregistryCallerSession) Exists(pubkeyID *big.Int, pubkey [4]*big.Int, witness [9][32]byte) (bool, error) {
+// Solidity: function exists(uint256 pubkeyID, uint256[4] pubkey, bytes32[31] witness) view returns(bool)
+func (_Accountregistry *AccountregistryCallerSession) Exists(pubkeyID *big.Int, pubkey [4]*big.Int, witness [31][32]byte) (bool, error) {
 	return _Accountregistry.Contract.Exists(&_Accountregistry.CallOpts, pubkeyID, pubkey, witness)
 }
 
@@ -556,24 +556,24 @@ func (_Accountregistry *AccountregistryTransactorSession) Register(pubkey [4]*bi
 	return _Accountregistry.Contract.Register(&_Accountregistry.TransactOpts, pubkey)
 }
 
-// RegisterBatch is a paid mutator transaction binding the contract method 0x70c462ac.
+// RegisterBatch is a paid mutator transaction binding the contract method 0x1c4a7a94.
 //
-// Solidity: function registerBatch(uint256[4][4] pubkeys) returns(uint256)
-func (_Accountregistry *AccountregistryTransactor) RegisterBatch(opts *bind.TransactOpts, pubkeys [4][4]*big.Int) (*types.Transaction, error) {
+// Solidity: function registerBatch(uint256[4][16] pubkeys) returns(uint256)
+func (_Accountregistry *AccountregistryTransactor) RegisterBatch(opts *bind.TransactOpts, pubkeys [16][4]*big.Int) (*types.Transaction, error) {
 	return _Accountregistry.contract.Transact(opts, "registerBatch", pubkeys)
 }
 
-// RegisterBatch is a paid mutator transaction binding the contract method 0x70c462ac.
+// RegisterBatch is a paid mutator transaction binding the contract method 0x1c4a7a94.
 //
-// Solidity: function registerBatch(uint256[4][4] pubkeys) returns(uint256)
-func (_Accountregistry *AccountregistrySession) RegisterBatch(pubkeys [4][4]*big.Int) (*types.Transaction, error) {
+// Solidity: function registerBatch(uint256[4][16] pubkeys) returns(uint256)
+func (_Accountregistry *AccountregistrySession) RegisterBatch(pubkeys [16][4]*big.Int) (*types.Transaction, error) {
 	return _Accountregistry.Contract.RegisterBatch(&_Accountregistry.TransactOpts, pubkeys)
 }
 
-// RegisterBatch is a paid mutator transaction binding the contract method 0x70c462ac.
+// RegisterBatch is a paid mutator transaction binding the contract method 0x1c4a7a94.
 //
-// Solidity: function registerBatch(uint256[4][4] pubkeys) returns(uint256)
-func (_Accountregistry *AccountregistryTransactorSession) RegisterBatch(pubkeys [4][4]*big.Int) (*types.Transaction, error) {
+// Solidity: function registerBatch(uint256[4][16] pubkeys) returns(uint256)
+func (_Accountregistry *AccountregistryTransactorSession) RegisterBatch(pubkeys [16][4]*big.Int) (*types.Transaction, error) {
 	return _Accountregistry.Contract.RegisterBatch(&_Accountregistry.TransactOpts, pubkeys)
 }
 
