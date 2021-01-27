@@ -27,7 +27,7 @@ var (
 )
 
 // BurnauctionABI is the input ABI used to generate the binding from.
-const BurnauctionABI = "[{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"slot\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"coordinator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"amount\",\"type\":\"uint128\"}],\"name\":\"NewBestBid\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"auction\",\"outputs\":[{\"internalType\":\"addresspayable\",\"name\":\"coordinator\",\"type\":\"address\"},{\"internalType\":\"uint128\",\"name\":\"amount\",\"type\":\"uint128\"},{\"internalType\":\"bool\",\"name\":\"initialized\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"bid\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"numBlock\",\"type\":\"uint256\"}],\"name\":\"block2slot\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"currentSlot\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"genesisBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getBlockNumber\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getProposer\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
+const BurnauctionABI = "[{\"inputs\":[{\"internalType\":\"addresspayable\",\"name\":\"_donationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_donationNumerator\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"slot\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"coordinator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"NewBestBid\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"BLOCKS_PER_SLOT\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"DELTA_BLOCKS_INITIAL_SLOT\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"DONATION_DENOMINATOR\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"auction\",\"outputs\":[{\"internalType\":\"addresspayable\",\"name\":\"coordinator\",\"type\":\"address\"},{\"internalType\":\"uint128\",\"name\":\"amount\",\"type\":\"uint128\"},{\"internalType\":\"bool\",\"name\":\"initialized\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"bidAmount\",\"type\":\"uint256\"}],\"name\":\"bid\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"numBlock\",\"type\":\"uint256\"}],\"name\":\"block2slot\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"currentSlot\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"deposits\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"donationAddress\",\"outputs\":[{\"internalType\":\"addresspayable\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"donationNumerator\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"genesisBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getBlockNumber\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getProposer\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"witdraw\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"withdrawDonation\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
 
 // Burnauction is an auto generated Go binding around an Ethereum contract.
 type Burnauction struct {
@@ -171,6 +171,84 @@ func (_Burnauction *BurnauctionTransactorRaw) Transact(opts *bind.TransactOpts, 
 	return _Burnauction.Contract.contract.Transact(opts, method, params...)
 }
 
+// BLOCKSPERSLOT is a free data retrieval call binding the contract method 0x2243de47.
+//
+// Solidity: function BLOCKS_PER_SLOT() view returns(uint32)
+func (_Burnauction *BurnauctionCaller) BLOCKSPERSLOT(opts *bind.CallOpts) (uint32, error) {
+	var (
+		ret0 = new(uint32)
+	)
+	out := ret0
+	err := _Burnauction.contract.Call(opts, out, "BLOCKS_PER_SLOT")
+	return *ret0, err
+}
+
+// BLOCKSPERSLOT is a free data retrieval call binding the contract method 0x2243de47.
+//
+// Solidity: function BLOCKS_PER_SLOT() view returns(uint32)
+func (_Burnauction *BurnauctionSession) BLOCKSPERSLOT() (uint32, error) {
+	return _Burnauction.Contract.BLOCKSPERSLOT(&_Burnauction.CallOpts)
+}
+
+// BLOCKSPERSLOT is a free data retrieval call binding the contract method 0x2243de47.
+//
+// Solidity: function BLOCKS_PER_SLOT() view returns(uint32)
+func (_Burnauction *BurnauctionCallerSession) BLOCKSPERSLOT() (uint32, error) {
+	return _Burnauction.Contract.BLOCKSPERSLOT(&_Burnauction.CallOpts)
+}
+
+// DELTABLOCKSINITIALSLOT is a free data retrieval call binding the contract method 0xf4cc8eea.
+//
+// Solidity: function DELTA_BLOCKS_INITIAL_SLOT() view returns(uint32)
+func (_Burnauction *BurnauctionCaller) DELTABLOCKSINITIALSLOT(opts *bind.CallOpts) (uint32, error) {
+	var (
+		ret0 = new(uint32)
+	)
+	out := ret0
+	err := _Burnauction.contract.Call(opts, out, "DELTA_BLOCKS_INITIAL_SLOT")
+	return *ret0, err
+}
+
+// DELTABLOCKSINITIALSLOT is a free data retrieval call binding the contract method 0xf4cc8eea.
+//
+// Solidity: function DELTA_BLOCKS_INITIAL_SLOT() view returns(uint32)
+func (_Burnauction *BurnauctionSession) DELTABLOCKSINITIALSLOT() (uint32, error) {
+	return _Burnauction.Contract.DELTABLOCKSINITIALSLOT(&_Burnauction.CallOpts)
+}
+
+// DELTABLOCKSINITIALSLOT is a free data retrieval call binding the contract method 0xf4cc8eea.
+//
+// Solidity: function DELTA_BLOCKS_INITIAL_SLOT() view returns(uint32)
+func (_Burnauction *BurnauctionCallerSession) DELTABLOCKSINITIALSLOT() (uint32, error) {
+	return _Burnauction.Contract.DELTABLOCKSINITIALSLOT(&_Burnauction.CallOpts)
+}
+
+// DONATIONDENOMINATOR is a free data retrieval call binding the contract method 0x9a478d24.
+//
+// Solidity: function DONATION_DENOMINATOR() view returns(uint256)
+func (_Burnauction *BurnauctionCaller) DONATIONDENOMINATOR(opts *bind.CallOpts) (*big.Int, error) {
+	var (
+		ret0 = new(*big.Int)
+	)
+	out := ret0
+	err := _Burnauction.contract.Call(opts, out, "DONATION_DENOMINATOR")
+	return *ret0, err
+}
+
+// DONATIONDENOMINATOR is a free data retrieval call binding the contract method 0x9a478d24.
+//
+// Solidity: function DONATION_DENOMINATOR() view returns(uint256)
+func (_Burnauction *BurnauctionSession) DONATIONDENOMINATOR() (*big.Int, error) {
+	return _Burnauction.Contract.DONATIONDENOMINATOR(&_Burnauction.CallOpts)
+}
+
+// DONATIONDENOMINATOR is a free data retrieval call binding the contract method 0x9a478d24.
+//
+// Solidity: function DONATION_DENOMINATOR() view returns(uint256)
+func (_Burnauction *BurnauctionCallerSession) DONATIONDENOMINATOR() (*big.Int, error) {
+	return _Burnauction.Contract.DONATIONDENOMINATOR(&_Burnauction.CallOpts)
+}
+
 // Auction is a free data retrieval call binding the contract method 0xd3dd08e2.
 //
 // Solidity: function auction(uint32 ) view returns(address coordinator, uint128 amount, bool initialized)
@@ -263,6 +341,84 @@ func (_Burnauction *BurnauctionCallerSession) CurrentSlot() (uint32, error) {
 	return _Burnauction.Contract.CurrentSlot(&_Burnauction.CallOpts)
 }
 
+// Deposits is a free data retrieval call binding the contract method 0xfc7e286d.
+//
+// Solidity: function deposits(address ) view returns(uint256)
+func (_Burnauction *BurnauctionCaller) Deposits(opts *bind.CallOpts, arg0 common.Address) (*big.Int, error) {
+	var (
+		ret0 = new(*big.Int)
+	)
+	out := ret0
+	err := _Burnauction.contract.Call(opts, out, "deposits", arg0)
+	return *ret0, err
+}
+
+// Deposits is a free data retrieval call binding the contract method 0xfc7e286d.
+//
+// Solidity: function deposits(address ) view returns(uint256)
+func (_Burnauction *BurnauctionSession) Deposits(arg0 common.Address) (*big.Int, error) {
+	return _Burnauction.Contract.Deposits(&_Burnauction.CallOpts, arg0)
+}
+
+// Deposits is a free data retrieval call binding the contract method 0xfc7e286d.
+//
+// Solidity: function deposits(address ) view returns(uint256)
+func (_Burnauction *BurnauctionCallerSession) Deposits(arg0 common.Address) (*big.Int, error) {
+	return _Burnauction.Contract.Deposits(&_Burnauction.CallOpts, arg0)
+}
+
+// DonationAddress is a free data retrieval call binding the contract method 0xec034bed.
+//
+// Solidity: function donationAddress() view returns(address)
+func (_Burnauction *BurnauctionCaller) DonationAddress(opts *bind.CallOpts) (common.Address, error) {
+	var (
+		ret0 = new(common.Address)
+	)
+	out := ret0
+	err := _Burnauction.contract.Call(opts, out, "donationAddress")
+	return *ret0, err
+}
+
+// DonationAddress is a free data retrieval call binding the contract method 0xec034bed.
+//
+// Solidity: function donationAddress() view returns(address)
+func (_Burnauction *BurnauctionSession) DonationAddress() (common.Address, error) {
+	return _Burnauction.Contract.DonationAddress(&_Burnauction.CallOpts)
+}
+
+// DonationAddress is a free data retrieval call binding the contract method 0xec034bed.
+//
+// Solidity: function donationAddress() view returns(address)
+func (_Burnauction *BurnauctionCallerSession) DonationAddress() (common.Address, error) {
+	return _Burnauction.Contract.DonationAddress(&_Burnauction.CallOpts)
+}
+
+// DonationNumerator is a free data retrieval call binding the contract method 0xf2182cf9.
+//
+// Solidity: function donationNumerator() view returns(uint256)
+func (_Burnauction *BurnauctionCaller) DonationNumerator(opts *bind.CallOpts) (*big.Int, error) {
+	var (
+		ret0 = new(*big.Int)
+	)
+	out := ret0
+	err := _Burnauction.contract.Call(opts, out, "donationNumerator")
+	return *ret0, err
+}
+
+// DonationNumerator is a free data retrieval call binding the contract method 0xf2182cf9.
+//
+// Solidity: function donationNumerator() view returns(uint256)
+func (_Burnauction *BurnauctionSession) DonationNumerator() (*big.Int, error) {
+	return _Burnauction.Contract.DonationNumerator(&_Burnauction.CallOpts)
+}
+
+// DonationNumerator is a free data retrieval call binding the contract method 0xf2182cf9.
+//
+// Solidity: function donationNumerator() view returns(uint256)
+func (_Burnauction *BurnauctionCallerSession) DonationNumerator() (*big.Int, error) {
+	return _Burnauction.Contract.DonationNumerator(&_Burnauction.CallOpts)
+}
+
 // GenesisBlock is a free data retrieval call binding the contract method 0x4cdc9c63.
 //
 // Solidity: function genesisBlock() view returns(uint256)
@@ -341,25 +497,67 @@ func (_Burnauction *BurnauctionCallerSession) GetProposer() (common.Address, err
 	return _Burnauction.Contract.GetProposer(&_Burnauction.CallOpts)
 }
 
-// Bid is a paid mutator transaction binding the contract method 0x1998aeef.
+// Bid is a paid mutator transaction binding the contract method 0x454a2ab3.
 //
-// Solidity: function bid() payable returns()
-func (_Burnauction *BurnauctionTransactor) Bid(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Burnauction.contract.Transact(opts, "bid")
+// Solidity: function bid(uint256 bidAmount) payable returns()
+func (_Burnauction *BurnauctionTransactor) Bid(opts *bind.TransactOpts, bidAmount *big.Int) (*types.Transaction, error) {
+	return _Burnauction.contract.Transact(opts, "bid", bidAmount)
 }
 
-// Bid is a paid mutator transaction binding the contract method 0x1998aeef.
+// Bid is a paid mutator transaction binding the contract method 0x454a2ab3.
 //
-// Solidity: function bid() payable returns()
-func (_Burnauction *BurnauctionSession) Bid() (*types.Transaction, error) {
-	return _Burnauction.Contract.Bid(&_Burnauction.TransactOpts)
+// Solidity: function bid(uint256 bidAmount) payable returns()
+func (_Burnauction *BurnauctionSession) Bid(bidAmount *big.Int) (*types.Transaction, error) {
+	return _Burnauction.Contract.Bid(&_Burnauction.TransactOpts, bidAmount)
 }
 
-// Bid is a paid mutator transaction binding the contract method 0x1998aeef.
+// Bid is a paid mutator transaction binding the contract method 0x454a2ab3.
 //
-// Solidity: function bid() payable returns()
-func (_Burnauction *BurnauctionTransactorSession) Bid() (*types.Transaction, error) {
-	return _Burnauction.Contract.Bid(&_Burnauction.TransactOpts)
+// Solidity: function bid(uint256 bidAmount) payable returns()
+func (_Burnauction *BurnauctionTransactorSession) Bid(bidAmount *big.Int) (*types.Transaction, error) {
+	return _Burnauction.Contract.Bid(&_Burnauction.TransactOpts, bidAmount)
+}
+
+// Witdraw is a paid mutator transaction binding the contract method 0xb404930e.
+//
+// Solidity: function witdraw(uint256 amount) returns()
+func (_Burnauction *BurnauctionTransactor) Witdraw(opts *bind.TransactOpts, amount *big.Int) (*types.Transaction, error) {
+	return _Burnauction.contract.Transact(opts, "witdraw", amount)
+}
+
+// Witdraw is a paid mutator transaction binding the contract method 0xb404930e.
+//
+// Solidity: function witdraw(uint256 amount) returns()
+func (_Burnauction *BurnauctionSession) Witdraw(amount *big.Int) (*types.Transaction, error) {
+	return _Burnauction.Contract.Witdraw(&_Burnauction.TransactOpts, amount)
+}
+
+// Witdraw is a paid mutator transaction binding the contract method 0xb404930e.
+//
+// Solidity: function witdraw(uint256 amount) returns()
+func (_Burnauction *BurnauctionTransactorSession) Witdraw(amount *big.Int) (*types.Transaction, error) {
+	return _Burnauction.Contract.Witdraw(&_Burnauction.TransactOpts, amount)
+}
+
+// WithdrawDonation is a paid mutator transaction binding the contract method 0xe81e1ccc.
+//
+// Solidity: function withdrawDonation() returns()
+func (_Burnauction *BurnauctionTransactor) WithdrawDonation(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Burnauction.contract.Transact(opts, "withdrawDonation")
+}
+
+// WithdrawDonation is a paid mutator transaction binding the contract method 0xe81e1ccc.
+//
+// Solidity: function withdrawDonation() returns()
+func (_Burnauction *BurnauctionSession) WithdrawDonation() (*types.Transaction, error) {
+	return _Burnauction.Contract.WithdrawDonation(&_Burnauction.TransactOpts)
+}
+
+// WithdrawDonation is a paid mutator transaction binding the contract method 0xe81e1ccc.
+//
+// Solidity: function withdrawDonation() returns()
+func (_Burnauction *BurnauctionTransactorSession) WithdrawDonation() (*types.Transaction, error) {
+	return _Burnauction.Contract.WithdrawDonation(&_Burnauction.TransactOpts)
 }
 
 // BurnauctionNewBestBidIterator is returned from FilterNewBestBid and is used to iterate over the raw logs and unpacked data for NewBestBid events raised by the Burnauction contract.
@@ -437,9 +635,9 @@ type BurnauctionNewBestBid struct {
 	Raw         types.Log // Blockchain specific contextual infos
 }
 
-// FilterNewBestBid is a free log retrieval operation binding the contract event 0xc2ba2c9fb0ca6acb820a11398dccf241b9126b36ddf994d1baddd51dbf22bc71.
+// FilterNewBestBid is a free log retrieval operation binding the contract event 0x304f693446955254ce103ccf22f2ee397d8c2517f63076ee63e0dfa22fc5ba55.
 //
-// Solidity: event NewBestBid(uint32 slot, address coordinator, uint128 amount)
+// Solidity: event NewBestBid(uint32 slot, address coordinator, uint256 amount)
 func (_Burnauction *BurnauctionFilterer) FilterNewBestBid(opts *bind.FilterOpts) (*BurnauctionNewBestBidIterator, error) {
 
 	logs, sub, err := _Burnauction.contract.FilterLogs(opts, "NewBestBid")
@@ -449,9 +647,9 @@ func (_Burnauction *BurnauctionFilterer) FilterNewBestBid(opts *bind.FilterOpts)
 	return &BurnauctionNewBestBidIterator{contract: _Burnauction.contract, event: "NewBestBid", logs: logs, sub: sub}, nil
 }
 
-// WatchNewBestBid is a free log subscription operation binding the contract event 0xc2ba2c9fb0ca6acb820a11398dccf241b9126b36ddf994d1baddd51dbf22bc71.
+// WatchNewBestBid is a free log subscription operation binding the contract event 0x304f693446955254ce103ccf22f2ee397d8c2517f63076ee63e0dfa22fc5ba55.
 //
-// Solidity: event NewBestBid(uint32 slot, address coordinator, uint128 amount)
+// Solidity: event NewBestBid(uint32 slot, address coordinator, uint256 amount)
 func (_Burnauction *BurnauctionFilterer) WatchNewBestBid(opts *bind.WatchOpts, sink chan<- *BurnauctionNewBestBid) (event.Subscription, error) {
 
 	logs, sub, err := _Burnauction.contract.WatchLogs(opts, "NewBestBid")
@@ -486,9 +684,9 @@ func (_Burnauction *BurnauctionFilterer) WatchNewBestBid(opts *bind.WatchOpts, s
 	}), nil
 }
 
-// ParseNewBestBid is a log parse operation binding the contract event 0xc2ba2c9fb0ca6acb820a11398dccf241b9126b36ddf994d1baddd51dbf22bc71.
+// ParseNewBestBid is a log parse operation binding the contract event 0x304f693446955254ce103ccf22f2ee397d8c2517f63076ee63e0dfa22fc5ba55.
 //
-// Solidity: event NewBestBid(uint32 slot, address coordinator, uint128 amount)
+// Solidity: event NewBestBid(uint32 slot, address coordinator, uint256 amount)
 func (_Burnauction *BurnauctionFilterer) ParseNewBestBid(log types.Log) (*BurnauctionNewBestBid, error) {
 	event := new(BurnauctionNewBestBid)
 	if err := _Burnauction.contract.UnpackLog(event, "NewBestBid", log); err != nil {

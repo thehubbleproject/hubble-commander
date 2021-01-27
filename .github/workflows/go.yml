@@ -27,6 +27,10 @@ jobs:
       with:
         go-version: ^1.13
 
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '10.x'
+
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
@@ -40,6 +44,11 @@ jobs:
 
     - name: Build
       run: make build
+
+    - run: git submodule init && git submodule update -r
+    - run: make build-hubble-contracts && make build-bindings
+    - name: Check if contract binding matches the submodule
+      run: git diff --no-patch --exit-code contracts/
 
     - name: Test
       run: go test -v ./...
