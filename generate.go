@@ -12,6 +12,7 @@ package gen
 //go:generate sh -c "cat .contracts/artifacts/contracts/client/FrontendMassMigration.sol/FrontendMassMigration.json	| jq .abi -M > abi/massmigration.abi"
 //go:generate sh -c "cat .contracts/artifacts/contracts/client/FrontendCreate2Transfer.sol/FrontendCreate2Transfer.json	| jq .abi -M > abi/create2transfer.abi"
 //go:generate sh -c "cat .contracts/artifacts/contracts/BLSAccountRegistry.sol/BLSAccountRegistry.json			| jq .abi -M > abi/accountregistry.abi"
+//go:generate sh -c "cat .contracts/artifacts/@openzeppelin/contracts/token/ERC20/IERC20.sol/IERC20.json		| jq .abi -M > abi/erc20.abi"
 
 //go:generate rm -rf contracts/
 //go:generate mkdir -p contracts/rollup
@@ -23,6 +24,7 @@ package gen
 //go:generate mkdir -p contracts/massmigration
 //go:generate mkdir -p contracts/create2transfer
 //go:generate mkdir -p contracts/accountregistry
+//go:generate mkdir -p contracts/erc20
 
 //go:generate abigen --abi abi/rollup.abi		--pkg=rollup		--out=contracts/rollup/rollup.go
 //go:generate abigen --abi abi/state.abi		--pkg=state		--out=contracts/state/state.go
@@ -33,3 +35,4 @@ package gen
 //go:generate abigen --abi abi/massmigration.abi	--pkg=massmigration	--out=contracts/massmigration/massmigration.go
 //go:generate abigen --abi abi/create2transfer.abi	--pkg=create2transfer	--out=contracts/create2transfer/create2transfer.go
 //go:generate abigen --abi abi/accountregistry.abi	--pkg=accountregistry	--out=contracts/accountregistry/accountregistry.go
+//go:generate abigen --abi abi/erc20.abi		--pkg=erc20		--out=contracts/erc20/erc20.go
