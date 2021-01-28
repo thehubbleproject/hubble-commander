@@ -27,7 +27,7 @@ var (
 )
 
 // TokenregistryABI is the input ABI used to generate the binding from.
-const TokenregistryABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"tokenType\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"tokenContract\",\"type\":\"address\"}],\"name\":\"RegisteredToken\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"tokenContract\",\"type\":\"address\"}],\"name\":\"RegistrationRequest\",\"type\":\"event\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenContract\",\"type\":\"address\"}],\"name\":\"finaliseRegistration\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"numTokens\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"pendingRegistrations\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenContract\",\"type\":\"address\"}],\"name\":\"requestRegistration\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenID\",\"type\":\"uint256\"}],\"name\":\"safeGetAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
+const TokenregistryABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"tokenID\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"tokenContract\",\"type\":\"address\"}],\"name\":\"RegisteredToken\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"tokenContract\",\"type\":\"address\"}],\"name\":\"RegistrationRequest\",\"type\":\"event\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenContract\",\"type\":\"address\"}],\"name\":\"finaliseRegistration\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"nextTokenID\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"pendingRegistrations\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenContract\",\"type\":\"address\"}],\"name\":\"requestRegistration\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenID\",\"type\":\"uint256\"}],\"name\":\"safeGetAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Tokenregistry is an auto generated Go binding around an Ethereum contract.
 type Tokenregistry struct {
@@ -171,30 +171,30 @@ func (_Tokenregistry *TokenregistryTransactorRaw) Transact(opts *bind.TransactOp
 	return _Tokenregistry.Contract.contract.Transact(opts, method, params...)
 }
 
-// NumTokens is a free data retrieval call binding the contract method 0x8e499bcf.
+// NextTokenID is a free data retrieval call binding the contract method 0xf101e481.
 //
-// Solidity: function numTokens() view returns(uint256)
-func (_Tokenregistry *TokenregistryCaller) NumTokens(opts *bind.CallOpts) (*big.Int, error) {
+// Solidity: function nextTokenID() view returns(uint256)
+func (_Tokenregistry *TokenregistryCaller) NextTokenID(opts *bind.CallOpts) (*big.Int, error) {
 	var (
 		ret0 = new(*big.Int)
 	)
 	out := ret0
-	err := _Tokenregistry.contract.Call(opts, out, "numTokens")
+	err := _Tokenregistry.contract.Call(opts, out, "nextTokenID")
 	return *ret0, err
 }
 
-// NumTokens is a free data retrieval call binding the contract method 0x8e499bcf.
+// NextTokenID is a free data retrieval call binding the contract method 0xf101e481.
 //
-// Solidity: function numTokens() view returns(uint256)
-func (_Tokenregistry *TokenregistrySession) NumTokens() (*big.Int, error) {
-	return _Tokenregistry.Contract.NumTokens(&_Tokenregistry.CallOpts)
+// Solidity: function nextTokenID() view returns(uint256)
+func (_Tokenregistry *TokenregistrySession) NextTokenID() (*big.Int, error) {
+	return _Tokenregistry.Contract.NextTokenID(&_Tokenregistry.CallOpts)
 }
 
-// NumTokens is a free data retrieval call binding the contract method 0x8e499bcf.
+// NextTokenID is a free data retrieval call binding the contract method 0xf101e481.
 //
-// Solidity: function numTokens() view returns(uint256)
-func (_Tokenregistry *TokenregistryCallerSession) NumTokens() (*big.Int, error) {
-	return _Tokenregistry.Contract.NumTokens(&_Tokenregistry.CallOpts)
+// Solidity: function nextTokenID() view returns(uint256)
+func (_Tokenregistry *TokenregistryCallerSession) NextTokenID() (*big.Int, error) {
+	return _Tokenregistry.Contract.NextTokenID(&_Tokenregistry.CallOpts)
 }
 
 // PendingRegistrations is a free data retrieval call binding the contract method 0xcd4852e5.
@@ -360,14 +360,14 @@ func (it *TokenregistryRegisteredTokenIterator) Close() error {
 
 // TokenregistryRegisteredToken represents a RegisteredToken event raised by the Tokenregistry contract.
 type TokenregistryRegisteredToken struct {
-	TokenType     *big.Int
+	TokenID       *big.Int
 	TokenContract common.Address
 	Raw           types.Log // Blockchain specific contextual infos
 }
 
 // FilterRegisteredToken is a free log retrieval operation binding the contract event 0x5dbaa701a7acef513f72a61799f7e50f4653f462b9f780d88d1b9bec89de2168.
 //
-// Solidity: event RegisteredToken(uint256 tokenType, address tokenContract)
+// Solidity: event RegisteredToken(uint256 tokenID, address tokenContract)
 func (_Tokenregistry *TokenregistryFilterer) FilterRegisteredToken(opts *bind.FilterOpts) (*TokenregistryRegisteredTokenIterator, error) {
 
 	logs, sub, err := _Tokenregistry.contract.FilterLogs(opts, "RegisteredToken")
@@ -379,7 +379,7 @@ func (_Tokenregistry *TokenregistryFilterer) FilterRegisteredToken(opts *bind.Fi
 
 // WatchRegisteredToken is a free log subscription operation binding the contract event 0x5dbaa701a7acef513f72a61799f7e50f4653f462b9f780d88d1b9bec89de2168.
 //
-// Solidity: event RegisteredToken(uint256 tokenType, address tokenContract)
+// Solidity: event RegisteredToken(uint256 tokenID, address tokenContract)
 func (_Tokenregistry *TokenregistryFilterer) WatchRegisteredToken(opts *bind.WatchOpts, sink chan<- *TokenregistryRegisteredToken) (event.Subscription, error) {
 
 	logs, sub, err := _Tokenregistry.contract.WatchLogs(opts, "RegisteredToken")
@@ -416,7 +416,7 @@ func (_Tokenregistry *TokenregistryFilterer) WatchRegisteredToken(opts *bind.Wat
 
 // ParseRegisteredToken is a log parse operation binding the contract event 0x5dbaa701a7acef513f72a61799f7e50f4653f462b9f780d88d1b9bec89de2168.
 //
-// Solidity: event RegisteredToken(uint256 tokenType, address tokenContract)
+// Solidity: event RegisteredToken(uint256 tokenID, address tokenContract)
 func (_Tokenregistry *TokenregistryFilterer) ParseRegisteredToken(log types.Log) (*TokenregistryRegisteredToken, error) {
 	event := new(TokenregistryRegisteredToken)
 	if err := _Tokenregistry.contract.UnpackLog(event, "RegisteredToken", log); err != nil {
