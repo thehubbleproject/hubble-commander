@@ -19,11 +19,6 @@ func startRestServerCmd() *cobra.Command {
 			cfg, err := config.ParseConfig()
 			common.PanicIfError(err)
 			r, err := rest.LoadRouters(cfg)
-
-			// headersOk := handlers.AllowedHeaders([]string{"*"})
-			// originsOk := handlers.AllowedOrigins([]string{"*"})
-			// methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
-
 			common.PanicIfError(err)
 			http.Handle("/", r)
 
