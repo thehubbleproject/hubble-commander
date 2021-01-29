@@ -24,8 +24,8 @@ const (
 
 type TxReceiver struct {
 	Type      uint64 `json:"type"`
-	Message   []byte `json:"message"`
-	Signature []byte `json:"sig"`
+	Message   string `json:"message"`
+	Signature string `json:"sig"`
 }
 
 // TxReceiverHandler handles user txs
@@ -34,15 +34,26 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 	var tx TxReceiver
 	if !ReadRESTReq(w, r, &tx) {
 		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
+		return
+	}
+	txMessageBytes, err := hex.DecodeString(tx.Message)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Cannot decode message")
+		return
 	}
 
-	to, from, err := decodeTx(tx.Message, tx.Type)
+	to, from, err := decodeTx(txMessageBytes, tx.Type)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
 	}
+	txSignatureBytes, err := hex.DecodeString(tx.Signature)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Cannot decode signature")
+		return
+	}
 
 	// create a new pending transaction
-	userTx, err := core.NewPendingTx(from, to, core.TX_TRANSFER_TYPE, tx.Signature, tx.Message)
+	userTx, err := core.NewPendingTx(from, to, core.TX_TRANSFER_TYPE, txSignatureBytes, txMessageBytes)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 	}
@@ -155,7 +166,7 @@ func accountDecoderHandler(w http.ResponseWriter, r *http.Request) {
 
 type SignBytesResponse struct {
 	Type    uint64 `json:"tx_type"`
-	Message []byte `json:"message"`
+	Message string `json:"message"`
 }
 type TransferTx struct {
 	From   uint64 `json:"from"`
@@ -184,7 +195,7 @@ func transferTx(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var response SignBytesResponse
-	response.Message = signBytes
+	response.Message = hex.EncodeToString(signBytes)
 	response.Type = core.TX_TRANSFER_TYPE
 
 	output, err := json.Marshal(response)
@@ -226,7 +237,7 @@ func massMigrationTx(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var response SignBytesResponse
-	response.Message = signBytes
+	response.Message = hex.EncodeToString(signBytes)
 	response.Type = core.TX_MASS_MIGRATIONS
 
 	output, err := json.Marshal(response)
@@ -275,7 +286,7 @@ func create2transferTx(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var response SignBytesResponse
-	response.Message = signBytes
+	response.Message = hex.EncodeToString(signBytes)
 	response.Type = core.TX_CREATE_2_TRANSFER
 	output, err := json.Marshal(response)
 	if err != nil {
