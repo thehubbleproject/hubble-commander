@@ -174,7 +174,7 @@ func (db *DB) GetStateByPath(path string) (core.UserState, error) {
 // GetRoot fetches the root of the state tree
 func (db *DB) GetRoot() (core.UserState, error) {
 	var state core.UserState
-	err := db.Instance.Scopes(QueryByType(core.TYPE_ROOT)).Find(&state).Error
+	err := db.Instance.Scopes(QueryByType(core.TYPE_ROOT), QueryByDepth(0)).Find(&state).Error
 	if err != nil {
 		return state, core.ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v", err))
 	}
@@ -223,6 +223,14 @@ func (db *DB) FindEmptyState(depth int) (state core.UserState, err error) {
 		}
 	}
 	return state, nil
+}
+
+func (db *DB) GetStateByAccID(accID uint64) (states []core.UserState, err error) {
+	err = db.Instance.Scopes(QueryByAccountID(accID)).Find(&states).Error
+	if err != nil {
+		return
+	}
+	return states, nil
 }
 
 func (db *DB) FindEmptyAndReserve(depth int, accID uint64) (state core.UserState, err error) {

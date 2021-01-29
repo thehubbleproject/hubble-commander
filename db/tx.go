@@ -20,6 +20,15 @@ func (DBI *DB) InsertTx(tx *core.Tx) error {
 	return DBI.Instance.Create(tx).Error
 }
 
+// GetTxByHash fetches transaction by hash
+func (DBI *DB) GetTxByHash(hash string) (*core.Tx, error) {
+	var tx core.Tx
+	if err := DBI.Instance.Model(&tx).Where("tx_hash = ?", hash).First(&tx).Error; err != nil {
+		return &tx, err
+	}
+	return &tx, nil
+}
+
 // PopTxs pops tranasctions from the tx pool
 func (DBI *DB) PopTxs() (txs []core.Tx, err error) {
 	txType, err := DBI.FetchTxType()
