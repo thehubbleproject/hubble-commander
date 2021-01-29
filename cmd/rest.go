@@ -7,7 +7,6 @@ import (
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/rest"
-	"github.com/gorilla/handlers"
 	"github.com/spf13/cobra"
 )
 
@@ -21,9 +20,9 @@ func startRestServerCmd() *cobra.Command {
 			common.PanicIfError(err)
 			r, err := rest.LoadRouters(cfg)
 
-			headersOk := handlers.AllowedHeaders([]string{"*"})
-			originsOk := handlers.AllowedOrigins([]string{"*"})
-			methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+			// headersOk := handlers.AllowedHeaders([]string{"*"})
+			// originsOk := handlers.AllowedOrigins([]string{"*"})
+			// methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
 			common.PanicIfError(err)
 			http.Handle("/", r)
@@ -31,7 +30,7 @@ func startRestServerCmd() *cobra.Command {
 			fmt.Println("Server started on port 3000 🎉")
 
 			// TODO replace this with port from config
-			err = http.ListenAndServe("0.0.0.0:3000", handlers.CORS(originsOk, headersOk, methodsOk)(r))
+			err = http.ListenAndServe("0.0.0.0:3000", r)
 			common.PanicIfError(err)
 		},
 	}
