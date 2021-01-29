@@ -28,6 +28,28 @@ type TxReceiver struct {
 	Signature string `json:"sig"`
 }
 
+type ResponseTx struct {
+	To        uint64 `json:"to"`
+	From      uint64 `json:"from"`
+	Data      string `json:"data"`
+	Signature string `json:"sig" gorm:"null"`
+	TxHash    string `json:"hash" gorm:"not null"`
+	Status    uint64 `json:"status"`
+	Type      uint64 `json:"type" gorm:"not null"`
+}
+
+func coreTxToResponseTx(_tx core.Tx) ResponseTx {
+	var resp ResponseTx
+	resp.To = _tx.To
+	resp.From = _tx.From
+	resp.Data = hex.EncodeToString(_tx.Data)
+	resp.Signature = hex.EncodeToString(_tx.Signature)
+	resp.TxHash = _tx.TxHash
+	resp.Status = _tx.Status
+	resp.Type = _tx.Type
+	return resp
+}
+
 // TxReceiverHandler handles user txs
 func TxHandler(w http.ResponseWriter, r *http.Request) {
 	// receive the payload and read
@@ -64,7 +86,7 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
 	}
 
-	output, err := json.Marshal(userTx)
+	output, err := json.Marshal(coreTxToResponseTx(userTx))
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
 	}
