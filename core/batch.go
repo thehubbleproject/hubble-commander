@@ -14,26 +14,17 @@ var (
 // Batch is the batches that need to be submitted on-chain periodically
 type Batch struct {
 	BatchID        uint64 `json:"batch_id,omitempty"`
-	StateRoot      string `json:"state_root,omitempty"`
 	Committer      string `json:"committer,omitempty"`
 	SubmissionHash string `json:"submission_hash,omitempty"`
 	BatchType      uint64 `json:"batch_type,omitempty"`
 	Status         uint64 `json:"status,omitempty"`
 }
 
-func NewBatch(stateRoot, committer, submissionHash string, batchType, status uint64) Batch {
-	return Batch{StateRoot: stateRoot, Committer: committer, SubmissionHash: submissionHash, BatchType: batchType, Status: status}
+func NewBatch(committer, submissionHash string, batchType, status uint64) Batch {
+	return Batch{Committer: committer, SubmissionHash: submissionHash, BatchType: batchType, Status: status}
 }
 
 type Commitments []Commitment
-
-func NewCommitments(commitments []Commitment, batchID uint64) Commitments {
-	for i, commitment := range commitments {
-		commitment.Offset = uint64(i)
-		commitment.BatchID = batchID
-	}
-	return commitments
-}
 
 type Commitment struct {
 	CommitmentData
@@ -47,20 +38,28 @@ type Commitment struct {
 	AggregatedSignature []byte `gorm:"-"`
 }
 
-func NewCommitment(batchID uint64, offset uint64, txs []Tx, batchType uint64, stateRoot, bodyRoot ByteArray, signature []byte) Commitment {
+func NewCommitment(txs []Tx, batchType uint64, stateRoot ByteArray, signature []byte) Commitment {
 	return Commitment{
 		CommitmentData: CommitmentData{
 			StateRoot: stateRoot[:],
-			BodyRoot:  bodyRoot[:],
 		},
-
-		BatchID:   batchID,
-		Offset:    offset,
-		BatchType: batchType,
-
+		BatchType:           batchType,
 		Txs:                 txs,
 		AggregatedSignature: signature,
 	}
+}
+
+// Commit adds state root and body root to the commitment
+func (c *Commitment) Commit(stateRoot, bodyRoot []byte) {
+	c.StateRoot = stateRoot
+	c.BodyRoot = bodyRoot
+}
+
+// AttachPostSubmissionInfo attaches batch ID and offset information to commitment
+// before its pushed to DB
+func (c *Commitment) AttachPostSubmissionInfo(batchID, offset uint64) {
+	c.BatchID = batchID
+	c.Offset = offset
 }
 
 // CommitmentData is the crutial information per commitment that needs to be stored
@@ -95,8 +94,8 @@ func (c CommitmentData) Bytes() ([]byte, error) {
 		},
 	}
 	data, err := arguments.Pack(
-		c.StateRoot,
-		c.BodyRoot,
+		BytesToByteArray(c.StateRoot),
+		BytesToByteArray(c.BodyRoot),
 	)
 	if err != nil {
 		return []byte(""), err
@@ -159,7 +158,6 @@ func (t *TransferCommitment) Hash() (ByteArray, error) {
 	if err != nil {
 		return ByteArray{}, err
 	}
-
 	return ByteArray(Keccak256(data)), nil
 }
 

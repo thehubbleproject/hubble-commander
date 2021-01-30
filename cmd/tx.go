@@ -146,7 +146,6 @@ func sendCreate2TransferTx() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
 			// fetching from pubkey
 			pubKey, err := flags.GetString(FlagPubKey)
 			if err != nil {
@@ -516,16 +515,15 @@ func validateAndTransfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toInde
 	if err != nil {
 		return
 	}
+	fmt.Println("nonce here", nonce)
+	// nonce = big.NewInt(0)
 
 	if bal.Int64() <= int64(amount+fee) {
 		return "", ErrInvalidAmount
 	}
-	fmt.Println("here")
-	fmt.Println("fee", int64(fromIndex), int64(toIndex), int64(fee), nonce.Int64(), int64(amount), core.TX_TRANSFER_TYPE)
 
 	txData, err := bazooka.EncodeTransferTx(int64(fromIndex), int64(toIndex), int64(fee), nonce.Int64(), int64(amount), core.TX_TRANSFER_TYPE)
 	if err != nil {
-		fmt.Println("here", err)
 		return
 	}
 

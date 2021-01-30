@@ -8,11 +8,11 @@ import (
 )
 
 func TestGenDefaultHashes(t *testing.T) {
-	defaultHashes, err := GenDefaultHashes(1)
+	defaultHashes, err := GenDefaultHashes(1, ZeroLeaf)
 	require.NoError(t, err, "error generating default hashes")
 	expected := "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563"
 	require.Equal(t, defaultHashes[0].String(), expected)
-	defaultHashes, err = GenDefaultHashes(2)
+	defaultHashes, err = GenDefaultHashes(2, ZeroLeaf)
 	require.NoError(t, err, "error generating default hashes")
 	fmt.Println("defaultHashes", defaultHashes[0].String(), defaultHashes[1].String())
 	require.Equal(t, defaultHashes[0].String(), "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563")

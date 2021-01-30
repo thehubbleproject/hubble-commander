@@ -17,7 +17,7 @@ func init() {
 		panic(err)
 	}
 
-	DefaultHashes, err = GenDefaultHashes(100)
+	DefaultHashes, err = GenDefaultHashes(100, ZeroLeaf)
 	if err != nil {
 		panic(err)
 	}
@@ -36,13 +36,13 @@ type Tree struct {
 // NewTree creates a merkle tree from given leaves
 // the order of leaves will be preserved
 func NewTree(leaves []ByteArray) (newTree Tree, err error) {
+	if len(leaves)%2 != 0 {
+		leaves = append(leaves, ZeroLeaf)
+	}
+
 	totalLeaves := len(leaves)
 	treeDepth := minTreeDepth(len(leaves))
 	totalLevels := treeDepth + 1
-
-	if totalLeaves%2 != 0 {
-		return newTree, errors.New("Even number of leaves expected")
-	}
 
 	newTree.TotalLeaves = uint64(totalLeaves)
 	newTree.Depth = treeDepth
@@ -72,9 +72,6 @@ func NewTree(leaves []ByteArray) (newTree Tree, err error) {
 
 // GetWitnessForLeaf creates a witness for a given leaf
 func (t *Tree) GetWitnessForLeaf(leafIndex uint64) (leaf ByteArray, witness []ByteArray, err error) {
-	if leafIndex == 0 {
-		return t.Nodes[0][0], t.Nodes[0], nil
-	}
 	if leafIndex > t.TotalLeaves {
 		return leaf, witness, errors.New("Leaf index out of range")
 	}
@@ -92,6 +89,12 @@ func (t *Tree) GetWitnessForLeaf(leafIndex uint64) (leaf ByteArray, witness []By
 // NodeCount returns the number of nodes on a level
 func (t *Tree) NodeCount(level int) int {
 	return TotalLeavesForDepth(level)
+}
+
+// Root returns the root of the tree
+func (t *Tree) Root() (root ByteArray) {
+	root = t.Nodes[0][0]
+	return
 }
 
 // ascends from the leaf level towards root creating all intermediate nodes
@@ -132,9 +135,9 @@ func GetParentPath(path string) (parentNodePath string) {
 }
 
 // GenDefaultHashes generates default hashes
-func GenDefaultHashes(depth int) ([]ByteArray, error) {
+func GenDefaultHashes(depth int, zero ByteArray) ([]ByteArray, error) {
 	hashes := make([]ByteArray, depth)
-	hashes[0] = ZeroLeaf
+	hashes[0] = zero
 	for i := 1; i < depth; i++ {
 		parent, err := GetParent(hashes[i-1], hashes[i-1])
 		if err != nil {

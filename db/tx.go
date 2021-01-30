@@ -4,26 +4,27 @@ import (
 	"fmt"
 
 	"github.com/BOPR/bazooka"
-	"github.com/BOPR/config"
 	"github.com/BOPR/core"
 	"github.com/BOPR/wallet"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/kilic/bn254/bls"
 )
 
-// InsertTx tx into the DB
+// InsertTx inserts a transaction into the DB
 func (DBI *DB) InsertTx(tx *core.Tx) error {
 	// if tx is a create2transfer tx add it to the relayer pool
 	if tx.Type == core.TX_CREATE_2_TRANSFER {
 		return DBI.InsertRelayPacket(tx.Data, tx.Signature)
 	}
+
 	return DBI.Instance.Create(tx).Error
 }
 
 // GetTxByHash fetches transaction by hash
 func (DBI *DB) GetTxByHash(hash string) (*core.Tx, error) {
 	var tx core.Tx
-	if err := DBI.Instance.Model(&tx).Where("tx_hash = ?", hash).First(&tx).Error; err != nil {
+	if err := DBI.Instance.Model(&tx).Scopes(QueryByTxHash(hash)).First(&tx).Error; err != nil {
 		return &tx, err
 	}
 	return &tx, nil
@@ -52,7 +53,8 @@ func (DBI *DB) PopTxs() (txs []core.Tx, err error) {
 		return txs, err
 	}
 
-	DBI.Logger.Info("Found txs", "pendingTxs", len(pendingTxs))
+	DBI.Logger.Info("Found pending txs", "txCount", len(pendingTxs))
+
 	var ids []string
 	for _, tx := range pendingTxs {
 		ids = append(ids, tx.ID)
@@ -69,13 +71,14 @@ func (DBI *DB) PopTxs() (txs []core.Tx, err error) {
 	return pendingTxs, tx.Commit().Error
 }
 
+// FetchTxType finds out transactions with highest count in the DB
 func (DBI *DB) FetchTxType() (txType uint64, err error) {
 	// find out which txType has the highest count
 	var maxTxType uint64
 	var maxCount uint64
 	txTypes := []uint64{core.TX_TRANSFER_TYPE}
 	for _, txType := range txTypes {
-		count, err := DBI.GetCountPerTxType(txType)
+		count, err := DBI.getCountPerTxType(txType)
 		if err != nil {
 			return 0, err
 		}
@@ -87,41 +90,13 @@ func (DBI *DB) FetchTxType() (txType uint64, err error) {
 	return maxTxType, nil
 }
 
-func (DBI *DB) GetCountPerTxType(txType uint64) (uint64, error) {
-	var count uint64
-	err := DBI.Instance.Model(&core.Tx{}).Where("type = ? AND status = ?", txType, core.TX_STATUS_PENDING).Count(&count).Error
-	return count, err
-}
-
-func (DBI *DB) GetTx() (tx []core.Tx, err error) {
-	err = DBI.Instance.First(&tx).Error
-	if err != nil {
-		return tx, err
-	}
-	return
-}
-
-func (DBI *DB) FetchMPWithID(id uint64, stateMP *bazooka.StateMerkleProof) (err error) {
-	leaf, err := DBI.GetStateByIndex(id)
-	if err != nil {
-		fmt.Println("error while getting leaf", err)
-		return
-	}
-	siblings, err := DBI.GetSiblings(leaf.Path)
-	if err != nil {
-		fmt.Println("error while getting siblings", err)
-		return
-	}
-	accMP := bazooka.NewStateMerkleProof(leaf, siblings)
-	*stateMP = accMP
-	return nil
-}
-
-func GetWitnessTranfer(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkleProof, toMerkleProof bazooka.StateMerkleProof, txDBConn DB, err error) {
+// getWitnessTranfer fetches the witness for transfer transaction and create2transfer
+// amongst other thins it also returns a DB transaction handler that can be used to rollback changes made to state tree while creating witness
+func getWitnessTranfer(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkleProof, toMerkleProof bazooka.StateMerkleProof, txDBConn DB, err error) {
 	dbCopy, _ := NewDB(bz.Cfg)
 
 	// fetch from state MP
-	err = DBI.FetchMPWithID(tx.From, &fromMerkleProof)
+	err = DBI.fetchMPWithID(tx.From, &fromMerkleProof)
 	if err != nil {
 		return
 	}
@@ -169,31 +144,40 @@ func GetWitnessTranfer(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkleProof,
 	return fromMerkleProof, toMerkleProof, dbCopy, nil
 }
 
-// GetVerificationData fetches all the data required to prove validity fo transaction
-func GetVerificationData(bz bazooka.Bazooka, DBI *DB, tx *core.Tx) (fromMerkleProof, toMerkleProof bazooka.StateMerkleProof, txDBConn DB, err error) {
+// GetVerificationDataAndApply fetches all the proofs required to prove validity for a transaction and also applies the transaction
+// on the respective states
+func GetVerificationDataAndApply(bz bazooka.Bazooka, DBI *DB, tx *core.Tx) (fromMerkleProof, toMerkleProof bazooka.StateMerkleProof, txDBConn DB, err error) {
 	switch txType := tx.Type; txType {
 	case core.TX_TRANSFER_TYPE:
-		return GetWitnessTranfer(bz, *DBI, *tx)
+		return getWitnessTranfer(bz, *DBI, *tx)
 	case core.TX_CREATE_2_TRANSFER:
-		return GetWitnessTranfer(bz, *DBI, *tx)
+		return getWitnessTranfer(bz, *DBI, *tx)
 	case core.TX_MASS_MIGRATIONS:
-		return GetWitnessTranfer(bz, *DBI, *tx)
+		return getWitnessTranfer(bz, *DBI, *tx)
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return
 	}
 }
 
-// Validate creates proofs for validating txs and returns new root post validation
-func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core.Tx, isSyncing bool) (newRoot core.ByteArray, err error) {
-	fromStateProof, toStateProof, txDBConn, err := GetVerificationData(*bz, DBI, tx)
+// ValidateAndApplyTx validates and applies transaction by calling on-chain functions
+// It checks for state validity as well as account validity
+// It returns the newRoot of state tree post execution of transaction
+func ValidateAndApplyTx(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core.Tx, isSyncing bool) (newRoot core.ByteArray, err error) {
+	// fetches all required proofs for the transaction
+	fromStateProof, toStateProof, txDBConn, err := GetVerificationDataAndApply(*bz, DBI, tx)
 	if err != nil {
 		return
 	}
+
 	DBI.Logger.Debug("Fetched all verification for transaction", "txType", tx.Type)
 
+	// calls on-chain function that validates transaction
 	newRoot, err = bazooka.ProcessTx(*bz, currentRoot, *tx, fromStateProof, toStateProof)
+
+	// if transaction is declared to be invalid we rollback the state updates made during merkle proof creation
 	if err != nil {
+		DBI.Logger.Debug("State validation of transaction complete", "status", "fail", "tx", tx.TxHash)
 		if txDBConn.Instance != nil {
 			txDBConn.Instance.Rollback()
 			txDBConn.Close()
@@ -201,8 +185,12 @@ func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core
 		return
 	}
 
-	DBI.Logger.Debug("Processed transaction")
+	DBI.Logger.Debug("State validation of transaction complete", "status", "success", "tx", tx.TxHash)
 
+	// if we arent syncing, we need to authenticate the batch
+	// i.e we need to check signatures in the transactions
+	// if we are syncing we dont have signatures on-chain, we have only aggregated signature
+	// so we skip individual signature check
 	if !isSyncing {
 		err = authenticate(bz, DBI, tx)
 		if err != nil {
@@ -210,11 +198,11 @@ func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core
 			txDBConn.Close()
 			return
 		}
-		DBI.Logger.Debug("Tx successfully authenticated")
+		DBI.Logger.Debug("Tx successfully authenticated", "tx", tx.TxHash)
 	}
 
+	// if all goes well commit the DB transaction
 	if txDBConn.Instance != nil {
-		DBI.Logger.Debug("Closing DB instance")
 		txDBConn.Instance.Commit()
 		txDBConn.Close()
 	}
@@ -222,6 +210,80 @@ func Validate(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray, tx *core
 	return
 }
 
+// ProcessTxs processes transactions using the on-chain contracts and creates a commitment list
+// It returns the list of commitments for all valid transactions
+func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, txsPerCommitment []int, isSyncing bool) (commitments []core.Commitment, err error) {
+	// error out if we dont have commitments to process
+	if len(txs) == 0 {
+		return commitments, core.ErrNoTxsFound
+	}
+
+	// tracks commitment under formation
+	currentCommitmentIdx := 0
+
+	var processedTxs []core.Tx
+	var revertedTxs []core.Tx
+
+	for i, tx := range txs {
+		// fetch the current root
+		currentRoot, err := DBI.GetStateRootHash()
+		if err != nil {
+			return commitments, err
+		}
+
+		// validate and apply the transaction
+		newRoot, err := ValidateAndApplyTx(bz, DBI, currentRoot, &tx, isSyncing)
+
+		// if transaction validation errors out, add it to reverted txs list
+		// and skip rest of the loop
+		if err != nil {
+			revertedTxs = append(revertedTxs, tx)
+			continue
+		}
+
+		processedTxs = append(processedTxs, tx)
+
+		// if num of transactions that are to be packed in the current
+		// commitment is reached create a commitment
+		// NOTE: If a transaction in commitment reverts that commitment will have smaller size
+		if i%txsPerCommitment[currentCommitmentIdx] == 0 {
+			// create a new commitment
+			var commitment core.Commitment
+
+			// pick all transactions executed successfully so far
+			// and empty out the processed txs list for next commitment
+			txInCommitment := processedTxs
+			processedTxs = nil
+
+			// aggregate all signatures in the transactions
+			aggregatedSig, err := aggregateSignatures(txInCommitment)
+
+			// if we are syncing and we dont have a signature
+			// create a commitment without it
+			if isSyncing && err == core.ErrSignatureNotPresent {
+				commitment = core.NewCommitment(txInCommitment, tx.Type, newRoot, []byte(""))
+			} else if err != nil {
+				return commitments, err
+			} else {
+				commitment = core.NewCommitment(txInCommitment, tx.Type, newRoot, aggregatedSig.ToBytes())
+			}
+
+			// append to list of commitments
+			commitments = append(commitments, commitment)
+
+			// doesnt increment currentCommitmentIdx if this is the first commit
+			if len(commitments) != 1 {
+				currentCommitmentIdx++
+			}
+		}
+	}
+
+	// TODO status update for reverted and succesful txs
+
+	return commitments, nil
+}
+
+// checks transaction signature
 func authenticate(bz *bazooka.Bazooka, DBI *DB, tx *core.Tx) error {
 	fromState, err := DBI.GetStateByIndex(tx.From)
 	if err != nil {
@@ -255,81 +317,18 @@ func authenticate(bz *bazooka.Bazooka, DBI *DB, tx *core.Tx) error {
 	return nil
 }
 
-// ProcessTxs processes all trasnactions and returns the commitment list
-func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, txsPerCommitment []int, isSyncing bool) (commitments []core.Commitment, err error) {
-	if len(txs) == 0 {
-		return commitments, core.ErrNoTxsFound
-	}
-
-	currentCommitmentIdx := 0
-	for i, tx := range txs {
-		rootAcc, err := DBI.GetRoot()
-		if err != nil {
-			return commitments, err
-		}
-
-		currentRoot, err := core.HexToByteArray(rootAcc.Hash)
-		if err != nil {
-			return commitments, err
-		}
-
-		_, err = Validate(bz, DBI, currentRoot, &tx, isSyncing)
-		if err != nil {
-			return commitments, err
-		}
-
-		if i%txsPerCommitment[currentCommitmentIdx] == 0 {
-			txInCommitment := txs[i : i+txsPerCommitment[currentCommitmentIdx]]
-			aggregatedSig, err := aggregateSignatures(txInCommitment)
-			var commitment core.Commitment
-			if isSyncing && err == core.ErrSignatureNotPresent {
-				commitment = core.NewCommitment(0, 0, txInCommitment, tx.Type, core.ByteArray{}, core.ByteArray{}, []byte(""))
-			} else if err != nil {
-				return commitments, err
-			} else {
-				commitment = core.NewCommitment(0, 0, txInCommitment, tx.Type, core.ByteArray{}, core.ByteArray{}, aggregatedSig.ToBytes())
-			}
-			commitments = append(commitments, commitment)
-
-			// TODO remove
-			// doesnt increment currentCommitmentIdx if this is the first commit
-			if len(commitments) != 1 {
-				currentCommitmentIdx++
-			}
-		}
-	}
-
-	return commitments, nil
-}
-
-// generates aggregated signature for commitment
-func aggregateSignatures(txs []core.Tx) (aggregatedSig bls.Signature, err error) {
-	var signatures []*bls.Signature
-	for _, tx := range txs {
-		if tx.Signature == nil {
-			return aggregatedSig, core.ErrSignatureNotPresent
-		}
-		sig, err := wallet.BytesToSignature(tx.Signature)
-		if err != nil {
-			return aggregatedSig, err
-		}
-		signatures = append(signatures, &sig)
-	}
-	return wallet.NewAggregateSignature(signatures)
-}
-
+// checkSignature calls the on-chain contract to verify signature in the transaction
+// returns an error is the signature is invalid
 func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte) error {
-	opts := bind.CallOpts{From: config.OperatorAddress}
+	opts := bind.CallOpts{From: common.HexToAddress(b.Cfg.OperatorAddress)}
 	solPubkeySender, err := core.Pubkey(pubkeySender).ToSol()
 	if err != nil {
 		return err
 	}
-
 	signature, err := core.BytesToSolSignature(tx.Signature)
 	if err != nil {
 		return err
 	}
-
 	switch tx.Type {
 	case core.TX_TRANSFER_TYPE:
 		err = b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
@@ -360,4 +359,51 @@ func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 		}
 	}
 	return nil
+}
+
+// generates aggregated signature for commitment
+func aggregateSignatures(txs []core.Tx) (aggregatedSig bls.Signature, err error) {
+	var signatures []*bls.Signature
+	for _, tx := range txs {
+		if tx.Signature == nil {
+			return aggregatedSig, core.ErrSignatureNotPresent
+		}
+		sig, err := wallet.BytesToSignature(tx.Signature)
+		if err != nil {
+			return aggregatedSig, err
+		}
+		signatures = append(signatures, &sig)
+	}
+	return wallet.NewAggregateSignature(signatures)
+}
+
+// fetches state merkle proof using state ID
+// it returns only error but populates the stateMerkleProof
+func (DBI *DB) fetchMPWithID(id uint64, stateMP *bazooka.StateMerkleProof) (err error) {
+	// fetch leaf
+	leaf, err := DBI.GetStateByIndex(id)
+	if err != nil {
+		DBI.Logger.Error("error while getting state", "state-id", id)
+		return
+	}
+
+	// fetch siblings for leaf
+	siblings, err := DBI.GetSiblings(leaf.Path)
+	if err != nil {
+		fmt.Println("error while getting siblings", err)
+		return
+	}
+
+	MP := bazooka.NewStateMerkleProof(leaf, siblings)
+	*stateMP = MP
+
+	// if all good return no error
+	return nil
+}
+
+// fetches the tx count per txType from the pending pool
+func (DBI *DB) getCountPerTxType(txType uint64) (uint64, error) {
+	var count uint64
+	err := DBI.Instance.Model(&core.Tx{}).Where("type = ? AND status = ?", txType, core.TX_STATUS_PENDING).Count(&count).Error
+	return count, err
 }

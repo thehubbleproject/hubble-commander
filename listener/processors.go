@@ -99,6 +99,7 @@ func (s *Syncer) processDepositQueued(eventName string, abiObject *abi.ABI, vLog
 
 func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) error {
 	s.Logger.Info("New deposit subtree created")
+
 	// unpack event
 	event := new(depositmanager.DepositmanagerDepositSubTreeReady)
 	err := common.UnpackLog(abiObject, event, eventName, vLog)
@@ -121,13 +122,16 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 			return err
 		}
 	} else {
-		s.Logger.Info("Still cathing up, aborting deposit finalisation")
+		s.Logger.Info("Still catching up, aborting deposit finalisation")
 	}
+
+	// attach deposit information
 	err = s.DBInstance.AttachDepositInfo(event.Root)
 	if err != nil {
 		s.Logger.Error("Unable to attach deposit info", "error", err)
 		return err
 	}
+
 	return nil
 }
 
@@ -180,12 +184,12 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 	batch, err := s.DBInstance.GetBatchByIndex(event.Index.Uint64())
 	if err != nil && gorm.IsRecordNotFoundError(err) {
 		s.Logger.Info("Found a new batch, applying transactions and adding new batch", "index", event.Index.Uint64)
-		newRoot, commitments, err := s.parseAndApplyBatch(vLog.TxHash, event.BatchType)
+		_, commitments, err := s.parseAndApplyBatch(vLog.TxHash, event.BatchType)
 		if err != nil {
 			s.Logger.Error("Error applying batch", "error", err)
 			return err
 		}
-		newBatch := core.NewBatch(newRoot.String(), event.Committer.String(), vLog.TxHash.String(), uint64(event.BatchType), core.BATCH_COMMITTED)
+		newBatch := core.NewBatch(event.Committer.String(), vLog.TxHash.String(), uint64(event.BatchType), core.BATCH_COMMITTED)
 		batchID, err := s.DBInstance.AddNewBatch(newBatch, commitments)
 		if err != nil {
 			s.Logger.Error("Error adding new batch to DB", "error", err)
@@ -229,7 +233,7 @@ func (s *Syncer) sendDepositFinalisationTx() error {
 		s.Logger.Error("Error fetching totalBatches", "error", err)
 		return err
 	}
-	commitmentMP, err := s.DBInstance.GetLastCommitmentMP(uint64(totalBatches))
+	commitmentMP, err := s.DBInstance.GetLastCommitmentMP(uint64(totalBatches) - 1)
 	if err != nil {
 		s.Logger.Error("Error creating commitment merkle proof", "error", err)
 		return err

@@ -97,7 +97,7 @@ func storeGenesisData(bz *bazooka.Bazooka, DBI *db.DB, cfg config.Configuration)
 	accountTreeDepth, err := bz.SC.AccountRegistry.DEPTH(&opts)
 	common.PanicIfError(err)
 
-	err = DBI.InitAccountTree(int(accountTreeDepth.Uint64()))
+	err = DBI.InitAccountTree(int(accountTreeDepth.Uint64()) + 1)
 	common.PanicIfError(err)
 
 	newParams := core.Params{StakeAmount: cfg.StakeAmount, MaxDepth: cfg.MaxTreeDepth, MaxDepositSubTreeHeight: cfg.MaxDepositSubtree}
