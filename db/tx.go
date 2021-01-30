@@ -222,7 +222,7 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, txsPerCommitment []
 	currentCommitmentIdx := 0
 
 	var processedTxs []core.Tx
-	var revertedTxs []core.Tx
+	// var revertedTxs []core.Tx
 
 	for i, tx := range txs {
 		// fetch the current root
@@ -237,7 +237,7 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, txsPerCommitment []
 		// if transaction validation errors out, add it to reverted txs list
 		// and skip rest of the loop
 		if err != nil {
-			revertedTxs = append(revertedTxs, tx)
+			// revertedTxs = append(revertedTxs, tx)
 			continue
 		}
 

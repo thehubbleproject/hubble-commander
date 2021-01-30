@@ -110,7 +110,7 @@ func (b *Bazooka) submitTransferBatch(commitments []core.Commitment, accountRoot
 	inputData.FeeReceivers = feeReceivers
 	inputData.Txss = txs
 
-	commitmentData, err = inputData.Commitments(accountRoot)
+	commitmentData, err := inputData.Commitments(accountRoot)
 	if err != nil {
 		return commitmentData, "", err
 	}

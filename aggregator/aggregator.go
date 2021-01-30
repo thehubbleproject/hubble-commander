@@ -161,8 +161,6 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 	}
 
 	a.Logger.Info("Added new batch to DB", "ID", batchID, "numOfCommitments", len(commitments))
-
-	return
 }
 
 func (a *Aggregator) processTxs(txs []core.Tx) (commitments []core.Commitment, err error) {
