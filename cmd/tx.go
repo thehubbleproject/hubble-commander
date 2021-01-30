@@ -515,8 +515,6 @@ func validateAndTransfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toInde
 	if err != nil {
 		return
 	}
-	fmt.Println("nonce here", nonce)
-	// nonce = big.NewInt(0)
 
 	if bal.Int64() <= int64(amount+fee) {
 		return "", ErrInvalidAmount
