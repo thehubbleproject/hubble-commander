@@ -19,7 +19,7 @@ func (b ByteArray) String() string {
 	return string(enc)
 }
 
-// String has to be prefixed with 0x
+// HexToByteArray string has to be prefixed with 0x
 func HexToByteArray(a string) (b ByteArray, err error) {
 	bz, err := hex.DecodeString(a[2:])
 	if err != nil {
@@ -28,6 +28,7 @@ func HexToByteArray(a string) (b ByteArray, err error) {
 	return BytesToByteArray(bz), nil
 }
 
+// BytesToByteArray converts bytes to byte array
 func BytesToByteArray(bz []byte) ByteArray {
 	var temp [32]byte
 	copy(temp[:], bz)
