@@ -92,8 +92,9 @@ func GetDefaultConfig() Configuration {
 		MassMigration:          ethCmn.Address{}.String(),
 		Create2Transfer:        ethCmn.Address{}.String(),
 
-		OperatorKey:     "",
-		OperatorAddress: "",
+		// Default Account #0 from hardhat. DO NOT USE IN PRODUCTION
+		OperatorKey:     "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+		OperatorAddress: "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
 
 		MaxTreeDepth:      32,
 		MaxDepositSubtree: 1,
@@ -162,15 +163,6 @@ func SetOperatorKeys(privKeyStr string) error {
 	OperatorPubKey = ecsdaPubKey
 	OperatorAddress = crypto.PubkeyToAddress(*OperatorPubKey)
 	return nil
-}
-
-func GenOperatorKey() ([]byte, error) {
-	privKey, err := crypto.GenerateKey()
-	if err != nil {
-		return nil, err
-	}
-
-	return crypto.FromECDSA(privKey), nil
 }
 
 // PrivKeyStringToAddress convert private key to public key

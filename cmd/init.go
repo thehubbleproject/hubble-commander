@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"strconv"
 
 	"github.com/BOPR/common"
@@ -16,12 +15,6 @@ func initCmd() *cobra.Command {
 		Short: "Initialises Configration for BOPR",
 		Run: func(cmd *cobra.Command, args []string) {
 			defaultConfig := config.GetDefaultConfig()
-			operatorKey, err := config.GenOperatorKey()
-			common.PanicIfError(err)
-			defaultConfig.OperatorKey = hex.EncodeToString(operatorKey)
-			address, err := config.PrivKeyStringToAddress(hex.EncodeToString(operatorKey))
-			common.PanicIfError(err)
-			defaultConfig.OperatorAddress = address.String()
 			config.WriteConfigFile("./config.toml", &defaultConfig)
 		},
 	}
