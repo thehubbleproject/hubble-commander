@@ -75,7 +75,7 @@ func GetDefaultConfig() Configuration {
 		DB:                     DefaultDB,
 		DBURL:                  GetDBURL(),
 		Trace:                  false,
-		DBLogMode:              true,
+		DBLogMode:              false,
 		EthRPC:                 DefaultEthRPC,
 		TxsPerCommitment:       2,
 		MaxCommitmentsPerBatch: 100,
