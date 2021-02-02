@@ -1,5 +1,11 @@
 build-hubble-contracts:
-	cd .contracts/ && npm ci && npm run compile
+	cd .contracts/ && npm ci && npm run generate
+
+run-hardhat-node:
+	cd .contracts/ && npm run node
+
+deploy-hubble-contracts:
+	cd .contracts/ && npm run deploy
 
 build-bindings:
 	go install github.com/ethereum/go-ethereum/cmd/abigen
