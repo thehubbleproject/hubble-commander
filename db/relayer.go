@@ -146,6 +146,15 @@ func (db *DB) MarkPacketDone(pubkey []byte) error {
 		return err
 	}
 
+	fromState, err := db.GetStateByIndex(fromIndex.Uint64())
+	if err != nil {
+		return err
+	}
+	_, _, nonce, token, err := db.Bazooka.DecodeState(fromState.Data)
+	if err != nil {
+		return err
+	}
+
 	txData, err := db.Bazooka.EncodeCreate2TransferTx(
 		fromIndex.Int64(),
 		int64(toStateID),
@@ -160,7 +169,7 @@ func (db *DB) MarkPacketDone(pubkey []byte) error {
 		return err
 	}
 
-	tx, err := core.NewPendingTx(fromIndex.Uint64(), toStateID, txType.Uint64(), rp.Signature, txData)
+	tx, err := core.NewPendingTx(txData, rp.Signature, nonce.Uint64(), fee.Uint64(), token.Uint64(), txType.Uint64())
 	if err != nil {
 		return err
 	}

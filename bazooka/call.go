@@ -205,3 +205,20 @@ func (b *Bazooka) GetTokenAddress(tokenID uint64) (tokenAddr common.Address, err
 	}
 	return tokenAddr, nil
 }
+
+func (b *Bazooka) FetchFromAndToStateIDs(tx core.Tx) (from, to uint64, err error) {
+	switch txType := tx.Type; txType {
+	case core.TX_TRANSFER_TYPE:
+		from, to, _, _, _, _, err := b.DecodeTransferTx(tx.Data)
+		return from.Uint64(), to.Uint64(), err
+	case core.TX_CREATE_2_TRANSFER:
+		from, to, _, _, _, _, _, err := b.DecodeCreate2Transfer(tx.Data)
+		return from.Uint64(), to.Uint64(), err
+	case core.TX_MASS_MIGRATIONS:
+		from, _, _, _, _, _, err := b.DecodeMassMigrationTx(tx.Data)
+		return from.Uint64(), 0, err
+	default:
+		fmt.Println("TxType didnt match any options", tx.Type)
+		return 0, 0, errors.New("Did not match any options")
+	}
+}

@@ -64,9 +64,28 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+<<<<<<< HEAD
 	to, from, err := decodeTx(txMessageBytes, tx.Type)
+=======
+	from, _, nonceInTx, _, fee, err := decodeTx(tx.Message, tx.Type)
+>>>>>>> df98ac7... feat: update tx struct
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
+		return
+	}
+	fromState, err := dbI.GetStateByIndex(from)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
+		return
+	}
+	_, _, nonce, token, err := bazookaI.DecodeState(fromState.Data)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
+		return
+	}
+	if nonceInTx != nonce.Uint64()+1 {
+		WriteErrorResponse(w, http.StatusBadRequest, "Nonce invalid")
+		return
 	}
 	txSignatureBytes, err := hex.DecodeString(tx.Signature)
 	if err != nil {
@@ -75,20 +94,27 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create a new pending transaction
+<<<<<<< HEAD
 	userTx, err := core.NewPendingTx(from, to, core.TX_TRANSFER_TYPE, txSignatureBytes, txMessageBytes)
+=======
+	userTx, err := core.NewPendingTx(tx.Message, tx.Signature, nonceInTx, fee, token.Uint64(), tx.Type)
+>>>>>>> df98ac7... feat: update tx struct
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
 	}
 
 	// add the transaction to pool
 	err = dbI.InsertTx(&userTx)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
+		return
 	}
 
 	output, err := json.Marshal(coreTxToResponseTx(userTx))
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
+		return
 	}
 
 	// write headers and data
@@ -420,27 +446,27 @@ func userStateHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(output)
 }
 
-func decodeTx(tx []byte, txType uint64) (to, from uint64, err error) {
+func decodeTx(tx []byte, txType uint64) (from, to, nonce, amount, fee uint64, err error) {
 	switch txType {
 	case core.TX_TRANSFER_TYPE:
-		fromInt, toInt, _, _, _, _, err := bazookaI.DecodeTransferTx(tx)
+		fromInt, toInt, nonceInt, _, amountInt, feeInt, err := bazookaI.DecodeTransferTx(tx)
 		if err != nil {
-			return to, from, err
+			return from, to, nonce, amount, fee, err
 		}
-		return toInt.Uint64(), fromInt.Uint64(), nil
+		return fromInt.Uint64(), toInt.Uint64(), nonceInt.Uint64(), amountInt.Uint64(), feeInt.Uint64(), nil
 	case core.TX_CREATE_2_TRANSFER:
-		fromInt, _, _, _, _, _, err := bazookaI.DecodeCreate2TransferWithPub(tx)
+		fromInt, _, nonceInt, _, amountInt, feeInt, err := bazookaI.DecodeCreate2TransferWithPub(tx)
 		if err != nil {
-			return to, from, err
+			return from, to, nonce, amount, fee, err
 		}
-		return fromInt.Uint64(), 0, nil
+		return fromInt.Uint64(), 0, nonceInt.Uint64(), amountInt.Uint64(), feeInt.Uint64(), nil
 	case core.TX_MASS_MIGRATIONS:
-		fromInt, _, _, _, _, _, err := bazookaI.DecodeMassMigrationTx(tx)
+		fromInt, _, nonceInt, _, amountInt, feeInt, err := bazookaI.DecodeMassMigrationTx(tx)
 		if err != nil {
-			return to, from, err
+			return from, to, nonce, amount, fee, err
 		}
-		return fromInt.Uint64(), 0, nil
+		return fromInt.Uint64(), 0, nonceInt.Uint64(), amountInt.Uint64(), feeInt.Uint64(), nil
 	default:
-		return 0, 0, ErrInvalidTxType
+		return 0, 0, 0, 0, 0, ErrInvalidTxType
 	}
 }

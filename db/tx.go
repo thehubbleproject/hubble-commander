@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	// ErrBadSignature error bad signature
 	ErrBadSignature = errors.New("Invalid signature")
 )
 
@@ -33,6 +34,11 @@ func (DBI *DB) GetTxByHash(hash string) (*core.Tx, error) {
 		return &tx, err
 	}
 	return &tx, nil
+}
+
+// GetPendingNonce fetches the pending nonce for a particular state
+func (DBI *DB) GetPendingNonce(senderStateID uint64) (nonce uint64, err error) {
+	return 0, nil
 }
 
 // PopTxs pops tranasctions from the tx pool
@@ -100,12 +106,17 @@ func (DBI *DB) FetchTxType() (txType uint64, err error) {
 func getWitnessTranfer(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkleProof, toMerkleProof bazooka.StateMerkleProof, txDBConn DB, err error) {
 	dbCopy, _ := NewDB(bz.Cfg)
 
-	// fetch from state MP
-	err = DBI.fetchMPWithID(tx.From, &fromMerkleProof)
+	from, to, err := bz.FetchFromAndToStateIDs(tx)
 	if err != nil {
 		return
 	}
-	toState, err := DBI.GetStateByIndex(tx.To)
+
+	// fetch from state MP
+	err = DBI.fetchMPWithID(from, &fromMerkleProof)
+	if err != nil {
+		return
+	}
+	toState, err := DBI.GetStateByIndex(to)
 	if err != nil {
 		return
 	}
@@ -291,7 +302,11 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, txsPerCommitment []
 
 // checks transaction signature
 func authenticate(bz *bazooka.Bazooka, DBI *DB, tx *core.Tx) error {
-	fromState, err := DBI.GetStateByIndex(tx.From)
+	from, _, err := bz.FetchFromAndToStateIDs(*tx)
+	if err != nil {
+		return err
+	}
+	fromState, err := DBI.GetStateByIndex(from)
 	if err != nil {
 		return err
 	}
@@ -327,14 +342,18 @@ func authenticate(bz *bazooka.Bazooka, DBI *DB, tx *core.Tx) error {
 // returns an error is the signature is invalid
 func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte) error {
 	opts := bind.CallOpts{From: common.HexToAddress(b.Cfg.OperatorAddress)}
+
 	solPubkeySender, err := core.Pubkey(pubkeySender).ToSol()
 	if err != nil {
 		return err
 	}
+
+	// converts signature bytes to SolSignature
 	signature, err := core.BytesToSolSignature(tx.Signature)
 	if err != nil {
 		return err
 	}
+
 	switch tx.Type {
 	case core.TX_TRANSFER_TYPE:
 		ok, err := b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)

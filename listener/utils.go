@@ -55,7 +55,7 @@ func decompressTransfers(b bazooka.Bazooka, DBInstance db.DB, compressedTxs [][]
 				return transactions, txsPerCommitment, err
 			}
 
-			_, _, nonce, _, err := b.DecodeState(fromState.Data)
+			_, _, nonce, token, err := b.DecodeState(fromState.Data)
 			if err != nil {
 				return transactions, txsPerCommitment, err
 			}
@@ -64,7 +64,7 @@ func decompressTransfers(b bazooka.Bazooka, DBInstance db.DB, compressedTxs [][]
 			if err != nil {
 				return transactions, txsPerCommitment, err
 			}
-			newTx := core.NewTx(froms[i].Uint64(), tos[i].Uint64(), core.TX_TRANSFER_TYPE, nil, txData)
+			newTx := core.NewTx(txData, nil, nonce.Uint64(), fees[i].Uint64(), token.Uint64(), core.TX_TRANSFER_TYPE)
 			transactions = append(transactions, newTx)
 		}
 	}
@@ -84,7 +84,7 @@ func decompressCreate2Transfers(b bazooka.Bazooka, DBInstance db.DB, compressedT
 			if err != nil {
 				return transactions, txsPerCommitment, err
 			}
-			_, _, nonce, _, err := b.DecodeState(fromState.Data)
+			_, _, nonce, token, err := b.DecodeState(fromState.Data)
 			if err != nil {
 				return transactions, txsPerCommitment, err
 			}
@@ -93,7 +93,7 @@ func decompressCreate2Transfers(b bazooka.Bazooka, DBInstance db.DB, compressedT
 				return transactions, txsPerCommitment, err
 			}
 
-			newTx := core.NewTx(froms[i].Uint64(), tos[i].Uint64(), core.TX_CREATE_2_TRANSFER, nil, txData)
+			newTx := core.NewTx(txData, nil, nonce.Uint64(), fees[i].Uint64(), token.Uint64(), core.TX_CREATE_2_TRANSFER)
 			transactions = append(transactions, newTx)
 		}
 	}
@@ -113,7 +113,7 @@ func decompressMassMigrations(b bazooka.Bazooka, DBInstance db.DB, compressedTxs
 			if err != nil {
 				return transactions, txsPerCommitment, err
 			}
-			_, _, nonce, _, err := b.DecodeState(fromState.Data)
+			_, _, nonce, token, err := b.DecodeState(fromState.Data)
 			if err != nil {
 				return transactions, txsPerCommitment, err
 			}
@@ -121,7 +121,7 @@ func decompressMassMigrations(b bazooka.Bazooka, DBInstance db.DB, compressedTxs
 			if err != nil {
 				return transactions, txsPerCommitment, err
 			}
-			newTx := core.NewTx(froms[i].Uint64(), 0, core.TX_TRANSFER_TYPE, nil, txData)
+			newTx := core.NewTx(txData, nil, nonce.Uint64(), fees[i].Uint64(), token.Uint64(), core.TX_MASS_MIGRATIONS)
 			transactions = append(transactions, newTx)
 		}
 	}
