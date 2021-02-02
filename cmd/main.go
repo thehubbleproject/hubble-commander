@@ -150,10 +150,6 @@ func createDatabase() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP(FlagDatabaseName, "", "", "--dbname=<database-name>")
-	err := cmd.MarkFlagRequired(FlagDatabaseName)
-	if err != nil {
-		panic(err)
-	}
+	cmd.Flags().StringP(FlagDatabaseName, "", config.DATABASENAME, "--dbname=<database-name>")
 	return cmd
 }
