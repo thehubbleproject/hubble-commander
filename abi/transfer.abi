@@ -1,6 +1,5 @@
 [
   {
-    "constant": true,
     "inputs": [
       {
         "internalType": "uint256[2]",
@@ -85,12 +84,10 @@
         "type": "uint8"
       }
     ],
-    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [
       {
         "internalType": "bytes[]",
@@ -106,12 +103,10 @@
         "type": "bytes"
       }
     ],
-    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [
       {
         "internalType": "bytes",
@@ -159,12 +154,10 @@
         "type": "tuple"
       }
     ],
-    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [
       {
         "internalType": "bytes",
@@ -202,12 +195,10 @@
         "type": "tuple[]"
       }
     ],
-    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [
       {
         "components": [
@@ -255,12 +246,10 @@
         "type": "bytes"
       }
     ],
-    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [
       {
         "internalType": "bytes32",
@@ -369,12 +358,10 @@
         "type": "uint8"
       }
     ],
-    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [
       {
         "internalType": "bytes",
@@ -390,12 +377,10 @@
         "type": "bytes"
       }
     ],
-    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [
       {
         "internalType": "bytes",
@@ -419,13 +404,17 @@
       }
     ],
     "name": "validate",
-    "outputs": [],
-    "payable": false,
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [
       {
         "internalType": "bytes",
@@ -461,7 +450,6 @@
         "type": "uint8"
       }
     ],
-    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   }

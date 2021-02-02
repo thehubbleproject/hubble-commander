@@ -1,6 +1,5 @@
 [
   {
-    "constant": true,
     "inputs": [
       {
         "internalType": "bytes",
@@ -38,12 +37,10 @@
         "type": "tuple"
       }
     ],
-    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [
       {
         "components": [
@@ -81,7 +78,6 @@
         "type": "bytes"
       }
     ],
-    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   }

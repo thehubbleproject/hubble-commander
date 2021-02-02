@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/BOPR/bazooka"
@@ -9,6 +10,10 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/kilic/bn254/bls"
+)
+
+var (
+	ErrBadSignature = errors.New("Invalid signature")
 )
 
 // InsertTx inserts a transaction into the DB
@@ -237,6 +242,7 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, txsPerCommitment []
 		// if transaction validation errors out, add it to reverted txs list
 		// and skip rest of the loop
 		if err != nil {
+			DBI.Logger.Info("Reverting tx", "hash", tx.TxHash, "error", err)
 			// revertedTxs = append(revertedTxs, tx)
 			continue
 		}
@@ -331,9 +337,12 @@ func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 	}
 	switch tx.Type {
 	case core.TX_TRANSFER_TYPE:
-		err = b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
+		ok, err := b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
 		if err != nil {
 			return err
+		}
+		if !ok {
+			return ErrBadSignature
 		}
 	case core.TX_CREATE_2_TRANSFER:
 		_, _, toAccID, _, _, _, _, err := b.DecodeCreate2Transfer(tx.Data)
@@ -348,14 +357,20 @@ func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 		if err != nil {
 			return err
 		}
-		err = b.SC.Create2Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, solPubkeyReceiver, wallet.DefaultDomain)
+		ok, err := b.SC.Create2Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, solPubkeyReceiver, wallet.DefaultDomain)
 		if err != nil {
 			return err
 		}
+		if !ok {
+			return ErrBadSignature
+		}
 	case core.TX_MASS_MIGRATIONS:
-		err = b.SC.MassMigration.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
+		ok, err := b.SC.MassMigration.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
 		if err != nil {
 			return err
+		}
+		if !ok {
+			return ErrBadSignature
 		}
 	}
 	return nil
