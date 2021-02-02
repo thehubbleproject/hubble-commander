@@ -32,7 +32,7 @@ func (b *Bazooka) SubmitBatch(commitments []core.Commitment, accountRoot string)
 	)
 	if len(commitments) == 0 {
 		b.log.Info("No transactions to submit, waiting....")
-		return "", updatedCommitments, nil
+		return "", updatedCommitments, ErrNoTxs
 	}
 
 	var commitmentData []core.CommitmentData
