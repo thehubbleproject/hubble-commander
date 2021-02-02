@@ -15,13 +15,14 @@ import (
 )
 
 var (
-	AggregatingService  = "aggregator"
-	ErrIncorrectTxCount = errors.New("inaccurate number of transactions")
+	AggregatingService       = "aggregator"
+	ErrIncorrectTxCount      = errors.New("inaccurate number of transactions")
+	ErrNotEnoughTransactions = errors.New("not enough transactions")
 )
 
 // Aggregator is the service which is supposed to create batches
 // It has the following tasks:
-// 1. Pick txs from the mempool
+// 1. Pick txs from the mempoolinaccurate number of transactione
 // 2. Validate these trnsactions
 // 3. Update the DB post running each tx
 // 4. Finally create a batch of all the transactions and post on-chain
@@ -123,31 +124,36 @@ func (a *Aggregator) pickBatch() {
 func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 	a.Logger.Info("Processing new batch", "numberOfTxs", len(txs))
 
-	// Step-2
+	// process all transactions
 	commitments, err := a.processTxs(txs)
+	if err == ErrNotEnoughTransactions {
+		a.Logger.Info("Not enough transactions for a commitment")
+		return
+	}
 	if err != nil {
 		a.Logger.Error("Error processing tx", "error", err)
 		return
 	}
 
-	rootNode, err := a.DB.GetAccountRoot()
+	// fetch account tree root
+	accountTreeRoot, err := a.DB.GetAccountRootHash()
 	if err != nil {
 		a.Logger.Info("Error fetching account root", "error", err)
 		return
 	}
-	accountTreeRoot := rootNode.Hash
 
-	// Step-3
 	// Submit all commitments on-chain
-	txHash, commitments, err := a.Bazooka.SubmitBatch(commitments, accountTreeRoot)
+	txHash, commitments, err := a.Bazooka.SubmitBatch(commitments, accountTreeRoot.String())
 	if err != nil {
 		a.Logger.Error("Error while submitting batch", "error", err)
 		return
 	}
 
-	// Record batch locally
+	// last commitment
 	lastCommitment := commitments[len(commitments)-1]
-	newBatch := core.NewBatch(core.BytesToByteArray(lastCommitment.StateRoot).String(), a.cfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
+
+	// record batch locally
+	newBatch := core.NewBatch(a.cfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
 	batchID, err := a.DB.AddNewBatch(newBatch, commitments)
 	if err != nil {
 		a.Logger.Error("Error adding new batch", "error", err)
@@ -159,10 +165,18 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 
 func (a *Aggregator) processTxs(txs []core.Tx) (commitments []core.Commitment, err error) {
 	var txsInCommitment []int
+
+	if len(txs) < int(a.cfg.TxsPerCommitment) {
+		return commitments, ErrNotEnoughTransactions
+	}
+
+	// if number of transactions divisible into TxsPerCommitment batches
+	// allows sending smaller number of transactions
 	if len(txs)%int(a.cfg.TxsPerCommitment) != 0 {
 		return commitments, ErrIncorrectTxCount
 	}
 
+	// calculates number of transactions per commitment
 	for i := range txs {
 		if i%int(a.cfg.TxsPerCommitment) == 0 {
 			txsInCommitment = append(txsInCommitment, int(a.cfg.TxsPerCommitment))

@@ -30,13 +30,12 @@ func (b *Bazooka) SubmitBatch(commitments []core.Commitment, accountRoot string)
 		"NumOfCommitments",
 		len(commitments),
 	)
-
-	var commitmentData []core.CommitmentData
-
 	if len(commitments) == 0 {
 		b.log.Info("No transactions to submit, waiting....")
 		return "", updatedCommitments, nil
 	}
+
+	var commitmentData []core.CommitmentData
 
 	switch txType := commitments[0].BatchType; txType {
 	case core.TX_TRANSFER_TYPE:
@@ -63,9 +62,9 @@ func (b *Bazooka) SubmitBatch(commitments []core.Commitment, accountRoot string)
 		b.log.Error("Tx not indentified", "txType", commitments[0].BatchType)
 	}
 
+	// commit all commitments i.e attach body root info and state root info
 	for i := range commitments {
-		commitments[i].BodyRoot = commitmentData[i].BodyRoot
-		commitments[i].StateRoot = commitmentData[i].StateRoot
+		commitments[i].Commit(commitmentData[i].StateRoot, commitmentData[i].BodyRoot)
 	}
 
 	return txHash, commitments, nil
@@ -87,7 +86,6 @@ func (b *Bazooka) submitTransferBatch(commitments []core.Commitment, accountRoot
 	for _, commitment := range commitments {
 		compressedTxs, err := CompressTxs(b, commitment.Txs)
 		if err != nil {
-			b.log.Error("Unable to compress txs", "error", err)
 			return commitmentData, "", err
 		}
 		txs = append(txs, compressedTxs)
@@ -100,6 +98,7 @@ func (b *Bazooka) submitTransferBatch(commitments []core.Commitment, accountRoot
 		}
 		aggregatedSig = append(aggregatedSig, sig)
 	}
+
 	b.log.Info("Batch prepared", "totalTransactions", totalTxs)
 
 	rollupAddress := ethCmn.HexToAddress(b.Cfg.RollupAddress)
@@ -285,7 +284,6 @@ func (b *Bazooka) FireDepositFinalisation(TBreplaced core.UserState, siblings []
 		return err
 	}
 	pathAtDepth := core.StringToBigInt(TBreplaced.Path)
-
 	commitmentIP := rollup.TypesCommitmentInclusionProof{
 		Commitment: rollup.TypesCommitment{
 			StateRoot: core.BytesToByteArray(commitmentMP.Commitment.StateRoot), BodyRoot: core.BytesToByteArray(commitmentMP.Commitment.BodyRoot),

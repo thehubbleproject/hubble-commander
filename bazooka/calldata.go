@@ -35,6 +35,7 @@ func (c TransferCalldata) Pack(b Bazooka) (data []byte, err error) {
 func (c TransferCalldata) Commitments(accountRoot string) (commitmentDatas []core.CommitmentData, err error) {
 	for i := range c.StateRoots {
 		var transferCommitment core.TransferCommitment
+
 		transferCommitment.AccountRoot, err = core.HexToByteArray(accountRoot)
 		if err != nil {
 			return
@@ -49,7 +50,6 @@ func (c TransferCalldata) Commitments(accountRoot string) (commitmentDatas []cor
 		if inErr != nil {
 			return
 		}
-
 		commitmentDatas = append(commitmentDatas, *core.NewCommitmentData(c.StateRoots[i], bodyRoot))
 	}
 	return commitmentDatas, nil

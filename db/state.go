@@ -171,16 +171,6 @@ func (db *DB) GetStateByPath(path string) (core.UserState, error) {
 	return userState, nil
 }
 
-// GetRoot fetches the root of the state tree
-func (db *DB) GetRoot() (core.UserState, error) {
-	var state core.UserState
-	err := db.Instance.Scopes(QueryByType(core.TYPE_ROOT), QueryByDepth(0)).Find(&state).Error
-	if err != nil {
-		return state, core.ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v", err))
-	}
-	return state, nil
-}
-
 // updateState will simply replace all the changed fields
 func (db *DB) updateState(newState core.UserState, path string) error {
 	var state core.UserState
@@ -245,4 +235,23 @@ func (db *DB) FindEmptyAndReserve(depth int, accID uint64) (state core.UserState
 		return
 	}
 	return
+}
+
+// GetStateRoot fetches the root of the state tree
+func (db *DB) GetStateRoot() (core.UserState, error) {
+	var state core.UserState
+	err := db.Instance.Scopes(QueryByType(core.TYPE_ROOT), QueryByDepth(0)).Find(&state).Error
+	if err != nil {
+		return state, core.ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v", err))
+	}
+	return state, nil
+}
+
+// GetStateRootHash fetches the root hash of the state tree
+func (db *DB) GetStateRootHash() (core.ByteArray, error) {
+	state, err := db.GetStateRoot()
+	if err != nil {
+		return core.ByteArray{}, err
+	}
+	return core.HexToByteArray(state.Hash)
 }

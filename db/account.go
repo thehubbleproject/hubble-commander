@@ -54,15 +54,6 @@ func (db *DB) GetAccountLeafByID(ID uint64) (core.Account, error) {
 	return db.GetAccountLeafByPath(path)
 }
 
-func (db *DB) GetAccountRoot() (core.Account, error) {
-	var account core.Account
-	err := db.Instance.Scopes(QueryByType(core.TYPE_ROOT)).Find(&account).Error
-	if err != nil {
-		return account, core.ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v in core.Account tree", err))
-	}
-	return account, nil
-}
-
 // GetAccountSiblings fetches siblings for a node
 func (db *DB) GetAccountSiblings(path string) ([]core.Account, error) {
 	var relativePath = path
@@ -198,4 +189,21 @@ func (db *DB) updateAccountRootNodes(newRoot core.ByteArray) error {
 	tempAccountLeaf.Path = ""
 	tempAccountLeaf.Hash = newRoot.String()
 	return db.updateSingleAccount(tempAccountLeaf, tempAccountLeaf.Path)
+}
+
+func (db *DB) GetAccountRoot() (core.Account, error) {
+	var account core.Account
+	err := db.Instance.Scopes(QueryByType(core.TYPE_ROOT)).Find(&account).Error
+	if err != nil {
+		return account, core.ErrRecordNotFound(fmt.Sprintf("unable to find record. err:%v in core.Account tree", err))
+	}
+	return account, nil
+}
+
+func (db *DB) GetAccountRootHash() (core.ByteArray, error) {
+	rootAcc, err := db.GetAccountRoot()
+	if err != nil {
+		return core.ByteArray{}, err
+	}
+	return core.HexToByteArray(rootAcc.Hash)
 }

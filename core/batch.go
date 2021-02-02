@@ -1,10 +1,12 @@
 package core
 
 import (
+	"bytes"
 	"errors"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common/math"
 )
 
 var (
@@ -14,26 +16,17 @@ var (
 // Batch is the batches that need to be submitted on-chain periodically
 type Batch struct {
 	BatchID        uint64 `json:"batch_id,omitempty"`
-	StateRoot      string `json:"state_root,omitempty"`
 	Committer      string `json:"committer,omitempty"`
 	SubmissionHash string `json:"submission_hash,omitempty"`
 	BatchType      uint64 `json:"batch_type,omitempty"`
 	Status         uint64 `json:"status,omitempty"`
 }
 
-func NewBatch(stateRoot, committer, submissionHash string, batchType, status uint64) Batch {
-	return Batch{StateRoot: stateRoot, Committer: committer, SubmissionHash: submissionHash, BatchType: batchType, Status: status}
+func NewBatch(committer, submissionHash string, batchType, status uint64) Batch {
+	return Batch{Committer: committer, SubmissionHash: submissionHash, BatchType: batchType, Status: status}
 }
 
 type Commitments []Commitment
-
-func NewCommitments(commitments []Commitment, batchID uint64) Commitments {
-	for i, commitment := range commitments {
-		commitment.Offset = uint64(i)
-		commitment.BatchID = batchID
-	}
-	return commitments
-}
 
 type Commitment struct {
 	CommitmentData
@@ -47,20 +40,28 @@ type Commitment struct {
 	AggregatedSignature []byte `gorm:"-"`
 }
 
-func NewCommitment(batchID uint64, offset uint64, txs []Tx, batchType uint64, stateRoot, bodyRoot ByteArray, signature []byte) Commitment {
+func NewCommitment(txs []Tx, batchType uint64, stateRoot ByteArray, signature []byte) Commitment {
 	return Commitment{
 		CommitmentData: CommitmentData{
 			StateRoot: stateRoot[:],
-			BodyRoot:  bodyRoot[:],
 		},
-
-		BatchID:   batchID,
-		Offset:    offset,
-		BatchType: batchType,
-
+		BatchType:           batchType,
 		Txs:                 txs,
 		AggregatedSignature: signature,
 	}
+}
+
+// Commit adds state root and body root to the commitment
+func (c *Commitment) Commit(stateRoot, bodyRoot []byte) {
+	c.StateRoot = stateRoot
+	c.BodyRoot = bodyRoot
+}
+
+// AttachPostSubmissionInfo attaches batch ID and offset information to commitment
+// before its pushed to DB
+func (c *Commitment) AttachPostSubmissionInfo(batchID, offset uint64) {
+	c.BatchID = batchID
+	c.Offset = offset
 }
 
 // CommitmentData is the crutial information per commitment that needs to be stored
@@ -95,8 +96,8 @@ func (c CommitmentData) Bytes() ([]byte, error) {
 		},
 	}
 	data, err := arguments.Pack(
-		c.StateRoot,
-		c.BodyRoot,
+		BytesToByteArray(c.StateRoot),
+		BytesToByteArray(c.BodyRoot),
 	)
 	if err != nil {
 		return []byte(""), err
@@ -106,6 +107,7 @@ func (c CommitmentData) Bytes() ([]byte, error) {
 
 type TxCommitment interface {
 	Hash() (ByteArray, error)
+	Bytes() ([]byte, error)
 }
 
 type TransferCommitment struct {
@@ -120,47 +122,21 @@ type TransferBody struct {
 }
 
 func (t *TransferCommitment) Hash() (ByteArray, error) {
-	uint2Ty, err := abi.NewType("uint256[2]", "uint256[2]", nil)
+	data, err := t.Bytes()
 	if err != nil {
 		return ByteArray{}, err
 	}
-	bytesTy, err := abi.NewType("bytes", "bytes", nil)
-	if err != nil {
-		return ByteArray{}, err
-	}
-	bytes32Ty, err := abi.NewType("bytes32", "bytes32", nil)
-	if err != nil {
-		return ByteArray{}, err
-	}
-	uintTy, err := abi.NewType("uint256", "uint256", nil)
-	if err != nil {
-		return ByteArray{}, err
-	}
-	arguments := abi.Arguments{
-		{
-			Type: bytes32Ty,
-		},
-		{
-			Type: uint2Ty,
-		},
-		{
-			Type: uintTy,
-		},
-		{
-			Type: bytesTy,
-		},
-	}
-	data, err := arguments.Pack(
-		t.AccountRoot,
-		t.Signature,
-		t.FeeReceiver,
-		t.Txs,
-	)
-	if err != nil {
-		return ByteArray{}, err
-	}
-
 	return ByteArray(Keccak256(data)), nil
+}
+
+func (t *TransferCommitment) Bytes() ([]byte, error) {
+	accountRootBytes := t.AccountRoot[:]
+	signatureBytes, err := decodeUint256Array(t.Signature)
+	if err != nil {
+		return nil, err
+	}
+	feeReceiverBytes := math.U256Bytes(t.FeeReceiver)
+	return encodePacked(accountRootBytes, signatureBytes, feeReceiverBytes, t.Txs), nil
 }
 
 type Create2TransferCommitment struct {
@@ -175,47 +151,21 @@ type Create2TransferBody struct {
 }
 
 func (c *Create2TransferCommitment) Hash() (ByteArray, error) {
-	uint2Ty, err := abi.NewType("uint256[2]", "uint256[2]", nil)
+	data, err := c.Bytes()
 	if err != nil {
 		return ByteArray{}, err
 	}
-	bytesTy, err := abi.NewType("bytes", "bytes", nil)
-	if err != nil {
-		return ByteArray{}, err
-	}
-	bytes32Ty, err := abi.NewType("bytes32", "bytes32", nil)
-	if err != nil {
-		return ByteArray{}, err
-	}
-	uintTy, err := abi.NewType("uint256", "uint256", nil)
-	if err != nil {
-		return ByteArray{}, err
-	}
-	arguments := abi.Arguments{
-		{
-			Type: bytes32Ty,
-		},
-		{
-			Type: uint2Ty,
-		},
-		{
-			Type: uintTy,
-		},
-		{
-			Type: bytesTy,
-		},
-	}
-	data, err := arguments.Pack(
-		c.AccountRoot,
-		c.Signature,
-		c.FeeReceiver,
-		c.Txs,
-	)
-	if err != nil {
-		return ByteArray{}, err
-	}
-
 	return ByteArray(Keccak256(data)), nil
+}
+
+func (c *Create2TransferCommitment) Bytes() ([]byte, error) {
+	accountRootBytes := c.AccountRoot[:]
+	signatureBytes, err := decodeUint256Array(c.Signature)
+	if err != nil {
+		return nil, err
+	}
+	feeReceiverBytes := math.U256Bytes(c.FeeReceiver)
+	return encodePacked(accountRootBytes, signatureBytes, feeReceiverBytes, c.Txs), nil
 }
 
 type MassMigrationCommitment struct {
@@ -235,61 +185,36 @@ type MassMigrationBody struct {
 }
 
 func (m *MassMigrationCommitment) Hash() (ByteArray, error) {
-	uint2Ty, err := abi.NewType("uint256[2]", "uint256[2]", nil)
+	data, err := m.Bytes()
 	if err != nil {
 		return ByteArray{}, err
 	}
-	bytesTy, err := abi.NewType("bytes", "bytes", nil)
-	if err != nil {
-		return ByteArray{}, err
-	}
-	bytes32Ty, err := abi.NewType("bytes32", "bytes32", nil)
-	if err != nil {
-		return ByteArray{}, err
-	}
-	uintTy, err := abi.NewType("uint256", "uint256", nil)
-	if err != nil {
-		return ByteArray{}, err
-	}
-	arguments := abi.Arguments{
-		{
-			Type: bytes32Ty,
-		},
-		{
-			Type: uint2Ty,
-		},
-		{
-			Type: uintTy,
-		},
-		{
-			Type: bytes32Ty,
-		},
-		{
-			Type: uintTy,
-		},
-		{
-			Type: uintTy,
-		},
-		{
-			Type: uintTy,
-		},
-		{
-			Type: bytesTy,
-		},
-	}
-	data, err := arguments.Pack(
-		m.AccountRoot,
-		m.Signature,
-		m.SpokeID,
-		m.WithdrawRoot,
-		m.TokenID,
-		m.Amount,
-		m.FeeReceiver,
-		m.Txs,
-	)
-	if err != nil {
-		return ByteArray{}, err
-	}
-
 	return ByteArray(Keccak256(data)), nil
+}
+
+// Bytes converts mass migration to bytes
+func (m *MassMigrationCommitment) Bytes() ([]byte, error) {
+	accountRootBytes := m.AccountRoot[:]
+	signatureBytes, err := decodeUint256Array(m.Signature)
+	if err != nil {
+		return nil, err
+	}
+	spokeIDBytes := math.U256Bytes(m.SpokeID)
+	withdrawRootBytes := m.WithdrawRoot[:]
+	tokenIDBytes := math.U256Bytes(m.TokenID)
+	amountBytes := math.U256Bytes(m.Amount)
+	feeReceiverBytes := math.U256Bytes(m.FeeReceiver)
+	return encodePacked(accountRootBytes, signatureBytes, spokeIDBytes, withdrawRootBytes, tokenIDBytes, amountBytes, feeReceiverBytes, m.Txs), nil
+}
+
+func encodePacked(input ...[]byte) []byte {
+	return bytes.Join(input, nil)
+}
+
+func decodeUint256Array(arr [2]*big.Int) ([]byte, error) {
+	var output [][]byte
+	for _, elem := range arr {
+		output = append(output, math.U256Bytes(elem))
+	}
+	return bytes.Join(output, nil), nil
 }

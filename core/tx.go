@@ -94,7 +94,3 @@ func (tx *Tx) AssignHash() (err error) {
 func (tx *Tx) String() string {
 	return fmt.Sprintf("To: %v From: %v Status:%v Hash: %v Data: %v", tx.To, tx.From, tx.Status, tx.TxHash, hex.EncodeToString(tx.Data))
 }
-
-// func (tx *Tx) UpdateStatus(dbI db.DB, status uint64) error {
-// 	return dbI.Instance.Model(&tx).Update("status", status).Error
-// }

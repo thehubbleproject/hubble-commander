@@ -32,3 +32,13 @@ func QueryByHash(hash string) func(db *gorm.DB) *gorm.DB {
 		return db.Where("hash = ?", hash)
 	}
 }
+func QueryByTxHash(hash string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("tx_hash = ?", hash)
+	}
+}
+func QueryByBatchID(id uint64) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("batch_id = ?", id)
+	}
+}
