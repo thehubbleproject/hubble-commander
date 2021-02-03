@@ -38,16 +38,34 @@ func (DBI *DB) GetTxByHash(hash string) (*core.Tx, error) {
 }
 
 // GetPendingNonce fetches the pending nonce for a particular state
+// to be used by client to determine tx nonce
 func (DBI *DB) GetPendingNonce(senderStateID uint64) (nonce uint64, err error) {
+	// fetch nonce in state
+	state, err := DBI.GetStateByIndex(senderStateID)
+	if err != nil {
+		return
+	}
+
+	_, _, stateNonce, _, err := DBI.Bazooka.DecodeState(state.Data)
+	if err != nil {
+		return
+	}
+
 	// fetch all txs by a sender with status pending sorted by nonce
 	var latestTx core.Tx
 	err = DBI.Instance.Where(&core.Tx{Status: core.TX_STATUS_PENDING, From: senderStateID}).Order("nonce desc").First(&latestTx).Error
 	if gorm.IsRecordNotFoundError(err) {
-		return 0, nil
+		return stateNonce.Uint64(), nil
 	}
+
 	if err != nil {
 		return 0, err
 	}
+
+	if stateNonce.Uint64() > latestTx.Nonce {
+		return stateNonce.Uint64(), nil
+	}
+
 	return latestTx.Nonce, nil
 }
 
@@ -203,7 +221,7 @@ func ValidateAndApplyTx(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray
 
 	// if transaction is declared to be invalid we rollback the state updates made during merkle proof creation
 	if err != nil {
-		DBI.Logger.Debug("State validation of transaction complete", "status", "fail", "tx", tx.TxHash)
+		DBI.Logger.Debug("State validation of transaction complete", "status", "fail", "tx", tx.TxHash, "error", err)
 		if txDBConn.Instance != nil {
 			txDBConn.Instance.Rollback()
 			txDBConn.Close()

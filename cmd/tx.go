@@ -238,7 +238,7 @@ func validateAndTransfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toInde
 		return
 	}
 
-	_, bal, nonce, token, err := bazooka.DecodeState(from.Data)
+	_, bal, _, token, err := bazooka.DecodeState(from.Data)
 	if err != nil {
 		return
 	}
@@ -248,18 +248,16 @@ func validateAndTransfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toInde
 		return
 	}
 
-	fmt.Println("pending from state: ", pendingNonce)
-
 	if bal.Int64() <= int64(amount+fee) {
 		return "", ErrInvalidAmount
 	}
 
-	txData, err := bazooka.EncodeTransferTx(int64(fromIndex), int64(toIndex), int64(fee), nonce.Int64(), int64(amount), core.TX_TRANSFER_TYPE)
+	txData, err := bazooka.EncodeTransferTx(int64(fromIndex), int64(toIndex), int64(fee), int64(pendingNonce+1), int64(amount), core.TX_TRANSFER_TYPE)
 	if err != nil {
 		return
 	}
 
-	tx, err := core.NewPendingTx(txData, nil, fromIndex, nonce.Uint64(), 0, token.Uint64(), core.TX_TRANSFER_TYPE)
+	tx, err := core.NewPendingTx(txData, nil, fromIndex, pendingNonce+1, 0, token.Uint64(), core.TX_TRANSFER_TYPE)
 	if err != nil {
 		return
 	}
