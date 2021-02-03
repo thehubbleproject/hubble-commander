@@ -148,8 +148,6 @@ func getWitnessTranfer(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkleProof,
 	// apply the new from leaf
 	currentFromStateCopy := fromMerkleProof.State
 	currentFromStateCopy.Data = newFrom
-	fmt.Println("*** new from state ***")
-	bz.DecodeState(newFrom)
 	err = dbCopy.UpdateState(currentFromStateCopy)
 	if err != nil {
 		return

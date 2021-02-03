@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/BOPR/bazooka"
@@ -150,7 +149,7 @@ func (db *DB) MarkPacketDone(pubkey []byte) error {
 	if err != nil {
 		return err
 	}
-	_, _, nonce, token, err := db.Bazooka.DecodeState(fromState.Data)
+	_, _, _, token, err := db.Bazooka.DecodeState(fromState.Data)
 	if err != nil {
 		return err
 	}
@@ -165,7 +164,6 @@ func (db *DB) MarkPacketDone(pubkey []byte) error {
 		txType.Int64(),
 	)
 	if err != nil {
-		fmt.Println("error encoding", err)
 		return err
 	}
 
