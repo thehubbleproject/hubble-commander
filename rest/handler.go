@@ -62,7 +62,7 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	from, _, nonceInTx, _, fee, err := decodeTx(tx.Message, tx.Type)
+	from, _, nonceInTx, _, fee, err := decodeTx(txMessageBytes, tx.Type)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
 		return
@@ -88,7 +88,7 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create a new pending transaction
-	userTx, err := core.NewPendingTx(tx.Message, tx.Signature, from, nonceInTx, fee, token.Uint64(), tx.Type)
+	userTx, err := core.NewPendingTx(txMessageBytes, txSignatureBytes, from, nonceInTx, fee, token.Uint64(), tx.Type)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
