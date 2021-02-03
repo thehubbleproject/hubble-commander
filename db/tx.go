@@ -9,6 +9,7 @@ import (
 	"github.com/BOPR/wallet"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/jinzhu/gorm"
 	"github.com/kilic/bn254/bls"
 )
 
@@ -41,6 +42,9 @@ func (DBI *DB) GetPendingNonce(senderStateID uint64) (nonce uint64, err error) {
 	// fetch all txs by a sender with status pending sorted by nonce
 	var latestTx core.Tx
 	err = DBI.Instance.Where(&core.Tx{Status: core.TX_STATUS_PENDING, From: senderStateID}).Order("nonce desc").First(&latestTx).Error
+	if gorm.IsRecordNotFoundError(err) {
+		return 0, nil
+	}
 	if err != nil {
 		return 0, err
 	}
@@ -144,6 +148,8 @@ func getWitnessTranfer(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkleProof,
 	// apply the new from leaf
 	currentFromStateCopy := fromMerkleProof.State
 	currentFromStateCopy.Data = newFrom
+	fmt.Println("*** new from state ***")
+	bz.DecodeState(newFrom)
 	err = dbCopy.UpdateState(currentFromStateCopy)
 	if err != nil {
 		return
@@ -207,7 +213,7 @@ func ValidateAndApplyTx(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray
 		return
 	}
 
-	DBI.Logger.Debug("State validation of transaction complete", "status", "success", "tx", tx.TxHash)
+	DBI.Logger.Debug("State validation of transaction complete", "status", "success", "tx", tx.TxHash, "newRoot", newRoot)
 
 	// if we arent syncing, we need to authenticate the batch
 	// i.e we need to check signatures in the transactions

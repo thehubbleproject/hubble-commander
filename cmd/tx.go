@@ -243,6 +243,13 @@ func validateAndTransfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toInde
 		return
 	}
 
+	pendingNonce, err := DBI.GetPendingNonce(fromIndex)
+	if err != nil {
+		return
+	}
+
+	fmt.Println("pending from state: ", pendingNonce)
+
 	if bal.Int64() <= int64(amount+fee) {
 		return "", ErrInvalidAmount
 	}
