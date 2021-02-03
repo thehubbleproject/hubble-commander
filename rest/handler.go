@@ -29,7 +29,6 @@ type TxReceiver struct {
 }
 
 type ResponseTx struct {
-	To        uint64 `json:"to"`
 	From      uint64 `json:"from"`
 	Data      string `json:"data"`
 	Signature string `json:"sig" gorm:"null"`
@@ -40,7 +39,6 @@ type ResponseTx struct {
 
 func coreTxToResponseTx(_tx core.Tx) ResponseTx {
 	var resp ResponseTx
-	resp.To = _tx.To
 	resp.From = _tx.From
 	resp.Data = hex.EncodeToString(_tx.Data)
 	resp.Signature = hex.EncodeToString(_tx.Signature)
@@ -64,11 +62,7 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-<<<<<<< HEAD
-	to, from, err := decodeTx(txMessageBytes, tx.Type)
-=======
 	from, _, nonceInTx, _, fee, err := decodeTx(tx.Message, tx.Type)
->>>>>>> df98ac7... feat: update tx struct
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
 		return
@@ -94,11 +88,7 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create a new pending transaction
-<<<<<<< HEAD
-	userTx, err := core.NewPendingTx(from, to, core.TX_TRANSFER_TYPE, txSignatureBytes, txMessageBytes)
-=======
-	userTx, err := core.NewPendingTx(tx.Message, tx.Signature, nonceInTx, fee, token.Uint64(), tx.Type)
->>>>>>> df98ac7... feat: update tx struct
+	userTx, err := core.NewPendingTx(tx.Message, tx.Signature, from, nonceInTx, fee, token.Uint64(), tx.Type)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return

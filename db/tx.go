@@ -38,7 +38,13 @@ func (DBI *DB) GetTxByHash(hash string) (*core.Tx, error) {
 
 // GetPendingNonce fetches the pending nonce for a particular state
 func (DBI *DB) GetPendingNonce(senderStateID uint64) (nonce uint64, err error) {
-	return 0, nil
+	// fetch all txs by a sender with status pending sorted by nonce
+	var latestTx core.Tx
+	err = DBI.Instance.Where(&core.Tx{Status: core.TX_STATUS_PENDING, From: senderStateID}).Order("nonce desc").First(&latestTx).Error
+	if err != nil {
+		return 0, err
+	}
+	return latestTx.Nonce, nil
 }
 
 // PopTxs pops tranasctions from the tx pool

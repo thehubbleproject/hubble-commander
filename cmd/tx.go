@@ -193,7 +193,7 @@ func sendCreate2TransferTx() *cobra.Command {
 				return err
 			}
 
-			tx, err := core.NewPendingTx(txData, nil, nonce.Uint64(), 0, token.Uint64(), core.TX_CREATE_2_TRANSFER)
+			tx, err := core.NewPendingTx(txData, nil, fromIndex, nonce.Uint64(), 0, token.Uint64(), core.TX_CREATE_2_TRANSFER)
 			if err != nil {
 				return err
 			}
@@ -252,7 +252,7 @@ func validateAndTransfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toInde
 		return
 	}
 
-	tx, err := core.NewPendingTx(txData, nil, nonce.Uint64(), 0, token.Uint64(), core.TX_TRANSFER_TYPE)
+	tx, err := core.NewPendingTx(txData, nil, fromIndex, nonce.Uint64(), 0, token.Uint64(), core.TX_TRANSFER_TYPE)
 	if err != nil {
 		return
 	}

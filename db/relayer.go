@@ -169,7 +169,7 @@ func (db *DB) MarkPacketDone(pubkey []byte) error {
 		return err
 	}
 
-	tx, err := core.NewPendingTx(txData, rp.Signature, nonce.Uint64(), fee.Uint64(), token.Uint64(), txType.Uint64())
+	tx, err := core.NewPendingTx(txData, rp.Signature, fromIndex.Uint64(), nonce.Uint64(), fee.Uint64(), token.Uint64(), txType.Uint64())
 	if err != nil {
 		return err
 	}

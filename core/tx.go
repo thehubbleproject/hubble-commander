@@ -26,7 +26,8 @@ type Tx struct {
 	// tranasction meta data
 	Type uint64 `json:"type" gorm:"not null"`
 
-	// derived fields
+	// derived fields essentail for faster querying
+	From      uint64 `json:"from"`
 	Nonce     uint64 `json:"nonce"`
 	Fee       uint64 `json:"fee"`
 	TokenType uint64 `json:"token"`
@@ -48,9 +49,10 @@ func (tx *Tx) BeforeCreate(scope *gorm.Scope) error {
 }
 
 // NewTx creates a new transaction
-func NewTx(data, sig []byte, nonce, fee, token, txType uint64) Tx {
+func NewTx(data, sig []byte, from, nonce, fee, token, txType uint64) Tx {
 	return Tx{
 		Data:      data,
+		From:      from,
 		Nonce:     nonce,
 		Fee:       fee,
 		TokenType: token,
@@ -60,10 +62,11 @@ func NewTx(data, sig []byte, nonce, fee, token, txType uint64) Tx {
 }
 
 // NewPendingTx creates a new pending transaction
-func NewPendingTx(data, sig []byte, nonce, fee, token, txType uint64) (tx Tx, err error) {
+func NewPendingTx(data, sig []byte, from, nonce, fee, token, txType uint64) (tx Tx, err error) {
 	tx = Tx{
 		Data:      data,
 		Nonce:     nonce,
+		From:      from,
 		Fee:       fee,
 		TokenType: token,
 		Signature: sig,
