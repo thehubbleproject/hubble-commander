@@ -9,10 +9,12 @@ import (
 	"github.com/BOPR/wallet"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/jinzhu/gorm"
 	"github.com/kilic/bn254/bls"
 )
 
 var (
+	// ErrBadSignature error bad signature
 	ErrBadSignature = errors.New("Invalid signature")
 )
 
@@ -33,6 +35,38 @@ func (DBI *DB) GetTxByHash(hash string) (*core.Tx, error) {
 		return &tx, err
 	}
 	return &tx, nil
+}
+
+// GetPendingNonce fetches the pending nonce for a particular state
+// to be used by client to determine tx nonce
+func (DBI *DB) GetPendingNonce(senderStateID uint64) (nonce uint64, err error) {
+	// fetch nonce in state
+	state, err := DBI.GetStateByIndex(senderStateID)
+	if err != nil {
+		return
+	}
+
+	_, _, stateNonce, _, err := DBI.Bazooka.DecodeState(state.Data)
+	if err != nil {
+		return
+	}
+
+	// fetch all txs by a sender with status pending sorted by nonce
+	var latestTx core.Tx
+	err = DBI.Instance.Where(&core.Tx{Status: core.TX_STATUS_PENDING, From: senderStateID}).Order("nonce desc").First(&latestTx).Error
+	if gorm.IsRecordNotFoundError(err) {
+		return stateNonce.Uint64(), nil
+	}
+
+	if err != nil {
+		return 0, err
+	}
+
+	if stateNonce.Uint64() > latestTx.Nonce {
+		return stateNonce.Uint64(), nil
+	}
+
+	return latestTx.Nonce, nil
 }
 
 // PopTxs pops tranasctions from the tx pool
@@ -100,12 +134,17 @@ func (DBI *DB) FetchTxType() (txType uint64, err error) {
 func getWitnessTranfer(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkleProof, toMerkleProof bazooka.StateMerkleProof, txDBConn DB, err error) {
 	dbCopy, _ := NewDB(bz.Cfg)
 
-	// fetch from state MP
-	err = DBI.fetchMPWithID(tx.From, &fromMerkleProof)
+	from, to, err := bz.FetchFromAndToStateIDs(tx)
 	if err != nil {
 		return
 	}
-	toState, err := DBI.GetStateByIndex(tx.To)
+
+	// fetch from state MP
+	err = DBI.fetchMPWithID(from, &fromMerkleProof)
+	if err != nil {
+		return
+	}
+	toState, err := DBI.GetStateByIndex(to)
 	if err != nil {
 		return
 	}
@@ -149,6 +188,46 @@ func getWitnessTranfer(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkleProof,
 	return fromMerkleProof, toMerkleProof, dbCopy, nil
 }
 
+// getWitnessMassMigration fetches the witness for transfer mass migrations
+// amongst other thins it also returns a DB transaction handler that can be used to rollback changes made to state tree while creating witness
+func getWitnessMassMigration(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkleProof, toMerkleProof bazooka.StateMerkleProof, txDBConn DB, err error) {
+	dbCopy, _ := NewDB(bz.Cfg)
+
+	from, _, err := bz.FetchFromAndToStateIDs(tx)
+	if err != nil {
+		return
+	}
+
+	// fetch from state MP
+	err = DBI.fetchMPWithID(from, &fromMerkleProof)
+	if err != nil {
+		return
+	}
+
+	newFrom, _, err := bazooka.ApplyTx(bz, fromMerkleProof.State.Data, []byte(""), tx)
+	if err != nil {
+		return
+	}
+
+	mysqlTx := dbCopy.Instance.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			mysqlTx.Rollback()
+		}
+	}()
+	dbCopy.Instance = mysqlTx
+
+	// apply the new from leaf
+	currentFromStateCopy := fromMerkleProof.State
+	currentFromStateCopy.Data = newFrom
+	err = dbCopy.UpdateState(currentFromStateCopy)
+	if err != nil {
+		return
+	}
+
+	return fromMerkleProof, toMerkleProof, dbCopy, nil
+}
+
 // GetVerificationDataAndApply fetches all the proofs required to prove validity for a transaction and also applies the transaction
 // on the respective states
 func GetVerificationDataAndApply(bz bazooka.Bazooka, DBI *DB, tx *core.Tx) (fromMerkleProof, toMerkleProof bazooka.StateMerkleProof, txDBConn DB, err error) {
@@ -158,7 +237,7 @@ func GetVerificationDataAndApply(bz bazooka.Bazooka, DBI *DB, tx *core.Tx) (from
 	case core.TX_CREATE_2_TRANSFER:
 		return getWitnessTranfer(bz, *DBI, *tx)
 	case core.TX_MASS_MIGRATIONS:
-		return getWitnessTranfer(bz, *DBI, *tx)
+		return getWitnessMassMigration(bz, *DBI, *tx)
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return
@@ -182,7 +261,7 @@ func ValidateAndApplyTx(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray
 
 	// if transaction is declared to be invalid we rollback the state updates made during merkle proof creation
 	if err != nil {
-		DBI.Logger.Debug("State validation of transaction complete", "status", "fail", "tx", tx.TxHash)
+		DBI.Logger.Debug("State validation of transaction complete", "status", "fail", "tx", tx.TxHash, "error", err)
 		if txDBConn.Instance != nil {
 			txDBConn.Instance.Rollback()
 			txDBConn.Close()
@@ -190,7 +269,7 @@ func ValidateAndApplyTx(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray
 		return
 	}
 
-	DBI.Logger.Debug("State validation of transaction complete", "status", "success", "tx", tx.TxHash)
+	DBI.Logger.Debug("State validation of transaction complete", "status", "success", "tx", tx.TxHash, "newRoot", newRoot)
 
 	// if we arent syncing, we need to authenticate the batch
 	// i.e we need to check signatures in the transactions
@@ -291,7 +370,11 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, txsPerCommitment []
 
 // checks transaction signature
 func authenticate(bz *bazooka.Bazooka, DBI *DB, tx *core.Tx) error {
-	fromState, err := DBI.GetStateByIndex(tx.From)
+	from, _, err := bz.FetchFromAndToStateIDs(*tx)
+	if err != nil {
+		return err
+	}
+	fromState, err := DBI.GetStateByIndex(from)
 	if err != nil {
 		return err
 	}
@@ -327,14 +410,18 @@ func authenticate(bz *bazooka.Bazooka, DBI *DB, tx *core.Tx) error {
 // returns an error is the signature is invalid
 func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte) error {
 	opts := bind.CallOpts{From: common.HexToAddress(b.Cfg.OperatorAddress)}
+
 	solPubkeySender, err := core.Pubkey(pubkeySender).ToSol()
 	if err != nil {
 		return err
 	}
+
+	// converts signature bytes to SolSignature
 	signature, err := core.BytesToSolSignature(tx.Signature)
 	if err != nil {
 		return err
 	}
+
 	switch tx.Type {
 	case core.TX_TRANSFER_TYPE:
 		ok, err := b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
