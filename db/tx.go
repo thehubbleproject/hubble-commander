@@ -188,6 +188,46 @@ func getWitnessTranfer(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkleProof,
 	return fromMerkleProof, toMerkleProof, dbCopy, nil
 }
 
+// getWitnessMassMigration fetches the witness for transfer mass migrations
+// amongst other thins it also returns a DB transaction handler that can be used to rollback changes made to state tree while creating witness
+func getWitnessMassMigration(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkleProof, toMerkleProof bazooka.StateMerkleProof, txDBConn DB, err error) {
+	dbCopy, _ := NewDB(bz.Cfg)
+
+	from, _, err := bz.FetchFromAndToStateIDs(tx)
+	if err != nil {
+		return
+	}
+
+	// fetch from state MP
+	err = DBI.fetchMPWithID(from, &fromMerkleProof)
+	if err != nil {
+		return
+	}
+
+	newFrom, _, err := bazooka.ApplyTx(bz, fromMerkleProof.State.Data, []byte(""), tx)
+	if err != nil {
+		return
+	}
+
+	mysqlTx := dbCopy.Instance.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			mysqlTx.Rollback()
+		}
+	}()
+	dbCopy.Instance = mysqlTx
+
+	// apply the new from leaf
+	currentFromStateCopy := fromMerkleProof.State
+	currentFromStateCopy.Data = newFrom
+	err = dbCopy.UpdateState(currentFromStateCopy)
+	if err != nil {
+		return
+	}
+
+	return fromMerkleProof, toMerkleProof, dbCopy, nil
+}
+
 // GetVerificationDataAndApply fetches all the proofs required to prove validity for a transaction and also applies the transaction
 // on the respective states
 func GetVerificationDataAndApply(bz bazooka.Bazooka, DBI *DB, tx *core.Tx) (fromMerkleProof, toMerkleProof bazooka.StateMerkleProof, txDBConn DB, err error) {
@@ -197,7 +237,7 @@ func GetVerificationDataAndApply(bz bazooka.Bazooka, DBI *DB, tx *core.Tx) (from
 	case core.TX_CREATE_2_TRANSFER:
 		return getWitnessTranfer(bz, *DBI, *tx)
 	case core.TX_MASS_MIGRATIONS:
-		return getWitnessTranfer(bz, *DBI, *tx)
+		return getWitnessMassMigration(bz, *DBI, *tx)
 	default:
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return
