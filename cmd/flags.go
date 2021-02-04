@@ -2,7 +2,6 @@ package main
 
 const (
 	FlagFromID       = "from"
-	FlagUsers        = "users"
 	FlagToPubkey     = "to-pub"
 	FlagToID         = "to"
 	FlagStateID      = "id"
