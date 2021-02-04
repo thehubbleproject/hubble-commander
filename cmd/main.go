@@ -67,8 +67,8 @@ func main() {
 
 	executor := Executor{rootCmd, os.Exit}
 	if err = executor.Command.Execute(); err != nil {
-		fmt.Println("Error while executing command", err)
-		return
+		fmt.Fprintln(os.Stderr, "Error while executing command", err)
+		os.Exit(1)
 	}
 }
 
@@ -147,10 +147,6 @@ func createDatabase() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP(FlagDatabaseName, "", "", "--dbname=<database-name>")
-	err := cmd.MarkFlagRequired(FlagDatabaseName)
-	if err != nil {
-		panic(err)
-	}
+	cmd.Flags().StringP(FlagDatabaseName, "", config.DATABASENAME, "--dbname=<database-name>")
 	return cmd
 }

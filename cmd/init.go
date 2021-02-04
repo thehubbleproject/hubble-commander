@@ -1,12 +1,16 @@
 package main
 
 import (
-	"encoding/hex"
+	"fmt"
 	"strconv"
 
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/spf13/cobra"
+)
+
+const (
+	defaultGenesisPath = ".contracts/genesis.json"
 )
 
 // initCmd generated init command to initialise the config file
@@ -16,12 +20,6 @@ func initCmd() *cobra.Command {
 		Short: "Initialises Configration for BOPR",
 		Run: func(cmd *cobra.Command, args []string) {
 			defaultConfig := config.GetDefaultConfig()
-			operatorKey, err := config.GenOperatorKey()
-			common.PanicIfError(err)
-			defaultConfig.OperatorKey = hex.EncodeToString(operatorKey)
-			address, err := config.PrivKeyStringToAddress(hex.EncodeToString(operatorKey))
-			common.PanicIfError(err)
-			defaultConfig.OperatorAddress = address.String()
 			config.WriteConfigFile("./config.toml", &defaultConfig)
 		},
 	}
@@ -34,7 +32,15 @@ func configureGenesisCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			cfg, err := config.ParseConfig()
 			common.PanicIfError(err)
-			genesis, err := config.ReadGenesisFile(args[0])
+			path := ""
+			if len(args) == 0 {
+				path = defaultGenesisPath
+			} else {
+				path = args[0]
+			}
+			fmt.Printf("Loading genesis from %s\n", path)
+
+			genesis, err := config.ReadGenesisFile(path)
 			common.PanicIfError(err)
 
 			common.PanicIfError(genesis.Validate())
