@@ -51,6 +51,7 @@ func main() {
 	rootCmd.AddCommand(configureGenesisCmd())
 	rootCmd.AddCommand(startCmd())
 	rootCmd.AddCommand(startRestServerCmd())
+	rootCmd.AddCommand(startSimulator())
 	rootCmd.AddCommand(sendTransferTx())
 	rootCmd.AddCommand(sendCreate2TransferTx())
 	rootCmd.AddCommand(createDatabase())
@@ -87,7 +88,7 @@ func createUsers() *cobra.Command {
 		Use:   "create-users",
 		Short: "Create users to be used in simulations",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			userCount, err := cmd.Flags().GetInt(FlagDatabaseName)
+			userCount, err := cmd.Flags().GetInt(FlagUserCount)
 			if err != nil {
 				return err
 			}
