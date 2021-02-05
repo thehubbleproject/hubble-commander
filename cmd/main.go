@@ -91,9 +91,14 @@ func createUsers() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			cfg, err := config.ParseConfig()
+			if err != nil {
+				return err
+			}
+
 			var users []User
 			for i := 0; i < userCount; i++ {
-				newWallet, err := wallet.NewWallet()
+				newWallet, err := wallet.NewWallet(cfg.AppID)
 				if err != nil {
 					return err
 				}

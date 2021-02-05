@@ -66,7 +66,8 @@ type Configuration struct {
 	MaxDepositSubtree uint64 `mapstructure:"max_deposit_subtree"`
 	StakeAmount       uint64 `mapstructure:"stake_amount"`
 
-	GenesisEth1Block uint64 `mapstructure:"genesis_eth1_block"`
+	GenesisEth1Block uint64   `mapstructure:"genesis_eth1_block"`
+	AppID            [32]byte `mapstructure:"app_id"`
 }
 
 // GetDefaultConfig returns the default configration options
@@ -101,6 +102,7 @@ func GetDefaultConfig() Configuration {
 		StakeAmount:       32,
 
 		GenesisEth1Block: 0,
+		AppID:            [32]byte{},
 	}
 }
 

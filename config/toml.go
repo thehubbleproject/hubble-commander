@@ -53,6 +53,7 @@ create2transfer_address = "{{ .Create2Transfer }}"
 max_tree_depth = "{{ .MaxTreeDepth }}"
 max_deposit_subtree = "{{ .MaxDepositSubtree }}"
 stake_amount = "{{ .StakeAmount }}"
+app_id = "{{ .AppID }}"
 
 ### Protocol Auxiliary Values
 genesis_eth1_block = "{{ .GenesisEth1Block }}"

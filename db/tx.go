@@ -424,7 +424,7 @@ func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 
 	switch tx.Type {
 	case core.TX_TRANSFER_TYPE:
-		ok, err := b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
+		ok, err := b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, b.Cfg.AppID)
 		if err != nil {
 			return err
 		}
@@ -444,7 +444,7 @@ func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 		if err != nil {
 			return err
 		}
-		ok, err := b.SC.Create2Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, solPubkeyReceiver, wallet.DefaultDomain)
+		ok, err := b.SC.Create2Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, solPubkeyReceiver, b.Cfg.AppID)
 		if err != nil {
 			return err
 		}
@@ -452,7 +452,7 @@ func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 			return ErrBadSignature
 		}
 	case core.TX_MASS_MIGRATIONS:
-		ok, err := b.SC.MassMigration.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
+		ok, err := b.SC.MassMigration.Validate(&opts, tx.Data, signature, solPubkeySender, b.Cfg.AppID)
 		if err != nil {
 			return err
 		}

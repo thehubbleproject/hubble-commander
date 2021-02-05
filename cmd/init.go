@@ -6,6 +6,7 @@ import (
 
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
+	"github.com/BOPR/core"
 	"github.com/spf13/cobra"
 )
 
@@ -62,6 +63,7 @@ func configureGenesisCmd() *cobra.Command {
 			stakeAmount, err := strconv.Atoi(genesis.Parameters.STAKEAMOUNT)
 			common.PanicIfError(err)
 			cfg.StakeAmount = uint64(stakeAmount)
+			cfg.AppID = core.BytesToByteArray([]byte(genesis.Auxiliary.Domain))
 			config.WriteConfigFile("./config.toml", &cfg)
 		},
 	}
