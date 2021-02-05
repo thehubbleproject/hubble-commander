@@ -28,6 +28,12 @@ func HexToByteArray(a string) (b ByteArray, err error) {
 	return BytesToByteArray(bz), nil
 }
 
+func StringToByteArray(s string) (b ByteArray) {
+	var temp [32]byte
+	copy(temp[:], []byte(s))
+	return temp
+}
+
 // BytesToByteArray converts bytes to byte array
 func BytesToByteArray(bz []byte) ByteArray {
 	var temp [32]byte

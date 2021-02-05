@@ -62,7 +62,7 @@ func sendTransferTx() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			wallet, err := wallet.SecretToWallet(privKeyBytes, pubkeyBytes, cfg.AppID)
+			wallet, err := wallet.SecretToWallet(privKeyBytes, pubkeyBytes, core.StringToByteArray(cfg.AppID))
 			if err != nil {
 				return err
 			}
@@ -173,7 +173,7 @@ func sendCreate2TransferTx() *cobra.Command {
 				return err
 			}
 
-			wallet, err := wallet.SecretToWallet(privKeyBytes, pubkeyBytes, cfg.AppID)
+			wallet, err := wallet.SecretToWallet(privKeyBytes, pubkeyBytes, core.StringToByteArray(cfg.AppID))
 			if err != nil {
 				return err
 			}
@@ -274,7 +274,7 @@ func signAndBroadcast(b *bazooka.Bazooka, DBI *db.DB, tx core.Tx, priv, pub []by
 		return
 	}
 
-	err = tx.SignTx(priv, pub, txBytes, b.Cfg.AppID)
+	err = tx.SignTx(priv, pub, txBytes, core.StringToByteArray(b.Cfg.AppID))
 	if err != nil {
 		return
 	}

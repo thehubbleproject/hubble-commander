@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/BOPR/config"
+	"github.com/BOPR/core"
 	"github.com/BOPR/wallet"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -98,7 +99,7 @@ func createUsers() *cobra.Command {
 
 			var users []User
 			for i := 0; i < userCount; i++ {
-				newWallet, err := wallet.NewWallet(cfg.AppID)
+				newWallet, err := wallet.NewWallet(core.StringToByteArray(cfg.AppID))
 				if err != nil {
 					return err
 				}
