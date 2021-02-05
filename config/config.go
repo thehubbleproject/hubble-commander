@@ -67,6 +67,7 @@ type Configuration struct {
 	StakeAmount       uint64 `mapstructure:"stake_amount"`
 
 	GenesisEth1Block uint64 `mapstructure:"genesis_eth1_block"`
+	AppID            string `mapstructure:"app_id"`
 }
 
 // GetDefaultConfig returns the default configration options
@@ -101,6 +102,7 @@ func GetDefaultConfig() Configuration {
 		StakeAmount:       32,
 
 		GenesisEth1Block: 0,
+		AppID:            "",
 	}
 }
 

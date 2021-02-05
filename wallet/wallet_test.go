@@ -10,7 +10,7 @@ import (
 )
 
 func TestSignAndVerify(t *testing.T) {
-	wallet, err := NewWallet()
+	wallet, err := NewWallet(DefaultDomain)
 	require.Equal(t, err, nil, "error creating wallet")
 	signBytes := []byte("0x123222")
 	signature, err := wallet.Sign(signBytes)
@@ -28,7 +28,7 @@ func TestVerifyAggregated(t *testing.T) {
 	messages := make([]blswallet.Message, signerSize)
 	signatures := make([]*blswallet.Signature, signerSize)
 	for i := 0; i < signerSize; i++ {
-		wallet, err := NewWallet()
+		wallet, err := NewWallet(DefaultDomain)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -47,7 +47,7 @@ func TestVerifyAggregated(t *testing.T) {
 		panic(err)
 	}
 	fmt.Println("aggregated sig", hex.EncodeToString(aggregatedSignature.ToBytes()), hex.EncodeToString(aggregatedSignatureWallet.ToBytes()))
-	verified, err := VerifyAggregatedSignature(messages, publicKeys, aggregatedSignatureWallet)
+	verified, err := VerifyAggregatedSignature(messages, publicKeys, aggregatedSignatureWallet, DefaultDomain)
 	if err != nil {
 		t.Fatal(err)
 	}

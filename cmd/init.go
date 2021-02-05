@@ -62,6 +62,7 @@ func configureGenesisCmd() *cobra.Command {
 			stakeAmount, err := strconv.Atoi(genesis.Parameters.STAKEAMOUNT)
 			common.PanicIfError(err)
 			cfg.StakeAmount = uint64(stakeAmount)
+			cfg.AppID = (genesis.Auxiliary.Domain)
 			config.WriteConfigFile("./config.toml", &cfg)
 		},
 	}
