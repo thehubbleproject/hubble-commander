@@ -460,3 +460,39 @@ func decodeTx(tx []byte, txType uint64) (from, to, nonce, amount, fee uint64, er
 		return 0, 0, 0, 0, 0, ErrInvalidTxType
 	}
 }
+
+type estimateNonceResp struct {
+	StateID uint64
+	Nonce   uint64
+}
+
+func estimateNonceHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params[KeyID]
+
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
+		return
+	}
+
+	pendingNonce, err := dbI.GetPendingNonce(uint64(idInt))
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable to estimate nonce")
+		return
+	}
+
+	var resp estimateNonceResp
+	resp.StateID = uint64(idInt)
+	resp.Nonce = pendingNonce
+
+	output, err := json.Marshal(resp)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
+		return
+	}
+
+	// write headers and data
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(output)
+}
