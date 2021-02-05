@@ -102,7 +102,7 @@ func GetDefaultConfig() Configuration {
 		StakeAmount:       32,
 
 		GenesisEth1Block: 0,
-		AppID:            [32]byte{},
+		AppID:            ethCmn.HexToHash(""),
 	}
 }
 
