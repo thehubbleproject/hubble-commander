@@ -12,6 +12,7 @@ type Calldata interface {
 	Pack(b Bazooka) (data []byte, err error)
 	Commitments(accountRoot string) ([]core.CommitmentData, error)
 	Method() string
+	LastStateRoot() core.ByteArray
 }
 
 // TransferCalldata implements Calldata and is used by TxType Transfer
@@ -59,6 +60,11 @@ func (c TransferCalldata) Method() string {
 	return SubmitTransferMethod
 }
 
+// LastStateRoot returns the last state root in the calldata
+func (c TransferCalldata) LastStateRoot() core.ByteArray {
+	return c.StateRoots[len(c.StateRoots)-1]
+}
+
 type Create2TransferCalldata struct {
 	Txss         [][]byte
 	StateRoots   [][32]byte
@@ -100,6 +106,11 @@ func (c Create2TransferCalldata) Commitments(accountRoot string) (commitmentData
 
 func (c Create2TransferCalldata) Method() string {
 	return SubmitCreate2TransferMethod
+}
+
+// LastStateRoot returns the last state root in the calldata
+func (c Create2TransferCalldata) LastStateRoot() core.ByteArray {
+	return c.StateRoots[len(c.StateRoots)-1]
 }
 
 type MassMigrationCalldata struct {
@@ -149,6 +160,11 @@ func (c MassMigrationCalldata) Commitments(accountRoot string) (commitmentDatas 
 
 func (c MassMigrationCalldata) Method() string {
 	return SubmitMassMigrationMethod
+}
+
+// LastStateRoot returns the last state root in the calldata
+func (c MassMigrationCalldata) LastStateRoot() core.ByteArray {
+	return c.StateRoots[len(c.StateRoots)-1]
 }
 
 func (b *Bazooka) UnpackBatchCalldata(method string, data []byte) (calldata Calldata, err error) {

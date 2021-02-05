@@ -58,34 +58,31 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	txMessageBytes, err := hex.DecodeString(tx.Message)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Cannot decode message")
+		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	from, _, nonceInTx, _, fee, err := decodeTx(txMessageBytes, tx.Type)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
+		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	fromState, err := dbI.GetStateByIndex(from)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
+		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	_, _, nonce, token, err := bazookaI.DecodeState(fromState.Data)
+	_, _, _, token, err := bazookaI.DecodeState(fromState.Data)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
+		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if nonceInTx != nonce.Uint64()+1 {
-		WriteErrorResponse(w, http.StatusBadRequest, "Nonce invalid")
-		return
-	}
-	txSignatureBytes, err := hex.DecodeString(tx.Signature)
-	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Cannot decode signature")
-		return
-	}
+	// if nonceInTx != nonce.Uint64()+1 {
+	// 	WriteErrorResponse(w, http.StatusBadRequest, "Nonce invalid")
+	// 	return
+	// }
+	txSignatureBytes := []byte(tx.Signature)
+	fmt.Println("signature length", len(txSignatureBytes))
 
 	// create a new pending transaction
 	userTx, err := core.NewPendingTx(txMessageBytes, txSignatureBytes, from, nonceInTx, fee, token.Uint64(), tx.Type)
@@ -97,13 +94,13 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 	// add the transaction to pool
 	err = dbI.InsertTx(&userTx)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
+		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	output, err := json.Marshal(coreTxToResponseTx(userTx))
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
+		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
