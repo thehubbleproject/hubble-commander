@@ -59,8 +59,9 @@ type Configuration struct {
 	MassMigration   string `mapstructure:"mass_migration_address"`
 	Create2Transfer string `mapstructure:"create2transfer_address"`
 
-	OperatorKey     string `mapstructure:"operator_key"`
-	OperatorAddress string `mapstructure:"operator_address"`
+	OperatorKey        string `mapstructure:"operator_key"`
+	OperatorAddress    string `mapstructure:"operator_address"`
+	KeystorePassphrase string `mapstructure:"keystore_passphrase"`
 
 	MaxTreeDepth      uint64 `mapstructure:"max_tree_depth"`
 	MaxDepositSubtree uint64 `mapstructure:"max_deposit_subtree"`
@@ -94,8 +95,9 @@ func GetDefaultConfig() Configuration {
 		Create2Transfer:        ethCmn.Address{}.String(),
 
 		// Default Account #0 from hardhat. DO NOT USE IN PRODUCTION
-		OperatorKey:     "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-		OperatorAddress: "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+		OperatorKey:        "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+		OperatorAddress:    "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+		KeystorePassphrase: "",
 
 		MaxTreeDepth:      32,
 		MaxDepositSubtree: 1,
