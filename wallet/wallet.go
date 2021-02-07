@@ -33,9 +33,8 @@ func (w *Wallet) Bytes() (secretKey []byte, pubkey []byte) {
 	return secretBytes, pubkeyBytes
 }
 
-func SecretToWallet(secretKey []byte, pubkey []byte, domain [32]byte) (wallet Wallet, err error) {
-	in := append(pubkey, secretKey...)
-	keyPair, err := blswallet.NewKeyPairFromBytes(in)
+func SecretToWallet(secretKey []byte, domain [32]byte) (wallet Wallet, err error) {
+	keyPair, err := blswallet.NewKeyPairFromSecret(secretKey)
 	if err != nil {
 		return
 	}
