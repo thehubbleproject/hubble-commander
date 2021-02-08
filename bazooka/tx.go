@@ -425,3 +425,7 @@ func (b *Bazooka) Deposit(pubkey [4]*big.Int, tokenID uint64, amount uint64) (tx
 	}
 	return tx.Hash().String(), nil
 }
+
+func (b *Bazooka) Big() {
+
+}

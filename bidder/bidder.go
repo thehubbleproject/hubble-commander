@@ -95,3 +95,12 @@ func (bi *Bidder) startBidding(ctx context.Context, interval time.Duration) {
 		}
 	}
 }
+
+// ShouldPropose checks whether we should propose or not
+func (bi *Bidder) ShouldPropose() {
+
+	// check the current bidable slot
+
+	// check if the bid is below our bid
+
+}
