@@ -5,3 +5,4 @@ config.toml
 batches.json
 users.json
 genesis.json
+.keystore

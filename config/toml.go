@@ -27,6 +27,7 @@ max_commitments_per_batch = "{{ .MaxCommitmentsPerBatch }}"
 #### Keystore #####
 operator_key = "{{ .OperatorKey }}"
 operator_address = "{{ .OperatorAddress }}"
+keystore_passphrase = "{{ .KeystorePassphrase }}"
 
 #### Syncer settings #####
 confirmation_blocks = "{{ .ConfirmationBlocks }}"
