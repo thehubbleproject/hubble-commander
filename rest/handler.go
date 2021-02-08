@@ -48,7 +48,7 @@ func coreTxToResponseTx(_tx core.Tx) ResponseTx {
 	return resp
 }
 
-// TxReceiverHandler handles user txs
+// TxHandler handles user txs
 func TxHandler(w http.ResponseWriter, r *http.Request) {
 	// receive the payload and read
 	var tx TxReceiver
@@ -81,7 +81,11 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 	// 	WriteErrorResponse(w, http.StatusBadRequest, "Nonce invalid")
 	// 	return
 	// }
-	txSignatureBytes := []byte(tx.Signature)
+	txSignatureBytes, err := hex.DecodeString(tx.Signature)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
 	fmt.Println("signature length", len(txSignatureBytes))
 
 	// create a new pending transaction
