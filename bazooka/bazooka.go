@@ -15,6 +15,7 @@ import (
 	tmLog "github.com/tendermint/tendermint/libs/log"
 
 	"github.com/BOPR/contracts/accountregistry"
+	"github.com/BOPR/contracts/burnauction"
 	"github.com/BOPR/contracts/create2transfer"
 	"github.com/BOPR/contracts/depositmanager"
 	"github.com/BOPR/contracts/massmigration"
@@ -66,6 +67,7 @@ type (
 		State           *state.State
 		Transfer        *transfer.Transfer
 		Create2Transfer *create2transfer.Create2transfer
+		BurnAuciton     *burnauction.Burnauction
 		MassMigration   *massmigration.Massmigration
 		AccountRegistry *accountregistry.Accountregistry
 		DepositManager  *depositmanager.Depositmanager
