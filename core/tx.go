@@ -82,11 +82,7 @@ func NewPendingTx(data, sig []byte, from, nonce, fee, token, txType uint64) (tx 
 
 // SignTx returns the transaction data that has to be signed
 // it populates the signature field of the transaction or returns an error
-func (tx *Tx) SignTx(secret, pubkey []byte, txBytes []byte) (err error) {
-	wallet, err := wallet.SecretToWallet(secret, pubkey)
-	if err != nil {
-		return err
-	}
+func (tx *Tx) SignTx(wallet wallet.Wallet, txBytes []byte) (err error) {
 	sig, err := wallet.Sign(txBytes[:])
 	if err != nil {
 		return err

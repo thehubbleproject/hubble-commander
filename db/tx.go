@@ -150,7 +150,7 @@ func getWitnessTranfer(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkleProof,
 	}
 	var toSiblings []core.UserState
 
-	newFrom, newTo, err := bazooka.ApplyTx(bz, fromMerkleProof.State.Data, toState.Data, tx)
+	newFrom, newTo, err := bz.ApplyTx(fromMerkleProof.State.Data, toState.Data, tx)
 	if err != nil {
 		return
 	}
@@ -204,7 +204,7 @@ func getWitnessMassMigration(bz bazooka.Bazooka, DBI DB, tx core.Tx) (fromMerkle
 		return
 	}
 
-	newFrom, _, err := bazooka.ApplyTx(bz, fromMerkleProof.State.Data, []byte(""), tx)
+	newFrom, _, err := bz.ApplyTx(fromMerkleProof.State.Data, []byte(""), tx)
 	if err != nil {
 		return
 	}
@@ -257,7 +257,7 @@ func ValidateAndApplyTx(bz *bazooka.Bazooka, DBI *DB, currentRoot core.ByteArray
 	DBI.Logger.Debug("Fetched all verification for transaction", "txType", tx.Type)
 
 	// calls on-chain function that validates transaction
-	newRoot, err = bazooka.ProcessTx(*bz, currentRoot, *tx, fromStateProof, toStateProof)
+	newRoot, err = bz.ProcessTx(currentRoot, *tx, fromStateProof, toStateProof)
 
 	// if transaction is declared to be invalid we rollback the state updates made during merkle proof creation
 	if err != nil {
@@ -424,7 +424,7 @@ func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 
 	switch tx.Type {
 	case core.TX_TRANSFER_TYPE:
-		ok, err := b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
+		ok, err := b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, core.StringToByteArray(b.Cfg.AppID))
 		if err != nil {
 			return err
 		}
@@ -444,7 +444,7 @@ func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 		if err != nil {
 			return err
 		}
-		ok, err := b.SC.Create2Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, solPubkeyReceiver, wallet.DefaultDomain)
+		ok, err := b.SC.Create2Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, solPubkeyReceiver, core.StringToByteArray(b.Cfg.AppID))
 		if err != nil {
 			return err
 		}
@@ -452,7 +452,7 @@ func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 			return ErrBadSignature
 		}
 	case core.TX_MASS_MIGRATIONS:
-		ok, err := b.SC.MassMigration.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
+		ok, err := b.SC.MassMigration.Validate(&opts, tx.Data, signature, solPubkeySender, core.StringToByteArray(b.Cfg.AppID))
 		if err != nil {
 			return err
 		}

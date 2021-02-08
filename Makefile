@@ -1,5 +1,11 @@
 build-hubble-contracts:
-	cd .contracts/ && npm ci && npm run compile
+	cd .contracts/ && npm ci && npm run generate
+
+run-hardhat-node:
+	cd .contracts/ && npm run node
+
+deploy-hubble-contracts:
+	cd .contracts/ && npm run deploy
 
 build-bindings:
 	go install github.com/ethereum/go-ethereum/cmd/abigen
@@ -17,8 +23,17 @@ buidl: build
 lint:
 	golangci-lint run ./...
 
+run-database:
+	docker run --name=mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -d mysql
+
 init:
 	./build/hubble init
+
+load:
+	./build/hubble load
+
+create-database:
+	./build/hubble create-database
 
 reset:
 	./build/hubble migration down --all
@@ -29,6 +44,8 @@ migrate-up:
 
 migrate-down:
 	./build/hubble migration down --all
+
+setup: build init load create-database migrate-up
 
 start:
 	mkdir -p logs &

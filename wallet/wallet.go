@@ -17,12 +17,12 @@ func BytesToSignature(b []byte) (blswallet.Signature, error) {
 	return *sig, err
 }
 
-func NewWallet() (wallet Wallet, err error) {
+func NewWallet(domain [32]byte) (wallet Wallet, err error) {
 	newAccount, err := blswallet.NewKeyPair(rand.Reader)
 	if err != nil {
 		return
 	}
-	signer := blswallet.BLSSigner{Account: newAccount, Domain: DefaultDomain[:]}
+	signer := blswallet.BLSSigner{Account: newAccount, Domain: domain[:]}
 	return Wallet{signer: signer}, nil
 }
 
@@ -33,13 +33,12 @@ func (w *Wallet) Bytes() (secretKey []byte, pubkey []byte) {
 	return secretBytes, pubkeyBytes
 }
 
-func SecretToWallet(secretKey []byte, pubkey []byte) (wallet Wallet, err error) {
-	in := append(pubkey, secretKey...)
-	keyPair, err := blswallet.NewKeyPairFromBytes(in)
+func SecretToWallet(secretKey []byte, domain [32]byte) (wallet Wallet, err error) {
+	keyPair, err := blswallet.NewKeyPairFromSecret(secretKey)
 	if err != nil {
 		return
 	}
-	signer := blswallet.BLSSigner{Account: keyPair, Domain: DefaultDomain[:]}
+	signer := blswallet.BLSSigner{Account: keyPair, Domain: domain[:]}
 	return Wallet{signer: signer}, nil
 }
 
@@ -57,8 +56,8 @@ func (w *Wallet) VerifySignature(data []byte, signature blswallet.Signature, pub
 	return valid, err
 }
 
-func VerifyAggregatedSignature(data []blswallet.Message, pubkeys []*blswallet.PublicKey, aggregateSignature blswallet.Signature) (valid bool, err error) {
-	verifier := blswallet.NewBLSVerifier(DefaultDomain[:])
+func VerifyAggregatedSignature(data []blswallet.Message, pubkeys []*blswallet.PublicKey, aggregateSignature blswallet.Signature, domain [32]byte) (valid bool, err error) {
+	verifier := blswallet.NewBLSVerifier(domain[:])
 	return verifier.VerifyAggregate(data, pubkeys, &aggregateSignature)
 }
 

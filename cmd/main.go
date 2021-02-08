@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/BOPR/config"
+	"github.com/BOPR/core"
 	"github.com/BOPR/wallet"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -67,8 +68,8 @@ func main() {
 
 	executor := Executor{rootCmd, os.Exit}
 	if err = executor.Command.Execute(); err != nil {
-		fmt.Println("Error while executing command", err)
-		return
+		fmt.Fprintln(os.Stderr, "Error while executing command", err)
+		os.Exit(1)
 	}
 }
 
@@ -91,9 +92,14 @@ func createUsers() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			cfg, err := config.ParseConfig()
+			if err != nil {
+				return err
+			}
+
 			var users []User
 			for i := 0; i < userCount; i++ {
-				newWallet, err := wallet.NewWallet()
+				newWallet, err := wallet.NewWallet(core.StringToByteArray(cfg.AppID))
 				if err != nil {
 					return err
 				}
@@ -147,10 +153,6 @@ func createDatabase() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP(FlagDatabaseName, "", "", "--dbname=<database-name>")
-	err := cmd.MarkFlagRequired(FlagDatabaseName)
-	if err != nil {
-		panic(err)
-	}
+	cmd.Flags().StringP(FlagDatabaseName, "", config.DATABASENAME, "--dbname=<database-name>")
 	return cmd
 }
