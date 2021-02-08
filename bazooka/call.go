@@ -12,7 +12,7 @@ import (
 )
 
 // CompressTxs compresses all transactions
-func CompressTxs(b *Bazooka, txs []core.Tx) ([]byte, error) {
+func (b *Bazooka) CompressTxs(txs []core.Tx) ([]byte, error) {
 	opts := bind.CallOpts{From: config.OperatorAddress}
 	var data [][]byte
 	for _, tx := range txs {
@@ -32,7 +32,7 @@ func CompressTxs(b *Bazooka, txs []core.Tx) ([]byte, error) {
 }
 
 // ApplyTx applies the transaction and returns the udpates
-func ApplyTx(b Bazooka, sender, receiver []byte, tx core.Tx) (updatedSender, updatedReceiver []byte, err error) {
+func (b *Bazooka) ApplyTx(sender, receiver []byte, tx core.Tx) (updatedSender, updatedReceiver []byte, err error) {
 	switch txType := tx.Type; txType {
 	case core.TX_TRANSFER_TYPE:
 		return b.ApplyTransferTx(sender, receiver, tx)
@@ -48,7 +48,7 @@ func ApplyTx(b Bazooka, sender, receiver []byte, tx core.Tx) (updatedSender, upd
 
 // ProcessTx calls the ProcessTx function on the contract to verify the tx
 // returns the updated accounts and the new balance root
-func ProcessTx(b Bazooka, balanceTreeRoot core.ByteArray, tx core.Tx, fromMerkleProof, toMerkleProof StateMerkleProof) (newBalanceRoot core.ByteArray, err error) {
+func (b *Bazooka) ProcessTx(balanceTreeRoot core.ByteArray, tx core.Tx, fromMerkleProof, toMerkleProof StateMerkleProof) (newBalanceRoot core.ByteArray, err error) {
 	switch txType := tx.Type; txType {
 	case core.TX_TRANSFER_TYPE:
 		return b.ProcessTransferTx(balanceTreeRoot, tx, fromMerkleProof, toMerkleProof)
