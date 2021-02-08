@@ -41,15 +41,6 @@ func sendTransferTx() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			pubKey, err := flags.GetString(FlagPubKey)
-			if err != nil {
-				return err
-			}
-			pubkeyBytes, err := hex.DecodeString(pubKey)
-			if err != nil {
-				return err
-			}
 			amount, err := flags.GetUint64(FlagAmount)
 			if err != nil {
 				return err
@@ -62,11 +53,10 @@ func sendTransferTx() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			wallet, err := wallet.SecretToWallet(privKeyBytes, pubkeyBytes, core.StringToByteArray(cfg.AppID))
+			wallet, err := wallet.SecretToWallet(privKeyBytes, core.StringToByteArray(cfg.AppID))
 			if err != nil {
 				return err
 			}
-			secretBytes, pubkeyBytes := wallet.Bytes()
 
 			DBI, err := db.NewDB(cfg)
 			if err != nil {
@@ -79,7 +69,7 @@ func sendTransferTx() *cobra.Command {
 				return err
 			}
 
-			txHash, err := validateAndTransfer(&DBI, &bazooka, fromIndex, toIndex, amount, fee, secretBytes, pubkeyBytes)
+			txHash, err := validateAndTransfer(&DBI, &bazooka, fromIndex, toIndex, amount, fee, wallet)
 			if err != nil {
 				return err
 			}
@@ -145,15 +135,6 @@ func sendCreate2TransferTx() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// fetching from pubkey
-			pubKey, err := flags.GetString(FlagPubKey)
-			if err != nil {
-				return err
-			}
-			pubkeyBytes, err := hex.DecodeString(pubKey)
-			if err != nil {
-				return err
-			}
 
 			// fetching priv key
 			privKey, err := flags.GetString(FlagPrivKey)
@@ -173,11 +154,10 @@ func sendCreate2TransferTx() *cobra.Command {
 				return err
 			}
 
-			wallet, err := wallet.SecretToWallet(privKeyBytes, pubkeyBytes, core.StringToByteArray(cfg.AppID))
+			wallet, err := wallet.SecretToWallet(privKeyBytes, core.StringToByteArray(cfg.AppID))
 			if err != nil {
 				return err
 			}
-			secretBytes, pubkeyBytes := wallet.Bytes()
 
 			from, err := DBI.GetStateByIndex(fromIndex)
 			if err != nil {
@@ -197,7 +177,7 @@ func sendCreate2TransferTx() *cobra.Command {
 				return err
 			}
 
-			if err = signAndBroadcast(&bazooka, &DBI, tx, secretBytes, pubkeyBytes); err != nil {
+			if err = signAndBroadcast(&bazooka, &DBI, tx, wallet); err != nil {
 				return err
 			}
 
@@ -226,7 +206,7 @@ func sendCreate2TransferTx() *cobra.Command {
 }
 
 // validateAndTransfer creates and sends a transfer transaction
-func validateAndTransfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toIndex, amount, fee uint64, priv, pub []byte) (txHash string, err error) {
+func validateAndTransfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toIndex, amount, fee uint64, wallet wallet.Wallet) (txHash string, err error) {
 	from, err := DBI.GetStateByIndex(fromIndex)
 	if err != nil {
 		return
@@ -261,20 +241,20 @@ func validateAndTransfer(DBI *db.DB, bazooka *bazooka.Bazooka, fromIndex, toInde
 		return
 	}
 
-	if err = signAndBroadcast(bazooka, DBI, tx, priv, pub); err != nil {
+	if err = signAndBroadcast(bazooka, DBI, tx, wallet); err != nil {
 		return
 	}
 
 	return tx.TxHash, nil
 }
 
-func signAndBroadcast(b *bazooka.Bazooka, DBI *db.DB, tx core.Tx, priv, pub []byte) (err error) {
+func signAndBroadcast(b *bazooka.Bazooka, DBI *db.DB, tx core.Tx, wallet wallet.Wallet) (err error) {
 	txBytes, err := bazooka.GetSignBytes(*b, &tx)
 	if err != nil {
 		return
 	}
 
-	err = tx.SignTx(priv, pub, txBytes, core.StringToByteArray(b.Cfg.AppID))
+	err = tx.SignTx(wallet, txBytes)
 	if err != nil {
 		return
 	}
