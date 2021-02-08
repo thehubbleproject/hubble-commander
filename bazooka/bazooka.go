@@ -67,7 +67,7 @@ type (
 		State           *state.State
 		Transfer        *transfer.Transfer
 		Create2Transfer *create2transfer.Create2transfer
-		BurnAuciton     *burnauction.Burnauction
+		BurnAuction     *burnauction.Burnauction
 		MassMigration   *massmigration.Massmigration
 		AccountRegistry *accountregistry.Accountregistry
 		DepositManager  *depositmanager.Depositmanager
@@ -356,6 +356,9 @@ func getContractInstances(client *ethclient.Client, cfg config.Configuration) (c
 		return contracts, err
 	}
 	if contracts.TokenRegistry, err = tokenregistry.NewTokenregistry(ethCmn.HexToAddress(cfg.TokenRegistry), client); err != nil {
+		return contracts, err
+	}
+	if contracts.BurnAuction, err = burnauction.NewBurnauction(ethCmn.HexToAddress(cfg.BurnAuction), client); err != nil {
 		return contracts, err
 	}
 	return contracts, nil
