@@ -94,20 +94,29 @@ func (DBI *DB) PopTxs() (txs []core.Tx, err error) {
 
 	DBI.Logger.Info("Found pending txs", "txCount", len(pendingTxs))
 
-	var ids []string
-	for _, tx := range pendingTxs {
-		ids = append(ids, tx.ID)
-	}
-
-	// update the transactions from pending to processing
-	errs := tx.Table("txes").Where("id IN (?)", ids).Updates(map[string]interface{}{"status": core.TX_STATUS_PROCESSING}).GetErrors()
+	// update the status fo pending transactions to processing
+	err = DBI.UpdateTxStatuses(pendingTxs, core.TX_STATUS_PROCESSING)
 	if err != nil {
 		tx.Rollback()
-		DBI.Logger.Error("errors while processing transactions", errs)
-		return
+		return txs, err
 	}
 
 	return pendingTxs, tx.Commit().Error
+}
+
+// UpdateTxStatuses updates the tx status
+func (DBI *DB) UpdateTxStatuses(txList []core.Tx, status int) error {
+	var ids []string
+	for _, tx := range txList {
+		ids = append(ids, tx.ID)
+	}
+	err := DBI.Instance.Table("txes").Where("id IN (?)", ids).Updates(map[string]interface{}{"status": status}).Error
+	if err != nil {
+		DBI.Logger.Error("errors while processing transactions", "error", err)
+		return err
+	}
+
+	return nil
 }
 
 // FetchTxType finds out transactions with highest count in the DB
@@ -306,7 +315,7 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, txsPerCommitment []
 	currentCommitmentIdx := 0
 
 	var processedTxs []core.Tx
-	// var revertedTxs []core.Tx
+	var revertedTxs []core.Tx
 
 	for i, tx := range txs {
 		// fetch the current root
@@ -322,7 +331,7 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, txsPerCommitment []
 		// and skip rest of the loop
 		if err != nil {
 			DBI.Logger.Info("Reverting tx", "hash", tx.TxHash, "error", err)
-			// revertedTxs = append(revertedTxs, tx)
+			revertedTxs = append(revertedTxs, tx)
 			continue
 		}
 
@@ -363,7 +372,19 @@ func ProcessTxs(bz *bazooka.Bazooka, DBI *DB, txs []core.Tx, txsPerCommitment []
 		}
 	}
 
-	// TODO status update for reverted and succesful txs
+	// update the statues for processed and reverted txs
+	// we dont bubble up the errors incase we arent able to update tx status
+	// we log the error and move on
+	err = DBI.UpdateTxStatuses(processedTxs, core.TX_STATUS_PROCESSED)
+	if err != nil {
+		DBI.Logger.Error("Unable to update tx status for processed txs", "count", len(processedTxs))
+		return commitments, nil
+	}
+	err = DBI.UpdateTxStatuses(revertedTxs, core.TX_STATUS_REVERTED)
+	if err != nil {
+		DBI.Logger.Error("Unable to update tx status for reverted txs", "count", len(revertedTxs))
+		return commitments, nil
+	}
 
 	return commitments, nil
 }
