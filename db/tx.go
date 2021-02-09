@@ -424,7 +424,7 @@ func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 
 	switch tx.Type {
 	case core.TX_TRANSFER_TYPE:
-		ok, err := b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, core.StringToByteArray(b.Cfg.AppID))
+		ok, err := b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
 		if err != nil {
 			return err
 		}

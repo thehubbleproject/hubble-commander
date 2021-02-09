@@ -25,6 +25,7 @@ const (
 type TxReceiver struct {
 	Type      uint64 `json:"type"`
 	Message   string `json:"message"`
+	EncodedTx string `json:"encoded_tx"`
 	Signature string `json:"sig"`
 }
 
@@ -62,6 +63,12 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	encodedTx, err := hex.DecodeString(tx.EncodedTx)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	from, _, nonceInTx, _, fee, err := decodeTx(txMessageBytes, tx.Type)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -72,24 +79,25 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	_, _, _, token, err := bazookaI.DecodeState(fromState.Data)
+	_, _, nonce, token, err := bazookaI.DecodeState(fromState.Data)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	// if nonceInTx != nonce.Uint64()+1 {
-	// 	WriteErrorResponse(w, http.StatusBadRequest, "Nonce invalid")
-	// 	return
-	// }
+
+	if nonceInTx != nonce.Uint64()+1 {
+		WriteErrorResponse(w, http.StatusBadRequest, "Nonce invalid")
+		return
+	}
+
 	txSignatureBytes, err := hex.DecodeString(tx.Signature)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	fmt.Println("signature length", len(txSignatureBytes))
 
 	// create a new pending transaction
-	userTx, err := core.NewPendingTx(txMessageBytes, txSignatureBytes, from, nonceInTx, fee, token.Uint64(), tx.Type)
+	userTx, err := core.NewPendingTx(encodedTx, txSignatureBytes, from, nonceInTx, fee, token.Uint64(), tx.Type)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
@@ -204,8 +212,9 @@ func accountDecoderHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type SignBytesResponse struct {
-	Type    uint64 `json:"tx_type"`
-	Message string `json:"message"`
+	Type      uint64 `json:"tx_type"`
+	EncodedTx string `json:"encoded_tx"`
+	Message   string `json:"message"`
 }
 type TransferTx struct {
 	From   uint64 `json:"from"`
@@ -236,6 +245,7 @@ func transferTx(w http.ResponseWriter, r *http.Request) {
 	var response SignBytesResponse
 	response.Message = hex.EncodeToString(signBytes)
 	response.Type = core.TX_TRANSFER_TYPE
+	response.EncodedTx = hex.EncodeToString(txData)
 
 	output, err := json.Marshal(response)
 	if err != nil {
