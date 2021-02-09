@@ -410,6 +410,10 @@ func authenticate(bz *bazooka.Bazooka, DBI *DB, tx *core.Tx) error {
 // returns an error is the signature is invalid
 func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte) error {
 	opts := bind.CallOpts{From: common.HexToAddress(b.Cfg.OperatorAddress)}
+	appID, err := core.HexToByteArray(b.Cfg.AppID)
+	if err != nil {
+		return err
+	}
 
 	solPubkeySender, err := core.Pubkey(pubkeySender).ToSol()
 	if err != nil {
@@ -424,7 +428,7 @@ func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 
 	switch tx.Type {
 	case core.TX_TRANSFER_TYPE:
-		ok, err := b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, wallet.DefaultDomain)
+		ok, err := b.SC.Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, appID)
 		if err != nil {
 			return err
 		}
@@ -444,7 +448,7 @@ func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 		if err != nil {
 			return err
 		}
-		ok, err := b.SC.Create2Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, solPubkeyReceiver, core.StringToByteArray(b.Cfg.AppID))
+		ok, err := b.SC.Create2Transfer.Validate(&opts, tx.Data, signature, solPubkeySender, solPubkeyReceiver, appID)
 		if err != nil {
 			return err
 		}
@@ -452,7 +456,7 @@ func checkSignature(b *bazooka.Bazooka, IDB *DB, tx core.Tx, pubkeySender []byte
 			return ErrBadSignature
 		}
 	case core.TX_MASS_MIGRATIONS:
-		ok, err := b.SC.MassMigration.Validate(&opts, tx.Data, signature, solPubkeySender, core.StringToByteArray(b.Cfg.AppID))
+		ok, err := b.SC.MassMigration.Validate(&opts, tx.Data, signature, solPubkeySender, appID)
 		if err != nil {
 			return err
 		}

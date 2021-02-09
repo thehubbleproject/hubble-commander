@@ -96,10 +96,14 @@ func createUsers() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			appID, err := core.HexToByteArray(cfg.AppID)
+			if err != nil {
+				return err
+			}
 
 			var users []User
 			for i := 0; i < userCount; i++ {
-				newWallet, err := wallet.NewWallet(core.StringToByteArray(cfg.AppID))
+				newWallet, err := wallet.NewWallet(appID)
 				if err != nil {
 					return err
 				}
