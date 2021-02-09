@@ -79,13 +79,19 @@ func TxHandler(w http.ResponseWriter, r *http.Request) {
 		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	_, _, nonce, token, err := bazookaI.DecodeState(fromState.Data)
+	_, _, _, token, err := bazookaI.DecodeState(fromState.Data)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if nonceInTx != nonce.Uint64()+1 {
+	pendingNonce, err := dbI.GetPendingNonce(uint64(from))
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, "Unable to estimate nonce")
+		return
+	}
+
+	if nonceInTx != pendingNonce+1 {
 		WriteErrorResponse(w, http.StatusBadRequest, "Nonce invalid")
 		return
 	}
