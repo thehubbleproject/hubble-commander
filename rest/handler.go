@@ -495,7 +495,7 @@ func estimateNonceHandler(w http.ResponseWriter, r *http.Request) {
 
 	var resp estimateNonceResp
 	resp.StateID = uint64(idInt)
-	resp.Nonce = pendingNonce
+	resp.Nonce = pendingNonce + 1
 
 	output, err := json.Marshal(resp)
 	if err != nil {
