@@ -2,7 +2,8 @@ build-hubble-contracts:
 	cd .contracts/ && npm ci && npm run generate
 
 run-hardhat-node:
-	cd .contracts/ && npm run node
+	mkdir -p ./logs
+	cd .contracts/ && npm run node >> ../logs/node.log 2>&1 &
 
 deploy-hubble-contracts:
 	cd .contracts/ && npm run deploy
@@ -24,6 +25,7 @@ lint:
 	golangci-lint run ./...
 
 run-database:
+	docker stop mysql || true && docker rm mysql || true
 	docker run --name=mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -d mysql
 
 init:
@@ -45,7 +47,12 @@ migrate-up:
 migrate-down:
 	./build/hubble migration down --all
 
-setup: build init load create-database migrate-up
+get-submodules:
+	git submodule init && git submodule update -r
+
+setup: build init load create-database migrate-up reset
+
+setup-integration: run-database get-submodules build-hubble-contracts build-bindings run-hardhat-node deploy-hubble-contracts setup
 
 start:
 	mkdir -p logs &
