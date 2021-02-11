@@ -6,7 +6,6 @@ import (
 	"github.com/BOPR/bazooka"
 	"github.com/BOPR/config"
 	"github.com/BOPR/db"
-	"github.com/common-nighthawk/go-figure"
 	"github.com/gorilla/mux"
 )
 
@@ -15,8 +14,6 @@ var bazookaI bazooka.Bazooka
 
 // LoadRouters loads router
 func LoadRouters(cfg config.Configuration) (r *mux.Router, err error) {
-	myFigure := figure.NewColorFigure("Hubble", "", "red", true)
-	myFigure.Print()
 	tempDB, err := db.NewDB(cfg)
 	if err != nil {
 		return

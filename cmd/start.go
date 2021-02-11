@@ -14,7 +14,6 @@ import (
 	"github.com/BOPR/db"
 	"github.com/BOPR/listener"
 	hlog "github.com/BOPR/log"
-	"github.com/common-nighthawk/go-figure"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethCmn "github.com/ethereum/go-ethereum/common"
 	"github.com/jinzhu/gorm"
@@ -23,8 +22,6 @@ import (
 
 // startCmd starts the daemon
 func startCmd() *cobra.Command {
-	myFigure := figure.NewColorFigure("COMMANDER", "", "green", true)
-	myFigure.Print()
 	return &cobra.Command{
 		Use:   "start",
 		Short: "Starts hubble daemon",

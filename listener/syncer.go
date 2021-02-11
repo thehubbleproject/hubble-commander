@@ -43,6 +43,7 @@ type Syncer struct {
 	// contract caller to interact with contracts
 	loadedBazooka bazooka.Bazooka
 
+	// local config
 	cfg config.Configuration
 
 	// header channel
@@ -71,6 +72,7 @@ func NewSyncer(cfg config.Configuration) *Syncer {
 	if err != nil {
 		panic(err)
 	}
+
 	var abis []abi.ABI
 
 	rollupABI, err := abi.JSON(strings.NewReader(rollup.RollupABI))
@@ -167,7 +169,7 @@ func (s *Syncer) startPolling(ctx context.Context, pollInterval time.Duration) {
 	// How often to fire the passed in function in second
 	interval := pollInterval
 
-	// Setup the ticket and the channel to signal
+	// Setup the ticker and the channel to signal
 	// the ending of the interval
 	ticker := time.NewTicker(interval)
 
@@ -218,6 +220,7 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 		s.Logger.Error("Unable to fetch listener log", "error", err)
 		return
 	}
+
 	// we need to filter only by logger contracts
 	// since all events are emitted by it
 	query := ethereum.FilterQuery{
@@ -248,13 +251,14 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 func (s *Syncer) processEvents(logs []ethTypes.Log, header ethTypes.Header) {
 	defer s.wg.Done()
 	var err error
+
 	for _, vLog := range logs {
 		topic := vLog.Topics[0].Bytes()
 		for i := 0; i < len(s.abis); i++ {
 			abiObject := s.abis[i]
 			selectedEvent := EventByID(&abiObject, topic)
 			if selectedEvent != nil {
-				s.Logger.Debug("Found an event", "name", selectedEvent.Name)
+				s.Logger.Debug("Found an event", "name", selectedEvent.Name, "topic", hex.EncodeToString(topic))
 				switch selectedEvent.Name {
 				case "NewBatch":
 					err = s.processNewBatch(selectedEvent.Name, &abiObject, &vLog)
@@ -293,6 +297,8 @@ func (s *Syncer) processEvents(logs []ethTypes.Log, header ethTypes.Header) {
 		s.Logger.Info("Error processing event", "err", err)
 		return
 	}
+
+	// Update sync status with block num
 	err = s.DBInstance.UpdateSyncStatusWithBlockNumber(header.Number.Uint64())
 	if err != nil {
 		s.Logger.Error("Unable to update listener log", "error", err)

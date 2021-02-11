@@ -125,13 +125,6 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 		s.Logger.Info("Still catching up, aborting deposit finalisation")
 	}
 
-	// attach deposit information
-	err = s.DBInstance.AttachDepositInfo(event.Root)
-	if err != nil {
-		s.Logger.Error("Unable to attach deposit info", "error", err)
-		return err
-	}
-
 	return nil
 }
 
@@ -153,12 +146,12 @@ func (s *Syncer) processDepositFinalised(eventName string, abiObject *abi.ABI, v
 		"PathToDepositSubTreeInserted", pathToDepositSubTree.String(),
 	)
 
-	// TODO handle error
-	err = s.DBInstance.FinaliseDepositsAndAddBatch(depositRoot, pathToDepositSubTree.Uint64())
+	err = s.DBInstance.FinaliseDeposits(pathToDepositSubTree.Uint64(), depositRoot)
 	if err != nil {
 		s.Logger.Error("Error finalized deposit and adding new batch", "error", err)
 		return err
 	}
+
 	return nil
 }
 

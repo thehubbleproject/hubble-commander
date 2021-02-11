@@ -7,20 +7,24 @@ import (
 	"github.com/BOPR/core"
 )
 
+// AddNewDeposit adds a new deposit to DB
 func (db *DB) AddNewDeposit(deposit core.Deposit) error {
 	return db.Instance.Create(&deposit).Error
 }
 
-// GetDepositNodeAndSiblings fetches the right intermediate node that has to be replaced for deposits
+// GetDepositNodeAndSiblings fetches the right intermediate node and siblings that has to be replaced for incoming deposits
 func (db *DB) GetDepositNodeAndSiblings() (nodeToBeReplaced core.UserState, siblings []core.UserState, err error) {
 	params, err := db.GetParams()
 	if err != nil {
 		return
 	}
+
+	// find an empty node to accomodate new deposits
 	nodeToBeReplaced, err = db.FindEmptyState(int(params.MaxDepth) - int(params.MaxDepositSubTreeHeight))
 	if err != nil {
 		return
 	}
+
 	// get siblings for the path to node
 	siblings, err = db.GetSiblings(nodeToBeReplaced.Path)
 	if err != nil {
@@ -30,27 +34,21 @@ func (db *DB) GetDepositNodeAndSiblings() (nodeToBeReplaced core.UserState, sibl
 	return
 }
 
-// FinaliseDepositsAndAddBatch finalises deposits and a
-func (db *DB) FinaliseDepositsAndAddBatch(depositRoot core.ByteArray, pathToDepositSubTree uint64) error {
-	db.Logger.Info("Finalising accounts", "depositRoot", depositRoot, "pathToDepositSubTree", pathToDepositSubTree)
-	// update the empty leaves with new accounts
-	err := db.FinaliseDeposits(pathToDepositSubTree, depositRoot)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
+// FinaliseDeposits finalises the deposits for a deposit subtree
 func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.ByteArray) error {
+	db.Logger.Info("Finalising deposits", "pathToDepositSubTree", pathToDepositSubTree)
+
 	params, err := db.GetParams()
 	if err != nil {
 		return err
 	}
-	// find out the accounts that are finalised
-	deposits, err := db.GetPendingDepositsByDepositRoot(depositRoot)
+
+	// find out the deposits that are to be finalised
+	deposits, err := db.GetPendingDeposits(depositRoot)
 	if err != nil {
 		return err
 	}
+
 	db.Logger.Info("Got pending deposits", "depositRoot", depositRoot, "PendingDepositCount", len(deposits))
 
 	// find out where the insertion was made
@@ -64,60 +62,41 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.Byt
 	if err != nil {
 		return err
 	}
+
 	if len(terminalNodes) != len(deposits) {
+		fmt.Println("here", len(terminalNodes), len(deposits))
 		return errors.New("deposit subtree cannot be empty")
 	}
 
 	for i, deposit := range deposits {
-		// convery deposit to user state
+		// convert deposit to user state
 		newUserState := core.NewUserState(deposit.AccountID, terminalNodes[i], deposit.Data)
 		err := db.UpdateState(*newUserState)
 		if err != nil {
 			return err
 		}
-		// delete pending account
-		err = db.DeletePendingDeposit(deposit.AccountID)
-		if err != nil {
-			return err
-		}
 	}
 
-	return nil
+	return db.ClearPendingDeposits()
 }
 
-func (db *DB) AttachDepositInfo(root core.ByteArray) error {
-	var deposit core.Deposit
-	result := db.Instance.Model(&deposit).Update("deposit_root", root.String())
-	if err := result.Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-// GetPendingDepositsByDepositRoot fetches all deposits created by a specific deposit subtree
-func (db *DB) GetPendingDepositsByDepositRoot(root core.ByteArray) ([]core.Deposit, error) {
+// GetPendingDeposits fetches all deposits created by a specific deposit subtree
+func (db *DB) GetPendingDeposits(root core.ByteArray) ([]core.Deposit, error) {
 	var pendingDeposits []core.Deposit
-	query := db.Instance.Order("account_id asc").Scopes(QueryByDepositRoot(root.String())).Find(&pendingDeposits)
+	query := db.Instance.Order("accounc_id asc").Find(&pendingDeposits)
 	if err := query.Error; err != nil {
 		return pendingDeposits, err
 	}
 	return pendingDeposits, nil
 }
 
-func (db *DB) DeletePendingDeposit(ID uint64) error {
+// ClearPendingDeposits empties the pending deposit table
+func (db *DB) ClearPendingDeposits() error {
 	var deposit core.Deposit
-	err := db.Instance.Scopes(QueryByAccountID(ID)).Delete(&deposit).Error
+	query := db.Instance.Delete(&deposit)
+	err := query.Error
 	if err != nil {
-		return core.ErrRecordNotFound(fmt.Sprintf("unable to delete record for ID: %v", ID))
+		return core.ErrRecordNotFound(fmt.Sprintf("unable to clear pendingDeposits"))
 	}
 	return nil
-}
-
-func (db *DB) GetPendingDeposits(numberOfAccs uint64) ([]core.Deposit, error) {
-	var deposits []core.Deposit
-	err := db.Instance.Limit(numberOfAccs).Find(&deposits).Error
-	if err != nil {
-		return deposits, err
-	}
-	return deposits, nil
 }
