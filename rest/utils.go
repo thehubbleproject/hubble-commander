@@ -2,21 +2,10 @@ package rest
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 )
 
-// ReadRESTReq reads and unmarshals a Request's body to the the BaseReq stuct.
-// Writes an error response to ResponseWriter and returns true if errors occurred.
-func ReadRESTReq(r *http.Request, req interface{}) error {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(body, req)
-	return err
-}
-
+// WriteRESTResp writes the response and the error to proper JSON format
 func WriteRESTResp(w http.ResponseWriter, resp interface{}, err error) {
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, err.Error())

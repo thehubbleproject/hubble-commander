@@ -37,18 +37,12 @@ type ResponseTx struct {
 	Type      uint64 `json:"type" gorm:"not null"`
 }
 
-func coreTxToResponseTx(_tx core.Tx) ResponseTx {
-	var resp ResponseTx
-	resp.From = _tx.From
-	resp.Data = hex.EncodeToString(_tx.Data)
-	resp.Signature = hex.EncodeToString(_tx.Signature)
-	resp.TxHash = _tx.TxHash
-	resp.Status = _tx.Status
-	resp.Type = _tx.Type
-	return resp
-}
-
-func processTx(tx TxReceiver) (resp ResponseTx, err error) {
+func handleTx(r *http.Request) (resp ResponseTx, err error) {
+	var tx TxReceiver
+	err = json.NewDecoder(r.Body).Decode(&tx)
+	if err != nil {
+		return
+	}
 	txMessageBytes, err := hex.DecodeString(tx.Message)
 	if err != nil {
 		return
@@ -85,17 +79,12 @@ func processTx(tx TxReceiver) (resp ResponseTx, err error) {
 		return
 	}
 
-	resp = coreTxToResponseTx(userTx)
-	return resp, nil
-}
-
-func handleTx(r *http.Request) (resp ResponseTx, err error) {
-	var tx TxReceiver
-	err = ReadRESTReq(r, &tx)
-	if err != nil {
-		return
-	}
-	resp, err = processTx(tx)
+	resp.From = userTx.From
+	resp.Data = hex.EncodeToString(userTx.Data)
+	resp.Signature = hex.EncodeToString(userTx.Signature)
+	resp.TxHash = userTx.TxHash
+	resp.Status = userTx.Status
+	resp.Type = userTx.Type
 	return
 }
 
@@ -113,7 +102,13 @@ type stateExporter struct {
 	Nonce     uint64 `json:"nonce"`
 }
 
-func processStateDecode(idInt int) (stateData stateExporter, err error) {
+func handleStateDecode(r *http.Request) (stateData stateExporter, err error) {
+	params := mux.Vars(r)
+	id := params[KeyID]
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		return
+	}
 	state, err := dbI.GetStateByIndex(uint64(idInt))
 	if err != nil {
 		return
@@ -132,17 +127,6 @@ func processStateDecode(idInt int) (stateData stateExporter, err error) {
 	stateData.Nonce = nonce.Uint64()
 	stateData.StateID = uint64(idInt)
 	stateData.Token = token.Uint64()
-	return
-}
-
-func handleStateDecode(r *http.Request) (stateData stateExporter, err error) {
-	params := mux.Vars(r)
-	id := params[KeyID]
-	idInt, err := strconv.Atoi(id)
-	if err != nil {
-		return
-	}
-	stateData, err = processStateDecode(idInt)
 	return
 }
 
