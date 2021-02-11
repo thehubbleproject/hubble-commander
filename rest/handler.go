@@ -196,37 +196,30 @@ type TransferTx struct {
 	Fee    uint64 `json:"fee"`
 }
 
-func transferTxHandler(w http.ResponseWriter, r *http.Request) {
+func handlerTransfer(r *http.Request) (response SignBytesResponse, err error) {
 	var transferTx TransferTx
-	err := json.NewDecoder(r.Body).Decode(&transferTx)
+	err = json.NewDecoder(r.Body).Decode(&transferTx)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to json decode transfer")
 		return
 	}
 	txData, err := bazookaI.EncodeTransferTx(int64(transferTx.From), int64(transferTx.To), int64(transferTx.Fee), int64(transferTx.Nonce), int64(transferTx.Amount), core.TX_TRANSFER_TYPE)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to json decode transfer")
 		return
 	}
 	tx := core.Tx{Data: txData}
 	signBytes, err := bazookaI.TransferSignBytes(tx)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to json decode transfer")
 		return
 	}
-	var response SignBytesResponse
 	response.Message = hex.EncodeToString(signBytes)
 	response.Type = core.TX_TRANSFER_TYPE
+	return
+}
 
-	output, err := json.Marshal(response)
-	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to json decode transfer")
-		return
-	}
+func transferTxHandler(w http.ResponseWriter, r *http.Request) {
+	response, err := handlerTransfer(r)
 
-	// write headers and data
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(output)
+	WriteRESTResp(w, response, err)
 }
 
 // MassMigrationsTx is the body
@@ -238,37 +231,30 @@ type MassMigrationsTx struct {
 	Fee       uint64 `json:"fee"`
 }
 
-func massMigrationTxHandler(w http.ResponseWriter, r *http.Request) {
+func handleMassMigration(r *http.Request) (response SignBytesResponse, err error) {
 	var mmTx MassMigrationsTx
-	err := json.NewDecoder(r.Body).Decode(&mmTx)
+	err = json.NewDecoder(r.Body).Decode(&mmTx)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to json decode mass migrations")
 		return
 	}
 	txData, err := bazookaI.EncodeMassMigrationTx(int64(mmTx.From), int64(mmTx.ToSpokeID), int64(mmTx.Fee), int64(mmTx.Nonce), int64(mmTx.Amount), core.TX_MASS_MIGRATIONS)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to encode mass migration transaction")
 		return
 	}
 	tx := core.Tx{Data: txData}
 	signBytes, err := bazookaI.MassMigrationSignBytes(tx)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to generate sign bytes")
 		return
 	}
-	var response SignBytesResponse
 	response.Message = hex.EncodeToString(signBytes)
 	response.Type = core.TX_MASS_MIGRATIONS
+	return
+}
 
-	output, err := json.Marshal(response)
-	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall")
-		return
-	}
+func massMigrationTxHandler(w http.ResponseWriter, r *http.Request) {
+	response, err := handleMassMigration(r)
 
-	// write headers and data
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(output)
+	WriteRESTResp(w, response, err)
 }
 
 // Create2transfer is the body
@@ -280,68 +266,53 @@ type Create2transfer struct {
 	Fee      uint64 `json:"fee"`
 }
 
-func create2transferTxHandler(w http.ResponseWriter, r *http.Request) {
+func handleCreate2Transfer(r *http.Request) (response SignBytesResponse, err error) {
 	var cTx Create2transfer
-	err := json.NewDecoder(r.Body).Decode(&cTx)
+	err = json.NewDecoder(r.Body).Decode(&cTx)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to json decode mass migrations")
 		return
 	}
 
 	toPubkey, err := core.Pubkey(cTx.ToPubkey).ToSol()
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to json decode mass migrations")
 		return
 	}
 
 	txData, err := bazookaI.EncodeCreate2TransferTxWithPub(int64(cTx.From), toPubkey, int64(cTx.Fee), int64(cTx.Nonce), int64(cTx.Amount), core.TX_CREATE_2_TRANSFER)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to encode mass migration transaction")
 		return
 	}
 	tx := core.Tx{Data: txData}
 	signBytes, err := bazookaI.Create2TransferSignBytesWithPub(tx)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to generate sign bytes")
 		return
 	}
-	var response SignBytesResponse
 	response.Message = hex.EncodeToString(signBytes)
 	response.Type = core.TX_CREATE_2_TRANSFER
-	output, err := json.Marshal(response)
-	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall")
-		return
-	}
-
-	// write headers and data
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(output)
+	return
 }
 
-func txStatusHandler(w http.ResponseWriter, r *http.Request) {
+func create2transferTxHandler(w http.ResponseWriter, r *http.Request) {
+	response, err := handleCreate2Transfer(r)
+	WriteRESTResp(w, response, err)
+}
+
+func handleTxStatus(r *http.Request) (tx *core.Tx, err error) {
 	params := mux.Vars(r)
 	txHash := params[KeyHash]
 	if len(txHash) == 0 {
-		WriteErrorResponse(w, http.StatusBadRequest, "TxHash not present")
+		err = errors.New("TxHash not present")
 		return
 	}
 
-	tx, err := dbI.GetTxByHash(txHash)
-	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to find transaction by hash")
-		return
-	}
+	tx, err = dbI.GetTxByHash(txHash)
+	return
 
-	output, err := json.Marshal(tx)
-	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
-		return
-	}
+}
 
-	// write headers and data
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(output)
+func txStatusHandler(w http.ResponseWriter, r *http.Request) {
+	tx, err := handleTxStatus(r)
+	WriteRESTResp(w, tx, err)
 }
 
 // UserDetails is the body
@@ -358,19 +329,16 @@ type UserDetailsState struct {
 	Nonce   uint64 `json:"nonce"`
 }
 
-func userStateHandler(w http.ResponseWriter, r *http.Request) {
+func handleUserState(r *http.Request) (response UserDetails, err error) {
 	params := mux.Vars(r)
 	pubkeyStr := params[KeyPubkey]
 	pubkeybz, err := hex.DecodeString(pubkeyStr)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Could not decode string")
 		return
 	}
 
-	var response UserDetails
 	acc, err := dbI.GetAccountByPubkey(pubkeybz)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Could not get account by pubkey")
 		return
 	}
 
@@ -379,7 +347,6 @@ func userStateHandler(w http.ResponseWriter, r *http.Request) {
 
 	states, err := dbI.GetStateByAccID(acc.AccountID)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Could not get state by accID")
 		return
 	}
 
@@ -388,10 +355,9 @@ func userStateHandler(w http.ResponseWriter, r *http.Request) {
 		if state.Type != core.TYPE_TERMINAL {
 			continue
 		}
-		_, balance, nonce, token, err := bazookaI.DecodeState(state.Data)
-		if err != nil {
-			WriteErrorResponse(w, http.StatusBadRequest, "Unable to decode state")
-			return
+		_, balance, nonce, token, _err := bazookaI.DecodeState(state.Data)
+		if _err != nil {
+			return response, _err
 		}
 		var stateData UserDetailsState
 		stateData.Balance = balance.Uint64()
@@ -407,15 +373,12 @@ func userStateHandler(w http.ResponseWriter, r *http.Request) {
 		userStates = append(userStates, stateData)
 	}
 	response.States = userStates
-	output, err := json.Marshal(response)
-	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
-		return
-	}
+	return
+}
 
-	// write headers and data
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(output)
+func userStateHandler(w http.ResponseWriter, r *http.Request) {
+	response, err := handleUserState(r)
+	WriteRESTResp(w, response, err)
 }
 
 func decodeTx(tx []byte, txType uint64) (from, to, nonce, amount, fee uint64, err error) {
@@ -448,33 +411,26 @@ type estimateNonceResp struct {
 	Nonce   uint64
 }
 
-func estimateNonceHandler(w http.ResponseWriter, r *http.Request) {
+func handleEstimateNonce(r *http.Request) (resp estimateNonceResp, err error) {
 	params := mux.Vars(r)
 	id := params[KeyID]
 
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
 		return
 	}
 
 	pendingNonce, err := dbI.GetPendingNonce(uint64(idInt))
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to estimate nonce")
 		return
 	}
 
-	var resp estimateNonceResp
 	resp.StateID = uint64(idInt)
 	resp.Nonce = pendingNonce
+	return
+}
 
-	output, err := json.Marshal(resp)
-	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
-		return
-	}
-
-	// write headers and data
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(output)
+func estimateNonceHandler(w http.ResponseWriter, r *http.Request) {
+	response, err := handleEstimateNonce(r)
+	WriteRESTResp(w, response, err)
 }
