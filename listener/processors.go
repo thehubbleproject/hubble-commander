@@ -18,6 +18,10 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+var (
+	ErrBadBatch = errors.New("STATE ROOT MISMATCH, BAD BATCH FOUND")
+)
+
 func (s *Syncer) processNewPubkeyAddition(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) error {
 	// unpack event
 	event := new(accountregistry.AccountregistryPubkeyRegistered)
@@ -185,6 +189,10 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 	if err != nil && gorm.IsRecordNotFoundError(err) {
 		s.Logger.Info("Found a new batch, applying transactions and adding new batch", "index", event.Index.Uint64)
 		_, commitments, err := s.parseAndApplyBatch(vLog.TxHash, event.BatchType)
+		if err == ErrBadBatch {
+			s.Logger.Error("Fraud detected, please challenge batch on-chain", "error", err)
+			panic(err)
+		}
 		if err != nil {
 			s.Logger.Error("Error applying batch", "error", err)
 			return err
@@ -260,6 +268,13 @@ func (s *Syncer) parseAndApplyBatch(txHash ethCmn.Hash, batchType uint8) (newRoo
 	newRoot, commitments, err = s.applyBatch(calldata, txHash, uint64(batchType), true)
 	if err != nil {
 		return
+	}
+
+	// make sure the new root post tx apply matches the one we have in calldata
+	// if not we have detected a fraud that needs to be challenged on-chain
+	if newRoot != calldata.LastStateRoot() {
+		return newRoot, commitments, ErrBadBatch
+
 	}
 
 	s.Logger.Info("Batch applied successfully!", "newRoot", newRoot)

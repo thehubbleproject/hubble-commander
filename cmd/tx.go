@@ -53,7 +53,11 @@ func sendTransferTx() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			wallet, err := wallet.SecretToWallet(privKeyBytes, core.StringToByteArray(cfg.AppID))
+			appID, err := core.HexToByteArray(cfg.AppID)
+			if err != nil {
+				return err
+			}
+			wallet, err := wallet.SecretToWallet(privKeyBytes, appID)
 			if err != nil {
 				return err
 			}
@@ -154,7 +158,11 @@ func sendCreate2TransferTx() *cobra.Command {
 				return err
 			}
 
-			wallet, err := wallet.SecretToWallet(privKeyBytes, core.StringToByteArray(cfg.AppID))
+			appID, err := core.HexToByteArray(cfg.AppID)
+			if err != nil {
+				return err
+			}
+			wallet, err := wallet.SecretToWallet(privKeyBytes, appID)
 			if err != nil {
 				return err
 			}
