@@ -196,7 +196,7 @@ type TransferTx struct {
 	Fee    uint64 `json:"fee"`
 }
 
-func transferTx(w http.ResponseWriter, r *http.Request) {
+func transferTxHandler(w http.ResponseWriter, r *http.Request) {
 	var transferTx TransferTx
 	err := json.NewDecoder(r.Body).Decode(&transferTx)
 	if err != nil {
@@ -238,7 +238,7 @@ type MassMigrationsTx struct {
 	Fee       uint64 `json:"fee"`
 }
 
-func massMigrationTx(w http.ResponseWriter, r *http.Request) {
+func massMigrationTxHandler(w http.ResponseWriter, r *http.Request) {
 	var mmTx MassMigrationsTx
 	err := json.NewDecoder(r.Body).Decode(&mmTx)
 	if err != nil {
@@ -280,7 +280,7 @@ type Create2transfer struct {
 	Fee      uint64 `json:"fee"`
 }
 
-func create2transferTx(w http.ResponseWriter, r *http.Request) {
+func create2transferTxHandler(w http.ResponseWriter, r *http.Request) {
 	var cTx Create2transfer
 	err := json.NewDecoder(r.Body).Decode(&cTx)
 	if err != nil {
