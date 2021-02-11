@@ -48,68 +48,61 @@ func coreTxToResponseTx(_tx core.Tx) ResponseTx {
 	return resp
 }
 
-// TxReceiverHandler handles user txs
-func TxHandler(w http.ResponseWriter, r *http.Request) {
-	// receive the payload and read
-	var tx TxReceiver
-	if !ReadRESTReq(w, r, &tx) {
-		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
-		return
-	}
+func processTx(tx TxReceiver) (resp ResponseTx, err error) {
 	txMessageBytes, err := hex.DecodeString(tx.Message)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Cannot decode message")
 		return
 	}
-
 	from, _, nonceInTx, _, fee, err := decodeTx(txMessageBytes, tx.Type)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
 		return
 	}
 	fromState, err := dbI.GetStateByIndex(from)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
 		return
 	}
 	_, _, nonce, token, err := bazookaI.DecodeState(fromState.Data)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
 		return
 	}
 	if nonceInTx != nonce.Uint64()+1 {
-		WriteErrorResponse(w, http.StatusBadRequest, "Nonce invalid")
 		return
 	}
 	txSignatureBytes, err := hex.DecodeString(tx.Signature)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Cannot decode signature")
 		return
 	}
 
 	// create a new pending transaction
 	userTx, err := core.NewPendingTx(txMessageBytes, txSignatureBytes, from, nonceInTx, fee, token.Uint64(), tx.Type)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	// add the transaction to pool
 	err = dbI.InsertTx(&userTx)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Cannot read request")
 		return
 	}
 
-	output, err := json.Marshal(coreTxToResponseTx(userTx))
+	resp = coreTxToResponseTx(userTx)
+	return resp, nil
+}
+
+func handleTx(r *http.Request) (resp ResponseTx, err error) {
+	var tx TxReceiver
+	err = ReadRESTReq(r, &tx)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
 		return
 	}
+	resp, err = processTx(tx)
+	return
+}
 
-	// write headers and data
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(output)
+// TxHandler handles user txs
+func TxHandler(w http.ResponseWriter, r *http.Request) {
+	resp, err := handleTx(r)
+	WriteRESTResp(w, resp, err)
 }
 
 type stateExporter struct {
@@ -120,45 +113,42 @@ type stateExporter struct {
 	Nonce     uint64 `json:"nonce"`
 }
 
-func stateDecoderHandler(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params[KeyID]
-	idInt, err := strconv.Atoi(id)
-	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
-		return
-	}
-
+func processStateDecode(idInt int) (stateData stateExporter, err error) {
 	state, err := dbI.GetStateByIndex(uint64(idInt))
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to get state by path")
 		return
 	}
 	if state.Type != core.TYPE_TERMINAL {
-		WriteErrorResponse(w, http.StatusBadRequest, "Invalid state")
+		err = errors.New("Invalid state")
 		return
 	}
 
 	ID, balance, nonce, token, err := bazookaI.DecodeState(state.Data)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to decode state")
 		return
 	}
-	var stateData stateExporter
 	stateData.AccountID = ID.Uint64()
 	stateData.Balance = balance.Uint64()
 	stateData.Nonce = nonce.Uint64()
 	stateData.StateID = uint64(idInt)
 	stateData.Token = token.Uint64()
+	return
+}
 
-	output, err := json.Marshal(stateData)
+func handleStateDecode(r *http.Request) (stateData stateExporter, err error) {
+	params := mux.Vars(r)
+	id := params[KeyID]
+	idInt, err := strconv.Atoi(id)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
+		return
 	}
+	stateData, err = processStateDecode(idInt)
+	return
+}
 
-	// write headers and data
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(output)
+func stateDecoderHandler(w http.ResponseWriter, r *http.Request) {
+	stateData, err := handleStateDecode(r)
+	WriteRESTResp(w, stateData, err)
 }
 
 type accountExporter struct {
@@ -166,40 +156,32 @@ type accountExporter struct {
 	Pubkey    string `json:"pubkey"`
 }
 
-func accountDecoderHandler(w http.ResponseWriter, r *http.Request) {
+func handleAccountDecode(r *http.Request) (accountData accountExporter, err error) {
 	params := mux.Vars(r)
 	id := params[KeyID]
-
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to convert ID")
 		return
 	}
 
 	account, err := dbI.GetAccountLeafByID(uint64(idInt))
 	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to fetch account by ID")
 		return
 	}
 
 	if account.Type != core.TYPE_TERMINAL || len(account.PublicKey) == 0 {
-		WriteErrorResponse(w, http.StatusBadRequest, "Invalid account or account not present")
+		err = errors.New("Invalid account or account not present")
 		return
 	}
 
-	var accountData accountExporter
 	accountData.AccountID = account.AccountID
 	accountData.Pubkey = core.Pubkey(account.PublicKey).String()
+	return
+}
 
-	output, err := json.Marshal(accountData)
-	if err != nil {
-		WriteErrorResponse(w, http.StatusBadRequest, "Unable to marshall account")
-		return
-	}
-
-	// write headers and data
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(output)
+func accountDecoderHandler(w http.ResponseWriter, r *http.Request) {
+	accountData, err := handleAccountDecode(r)
+	WriteRESTResp(w, accountData, err)
 }
 
 type SignBytesResponse struct {
