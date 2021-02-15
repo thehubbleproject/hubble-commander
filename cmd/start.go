@@ -6,8 +6,8 @@ import (
 	"os/signal"
 	"runtime"
 
-	agg "github.com/BOPR/aggregator"
 	"github.com/BOPR/bazooka"
+	"github.com/BOPR/bidder"
 	"github.com/BOPR/common"
 	"github.com/BOPR/config"
 	"github.com/BOPR/core"
@@ -41,9 +41,10 @@ func startCmd() *cobra.Command {
 
 			logger := hlog.Logger.With("module", "start")
 			// create aggregator service
-			aggregator := agg.NewAggregator(cfg)
+			// aggregator := agg.NewAggregator(cfg)
 			// create the syncer service
 			syncer := listener.NewSyncer(cfg)
+			bidderInstance := bidder.NewBidder(cfg)
 
 			// if no row is found then we are starting the node for the first time
 			syncStatus, err := DBI.GetSyncStatus()
@@ -64,10 +65,13 @@ func startCmd() *cobra.Command {
 			go func() {
 				// sig is a ^C, handle it
 				for range catchSignal {
-					if err := aggregator.Stop(); err != nil {
-						log.Fatalln("Unable to stop aggregator", "error", err)
-					}
+					// if err := aggregator.Stop(); err != nil {
+					// 	log.Fatalln("Unable to stop aggregator", "error", err)
+					// }
 					if err := syncer.Stop(); err != nil {
+						log.Fatalln("Unable to stop syncer", "error", err)
+					}
+					if err := bidderInstance.Stop(); err != nil {
 						log.Fatalln("Unable to stop syncer", "error", err)
 					}
 					DBI.Close()
@@ -79,10 +83,13 @@ func startCmd() *cobra.Command {
 			if err := syncer.Start(); err != nil {
 				log.Fatalln("Unable to start syncer", "error", err)
 			}
-
-			if err := aggregator.Start(); err != nil {
-				log.Fatalln("Unable to start aggregator", "error", err)
+			if err := bidderInstance.Start(); err != nil {
+				log.Fatalln("Unable to start syncer", "error", err)
 			}
+
+			// if err := aggregator.Start(); err != nil {
+			// 	log.Fatalln("Unable to start aggregator", "error", err)
+			// }
 
 			runtime.Goexit()
 		},

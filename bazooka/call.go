@@ -271,9 +271,12 @@ func (b *Bazooka) GetCurrentBidForSlot(slot uint32) (proposer ethCmn.Address, am
 // GetDeposit fetches the deposit amount for the proposer
 func (b *Bazooka) GetDeposit(proposer ethCmn.Address) (uint64, error) {
 	opts := bind.CallOpts{From: b.operator}
+	fmt.Println("proposer", proposer)
 	amount, err := b.SC.BurnAuction.Deposits(&opts, proposer)
 	if err != nil {
 		return 0, err
 	}
+
+	fmt.Println("amount", amount)
 	return amount.Uint64(), nil
 }

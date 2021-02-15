@@ -441,7 +441,7 @@ func (b *Bazooka) Bid(amount uint64) (txHash string, err error) {
 
 	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(b.Cfg.BurnAuction), big.NewInt(0), data)
 	if err != nil {
-		b.log.Error("Error sending register batch", "err", err)
+		b.log.Error("Error bidding for slot", "err", err)
 		return
 	}
 	return tx.Hash().String(), nil
@@ -461,7 +461,7 @@ func (b *Bazooka) DepositForAuction(amountInWei int64) (txHash string, err error
 	value := big.NewInt(amountInWei)
 	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(b.Cfg.BurnAuction), value, data)
 	if err != nil {
-		b.log.Error("Error sending register batch", "err", err)
+		b.log.Error("Error depositing ETH for auction", "err", err)
 		return
 	}
 	return tx.Hash().String(), nil

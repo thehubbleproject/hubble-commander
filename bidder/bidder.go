@@ -2,6 +2,7 @@ package bidder
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -64,6 +65,9 @@ func NewBidder(cfg config.Configuration) *Bidder {
 	bi.DB = DB
 	bi.cfg = cfg
 
+	bi.bidderInfo.Address = ethCmn.HexToAddress(cfg.OperatorAddress)
+	bi.bidderInfo.DepositAmount = cfg.MinDeposit
+
 	return bi
 }
 
@@ -97,13 +101,17 @@ func (bi *Bidder) startBidding(ctx context.Context, interval time.Duration) {
 	for {
 		select {
 		case <-ticker.C:
+			fmt.Println("ping")
 			ok, err := bi.ShouldPropose()
 			if err != nil {
+				fmt.Println("error", err)
 				return
 			}
 			if !ok {
+				fmt.Println("is ok", ok)
 				return
 			}
+			fmt.Println("proposing")
 			bi.wg.Wait()
 			bi.wg.Add(1)
 			go bi.Bid()
@@ -118,6 +126,7 @@ func (bi *Bidder) startBidding(ctx context.Context, interval time.Duration) {
 func (bi *Bidder) ShouldPropose() (ok bool, err error) {
 	depositSize, err := bi.bz.GetDeposit(bi.bidderInfo.Address)
 	if err != nil {
+		fmt.Println("error getting deposit_size", err)
 		return
 	}
 
@@ -161,6 +170,7 @@ func (bi *Bidder) ShouldPropose() (ok bool, err error) {
 
 func (bi *Bidder) Bid() (err error) {
 	defer bi.wg.Done()
+	fmt.Println("bidding")
 	if bi.bidderInfo.DepositAmount < bi.cfg.BidAmount {
 		txHash, errI := bi.bz.DepositForAuction(int64(bi.cfg.BidAmount) * 10)
 		if errI != nil {
