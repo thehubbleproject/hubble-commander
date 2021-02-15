@@ -43,6 +43,7 @@ type Syncer struct {
 	// contract caller to interact with contracts
 	loadedBazooka bazooka.Bazooka
 
+	// local config
 	cfg config.Configuration
 
 	// header channel
@@ -71,6 +72,7 @@ func NewSyncer(cfg config.Configuration) *Syncer {
 	if err != nil {
 		panic(err)
 	}
+
 	var abis []abi.ABI
 
 	rollupABI, err := abi.JSON(strings.NewReader(rollup.RollupABI))
@@ -98,7 +100,9 @@ func NewSyncer(cfg config.Configuration) *Syncer {
 	if err != nil {
 		panic(err)
 	}
+
 	syncerService.cfg = cfg
+
 	//nolint:govet // will fix later in #76
 	return syncerService
 }
@@ -131,7 +135,9 @@ func (s *Syncer) OnStart() error {
 		// start go routine to listen new header using subscription
 		go s.startSubscription(ctx, subscription)
 	}
+
 	s.Logger.Info("Starting syncer")
+
 	return nil
 }
 
@@ -167,7 +173,7 @@ func (s *Syncer) startPolling(ctx context.Context, pollInterval time.Duration) {
 	// How often to fire the passed in function in second
 	interval := pollInterval
 
-	// Setup the ticket and the channel to signal
+	// Setup the ticker and the channel to signal
 	// the ending of the interval
 	ticker := time.NewTicker(interval)
 
@@ -181,14 +187,17 @@ func (s *Syncer) startPolling(ctx context.Context, pollInterval time.Duration) {
 				s.Logger.Error("Unable to fetch listener log", "error", err)
 				return
 			}
+
 			header, err := s.loadedBazooka.GetEthBlock(nil)
 			if err != nil {
 				s.Logger.Error("Error fetching latest blocks", "error", err)
 				return
 			}
+
 			if header.Number.Uint64()-syncStatus.LastEthBlockRecorded >= s.cfg.ConfirmationBlocks {
 				s.HeaderChannel <- header
 			}
+
 		case <-ctx.Done():
 			ticker.Stop()
 			return
@@ -218,6 +227,14 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 		s.Logger.Error("Unable to fetch listener log", "error", err)
 		return
 	}
+
+	// to make sure we dont run the same events multiple times
+	lastBlockSynced := syncStatus.LastEthBlockBigInt()
+	if header.Number.Uint64() <= lastBlockSynced.Uint64() {
+		s.Logger.Info("Everything synced, watching for more events", "lastSyncedBlock", lastBlockSynced, "currentHeader", header)
+		return
+	}
+
 	// we need to filter only by logger contracts
 	// since all events are emitted by it
 	query := ethereum.FilterQuery{
@@ -241,6 +258,7 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 	} else if len(logs) > 0 {
 		s.Logger.Debug("New logs found", "numberOfLogs", len(logs))
 	}
+
 	s.wg.Add(1)
 	go s.processEvents(logs, header)
 }
@@ -248,37 +266,45 @@ func (s *Syncer) processHeader(header ethTypes.Header) {
 func (s *Syncer) processEvents(logs []ethTypes.Log, header ethTypes.Header) {
 	defer s.wg.Done()
 	var err error
+
+	lastBlockNum := header.Number.Uint64()
+
 	for _, vLog := range logs {
 		topic := vLog.Topics[0].Bytes()
 		for i := 0; i < len(s.abis); i++ {
 			abiObject := s.abis[i]
 			selectedEvent := EventByID(&abiObject, topic)
 			if selectedEvent != nil {
-				s.Logger.Debug("Found an event", "name", selectedEvent.Name)
+				s.Logger.Debug("Found an event", "name", selectedEvent.Name, "topic", hex.EncodeToString(topic), "blockNum", vLog.BlockNumber)
 				switch selectedEvent.Name {
 				case "NewBatch":
 					err = s.processNewBatch(selectedEvent.Name, &abiObject, &vLog)
 					if err != nil {
+						s.Logger.Error("Error processign new bathc", err)
 						break
 					}
 				case "PubkeyRegistered":
 					err = s.processNewPubkeyAddition(selectedEvent.Name, &abiObject, &vLog)
 					if err != nil {
+						s.Logger.Error("Error processing pubkey reqis", err)
 						break
 					}
 				case "DepositQueued":
 					err = s.processDepositQueued(selectedEvent.Name, &abiObject, &vLog)
 					if err != nil {
+						s.Logger.Error("Error processing deposit queue", err)
 						break
 					}
 				case "DepositSubTreeReady":
 					err = s.processDepositSubtreeCreated(selectedEvent.Name, &abiObject, &vLog)
 					if err != nil {
+						s.Logger.Error("Error processing subtree event", err)
 						break
 					}
 				case "DepositsFinalised":
 					err = s.processDepositFinalised(selectedEvent.Name, &abiObject, &vLog)
 					if err != nil {
+						s.Logger.Error("Error finalising deposit", err)
 						break
 					}
 				default:
@@ -293,7 +319,9 @@ func (s *Syncer) processEvents(logs []ethTypes.Log, header ethTypes.Header) {
 		s.Logger.Info("Error processing event", "err", err)
 		return
 	}
-	err = s.DBInstance.UpdateSyncStatusWithBlockNumber(header.Number.Uint64())
+
+	// Update sync status with block num
+	err = s.DBInstance.UpdateSyncStatusWithBlockNumber(lastBlockNum)
 	if err != nil {
 		s.Logger.Error("Unable to update listener log", "error", err)
 		return

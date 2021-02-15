@@ -142,17 +142,22 @@ func GetAllChildren(path string, treeDepth int) (childrenPaths []string, err err
 	if len(path) == treeDepth {
 		return
 	}
+
 	heightDiff := treeDepth - len(path)
+
 	var suffix []rune
 	for i := 0; i < heightDiff; i++ {
 		suffix = append(suffix, 48)
 	}
+
 	path = strings.Join([]string{path, string(suffix)}, "")
 	totalChildren := TotalLeavesForDepth(heightDiff)
+
 	firstIndex, err := StringToUint(path)
 	if err != nil {
 		return
 	}
+
 	for i := uint64(0); i < uint64(totalChildren); i++ {
 		idx := firstIndex + i
 		// TODO replace with normal uint to string conversion with depth check
@@ -163,6 +168,7 @@ func GetAllChildren(path string, treeDepth int) (childrenPaths []string, err err
 		}
 		childrenPaths = append(childrenPaths, childPath)
 	}
+
 	return
 }
 

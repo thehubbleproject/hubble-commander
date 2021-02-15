@@ -125,14 +125,7 @@ func (s *Syncer) processDepositSubtreeCreated(eventName string, abiObject *abi.A
 		s.Logger.Info("Still catching up, aborting deposit finalisation")
 	}
 
-	// attach deposit information
-	err = s.DBInstance.AttachDepositInfo(event.Root)
-	if err != nil {
-		s.Logger.Error("Unable to attach deposit info", "error", err)
-		return err
-	}
-
-	return nil
+	return s.DBInstance.AttachDepositInfo(event.SubtreeID.Uint64())
 }
 
 func (s *Syncer) processDepositFinalised(eventName string, abiObject *abi.ABI, vLog *ethTypes.Log) error {
@@ -153,12 +146,12 @@ func (s *Syncer) processDepositFinalised(eventName string, abiObject *abi.ABI, v
 		"PathToDepositSubTreeInserted", pathToDepositSubTree.String(),
 	)
 
-	// TODO handle error
-	err = s.DBInstance.FinaliseDepositsAndAddBatch(depositRoot, pathToDepositSubTree.Uint64())
+	err = s.DBInstance.FinaliseDeposits(pathToDepositSubTree.Uint64(), event.SubtreeID.Uint64())
 	if err != nil {
 		s.Logger.Error("Error finalized deposit and adding new batch", "error", err)
 		return err
 	}
+
 	return nil
 }
 
@@ -174,22 +167,21 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 	s.Logger.Info(
 		"⬜ New event found",
 		"event", eventName,
-		"BatchNumber", event.Index.String(),
+		"BatchNumber", event.BatchID.String(),
 		"Type", event.BatchType,
-		"Committer", event.Committer.String(),
 		"TxHash", vLog.TxHash.String(),
 	)
 
 	// if we havent seen the batch, apply txs and store batch
-	batch, err := s.DBInstance.GetBatchByIndex(event.Index.Uint64())
+	batch, err := s.DBInstance.GetBatchByIndex(event.BatchID.Uint64())
 	if err != nil && gorm.IsRecordNotFoundError(err) {
-		s.Logger.Info("Found a new batch, applying transactions and adding new batch", "index", event.Index.Uint64)
+		s.Logger.Info("Found a new batch, applying transactions and adding new batch", "index", event.BatchID.Uint64)
 		_, commitments, err := s.parseAndApplyBatch(vLog.TxHash, event.BatchType)
 		if err != nil {
 			s.Logger.Error("Error applying batch", "error", err)
 			return err
 		}
-		newBatch := core.NewBatch(event.Committer.String(), vLog.TxHash.String(), uint64(event.BatchType), core.BATCH_COMMITTED)
+		newBatch := core.NewBatch(vLog.TxHash.String(), uint64(event.BatchType), core.BATCH_COMMITTED)
 		batchID, err := s.DBInstance.AddNewBatch(newBatch, commitments)
 		if err != nil {
 			s.Logger.Error("Error adding new batch to DB", "error", err)
@@ -201,16 +193,16 @@ func (s *Syncer) processNewBatch(eventName string, abiObject *abi.ABI, vLog *eth
 	}
 
 	if err != nil {
-		s.Logger.Error("Unable to fetch batch", "index", event.Index, "err", err)
+		s.Logger.Error("Unable to fetch batch", "index", event.BatchID, "err", err)
 		return err
 	}
 
 	// Mark seen batch as committed if we havent already
 	if batch.Status != core.BATCH_COMMITTED {
 		s.Logger.Info("Found a non committed batch")
-		err = s.DBInstance.CommitBatch(event.Index.Uint64())
+		err = s.DBInstance.CommitBatch(event.BatchID.Uint64())
 		if err != nil {
-			s.Logger.Error("Unable to commit batch", "index", event.Index.String(), "err", err)
+			s.Logger.Error("Unable to commit batch", "index", event.BatchID.String(), "err", err)
 			return err
 		}
 	}

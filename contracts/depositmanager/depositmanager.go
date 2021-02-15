@@ -27,7 +27,7 @@ var (
 )
 
 // DepositmanagerABI is the input ABI used to generate the binding from.
-const DepositmanagerABI = "[{\"inputs\":[{\"internalType\":\"contractITokenRegistry\",\"name\":\"_tokenRegistry\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_vault\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"maxSubtreeDepth\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"pubkeyID\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"DepositQueued\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"root\",\"type\":\"bytes32\"}],\"name\":\"DepositSubTreeReady\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"babyTrees\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"babyTreesLength\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"back\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"depositCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenID\",\"type\":\"uint256\"}],\"name\":\"depositFor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"dequeueToSubmit\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"subtreeRoot\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"front\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"paramMaxSubtreeSize\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"queue\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"subtreeRoot\",\"type\":\"bytes32\"}],\"name\":\"reenqueue\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"rollup\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_rollup\",\"type\":\"address\"}],\"name\":\"setRollupAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenRegistry\",\"outputs\":[{\"internalType\":\"contractITokenRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"vault\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]"
+const DepositmanagerABI = "[{\"inputs\":[{\"internalType\":\"contractITokenRegistry\",\"name\":\"_tokenRegistry\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_vault\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"maxSubtreeDepth\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"pubkeyID\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"DepositQueued\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"subtreeID\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"subtreeRoot\",\"type\":\"bytes32\"}],\"name\":\"DepositSubTreeReady\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"babyTrees\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"babyTreesLength\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"back\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"depositCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"pubkeyID\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenID\",\"type\":\"uint256\"}],\"name\":\"depositFor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"dequeueToSubmit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"subtreeID\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"subtreeRoot\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"front\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"paramMaxSubtreeSize\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"queue\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"subtreeRoot\",\"type\":\"bytes32\"}],\"name\":\"reenqueue\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"rollup\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_rollup\",\"type\":\"address\"}],\"name\":\"setRollupAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenRegistry\",\"outputs\":[{\"internalType\":\"contractITokenRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"vault\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Depositmanager is an auto generated Go binding around an Ethereum contract.
 type Depositmanager struct {
@@ -454,21 +454,21 @@ func (_Depositmanager *DepositmanagerTransactorSession) DepositFor(pubkeyID *big
 
 // DequeueToSubmit is a paid mutator transaction binding the contract method 0xd86ee48d.
 //
-// Solidity: function dequeueToSubmit() returns(bytes32 subtreeRoot)
+// Solidity: function dequeueToSubmit() returns(uint256 subtreeID, bytes32 subtreeRoot)
 func (_Depositmanager *DepositmanagerTransactor) DequeueToSubmit(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _Depositmanager.contract.Transact(opts, "dequeueToSubmit")
 }
 
 // DequeueToSubmit is a paid mutator transaction binding the contract method 0xd86ee48d.
 //
-// Solidity: function dequeueToSubmit() returns(bytes32 subtreeRoot)
+// Solidity: function dequeueToSubmit() returns(uint256 subtreeID, bytes32 subtreeRoot)
 func (_Depositmanager *DepositmanagerSession) DequeueToSubmit() (*types.Transaction, error) {
 	return _Depositmanager.Contract.DequeueToSubmit(&_Depositmanager.TransactOpts)
 }
 
 // DequeueToSubmit is a paid mutator transaction binding the contract method 0xd86ee48d.
 //
-// Solidity: function dequeueToSubmit() returns(bytes32 subtreeRoot)
+// Solidity: function dequeueToSubmit() returns(uint256 subtreeID, bytes32 subtreeRoot)
 func (_Depositmanager *DepositmanagerTransactorSession) DequeueToSubmit() (*types.Transaction, error) {
 	return _Depositmanager.Contract.DequeueToSubmit(&_Depositmanager.TransactOpts)
 }
@@ -718,13 +718,14 @@ func (it *DepositmanagerDepositSubTreeReadyIterator) Close() error {
 
 // DepositmanagerDepositSubTreeReady represents a DepositSubTreeReady event raised by the Depositmanager contract.
 type DepositmanagerDepositSubTreeReady struct {
-	Root [32]byte
-	Raw  types.Log // Blockchain specific contextual infos
+	SubtreeID   *big.Int
+	SubtreeRoot [32]byte
+	Raw         types.Log // Blockchain specific contextual infos
 }
 
-// FilterDepositSubTreeReady is a free log retrieval operation binding the contract event 0x4744f3a44c5716c9fa423a71cdaa806771a8bf469f4c007ca338b8e8e202a8b5.
+// FilterDepositSubTreeReady is a free log retrieval operation binding the contract event 0x4d3a5844ed7dad1eee8f5c6143c14063c6944b6000cc260955d11b0706ecb492.
 //
-// Solidity: event DepositSubTreeReady(bytes32 root)
+// Solidity: event DepositSubTreeReady(uint256 subtreeID, bytes32 subtreeRoot)
 func (_Depositmanager *DepositmanagerFilterer) FilterDepositSubTreeReady(opts *bind.FilterOpts) (*DepositmanagerDepositSubTreeReadyIterator, error) {
 
 	logs, sub, err := _Depositmanager.contract.FilterLogs(opts, "DepositSubTreeReady")
@@ -734,9 +735,9 @@ func (_Depositmanager *DepositmanagerFilterer) FilterDepositSubTreeReady(opts *b
 	return &DepositmanagerDepositSubTreeReadyIterator{contract: _Depositmanager.contract, event: "DepositSubTreeReady", logs: logs, sub: sub}, nil
 }
 
-// WatchDepositSubTreeReady is a free log subscription operation binding the contract event 0x4744f3a44c5716c9fa423a71cdaa806771a8bf469f4c007ca338b8e8e202a8b5.
+// WatchDepositSubTreeReady is a free log subscription operation binding the contract event 0x4d3a5844ed7dad1eee8f5c6143c14063c6944b6000cc260955d11b0706ecb492.
 //
-// Solidity: event DepositSubTreeReady(bytes32 root)
+// Solidity: event DepositSubTreeReady(uint256 subtreeID, bytes32 subtreeRoot)
 func (_Depositmanager *DepositmanagerFilterer) WatchDepositSubTreeReady(opts *bind.WatchOpts, sink chan<- *DepositmanagerDepositSubTreeReady) (event.Subscription, error) {
 
 	logs, sub, err := _Depositmanager.contract.WatchLogs(opts, "DepositSubTreeReady")
@@ -771,9 +772,9 @@ func (_Depositmanager *DepositmanagerFilterer) WatchDepositSubTreeReady(opts *bi
 	}), nil
 }
 
-// ParseDepositSubTreeReady is a log parse operation binding the contract event 0x4744f3a44c5716c9fa423a71cdaa806771a8bf469f4c007ca338b8e8e202a8b5.
+// ParseDepositSubTreeReady is a log parse operation binding the contract event 0x4d3a5844ed7dad1eee8f5c6143c14063c6944b6000cc260955d11b0706ecb492.
 //
-// Solidity: event DepositSubTreeReady(bytes32 root)
+// Solidity: event DepositSubTreeReady(uint256 subtreeID, bytes32 subtreeRoot)
 func (_Depositmanager *DepositmanagerFilterer) ParseDepositSubTreeReady(log types.Log) (*DepositmanagerDepositSubTreeReady, error) {
 	event := new(DepositmanagerDepositSubTreeReady)
 	if err := _Depositmanager.contract.UnpackLog(event, "DepositSubTreeReady", log); err != nil {

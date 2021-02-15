@@ -65,6 +65,12 @@
     "inputs": [
       {
         "indexed": false,
+        "internalType": "uint256",
+        "name": "subtreeID",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
         "internalType": "bytes32",
         "name": "depositSubTreeRoot",
         "type": "bytes32"
@@ -84,15 +90,15 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "address",
-        "name": "committer",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "batchID",
+        "type": "uint256"
       },
       {
         "indexed": false,
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
+        "internalType": "bytes32",
+        "name": "accountRoot",
+        "type": "bytes32"
       },
       {
         "indexed": false,

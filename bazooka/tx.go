@@ -85,7 +85,7 @@ func (b *Bazooka) submitTransferBatch(commitments []core.Commitment, accountRoot
 	}
 
 	for _, commitment := range commitments {
-		compressedTxs, err := CompressTxs(b, commitment.Txs)
+		compressedTxs, err := b.CompressTxs(commitment.Txs)
 		if err != nil {
 			return commitmentData, "", err
 		}
@@ -138,7 +138,7 @@ func (b *Bazooka) submitCreate2TransferBatch(commitments []core.Commitment, acco
 	}
 
 	for _, commitment := range commitments {
-		compressedTxs, err := CompressTxs(b, commitment.Txs)
+		compressedTxs, err := b.CompressTxs(commitment.Txs)
 		if err != nil {
 			b.log.Error("Unable to compress txs", "error", err)
 			return commitmentData, "", err
@@ -190,7 +190,7 @@ func (b *Bazooka) submitMassMigrationBatch(commitments []core.Commitment, accoun
 	dummyReceiver := big.NewInt(0)
 
 	for _, commitment := range commitments {
-		compressedTxs, err := CompressTxs(b, commitment.Txs)
+		compressedTxs, err := b.CompressTxs(commitment.Txs)
 		if err != nil {
 			b.log.Error("Unable to compress txs", "error", err)
 			return commitmentData, "", err

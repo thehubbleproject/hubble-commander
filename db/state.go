@@ -9,6 +9,7 @@ import (
 )
 
 // InitStateTree initialises the states tree
+// it just creates one row i.e the root of the tree
 func (db *DB) InitStateTree(depth int) error {
 	rootNode := core.NewStateRoot(depth)
 	return db.Instance.Create(&rootNode).Error
@@ -188,16 +189,27 @@ func (db *DB) updateState(newState core.UserState, path string) error {
 	return nil
 }
 
+// FindEmptyState searches for a node in the tree with all zero children at the given depth
 func (db *DB) FindEmptyState(depth int) (state core.UserState, err error) {
 	params, err := db.GetParams()
 	if err != nil {
 		return
 	}
+
+	// make sure the depth is inrange
 	if depth > int(params.MaxDepth) {
 		return state, errors.New("depth cannot be greater than max depth")
 	}
+
 	totalLeaves := core.TotalLeavesForDepth(depth)
-	expectedHash := core.DefaultHashes[int(params.MaxDepth)-depth]
+
+	// the expected hash of an empty node at the given depth
+	height := int(params.MaxDepth) - depth
+	expectedHash := core.DefaultHashes[height]
+
+	// iterate through all leaves at the depth to find this empty leaf
+	// NOTE: as we get more deposits this part would need optimisations
+	// for example running splitting the queries in different threads
 	for i := 0; i < totalLeaves; i++ {
 		path, errr := core.SolidityPathToNodePath(uint64(i), uint64(depth))
 		if errr != nil {
@@ -208,6 +220,7 @@ func (db *DB) FindEmptyState(depth int) (state core.UserState, err error) {
 			return
 		}
 
+		// as soon as the expected hash is found we return it
 		if state.Hash == expectedHash.String() && !state.IsReserved {
 			break
 		}

@@ -17,10 +17,7 @@ func (db *DB) UpdateSyncStatusWithBlockNumber(blkNum uint64) error {
 	}
 	var updatedSyncStatus core.SyncStatus
 	updatedSyncStatus.LastEthBlockRecorded = blkNum
-	if err := db.Instance.Table("sync_statuses").Where("id = ?", syncStatus.ID).Update(&updatedSyncStatus).Error; err != nil {
-		return err
-	}
-	return nil
+	return db.Instance.Table("sync_statuses").Where("id = ?", syncStatus.ID).Update(&updatedSyncStatus).Error
 }
 
 func (db *DB) GetSyncStatus() (status core.SyncStatus, err error) {

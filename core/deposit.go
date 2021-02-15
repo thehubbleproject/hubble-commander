@@ -12,12 +12,10 @@ type Deposit struct {
 	// AccountID is the path of the pubkey in the account Tree
 	AccountID uint64 `gorm:"not null;index:AccountID"`
 
+	// SubtreeID is the subtree ID for the deposit
+	SubtreeID uint64 `gorm:"default:'18446744073709551615'"`
+
 	Data []byte `gorm:"type:varbinary(255)"`
-
-	Hash string `gorm:"not null;index:Hash"`
-
-	// Add the deposit root for the state
-	DepositRoot string
 }
 
 // BeforeCreate sets id before creating
@@ -31,10 +29,8 @@ func (s *Deposit) BeforeCreate(scope *gorm.Scope) error {
 
 // NewDeposit creates a new deposit
 func NewDeposit(accID uint64, data []byte) *Deposit {
-	hash := Keccak256(data)
 	return &Deposit{
 		AccountID: accID,
 		Data:      data,
-		Hash:      hash.String(),
 	}
 }
