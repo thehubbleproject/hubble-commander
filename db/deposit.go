@@ -2,7 +2,6 @@ package db
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/BOPR/core"
 )
@@ -64,7 +63,6 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, subtreeID uint64) er
 	}
 
 	if len(terminalNodes) != len(deposits) {
-		fmt.Println("here", len(terminalNodes), len(deposits))
 		return errors.New("deposit subtree cannot be empty")
 	}
 
@@ -94,12 +92,7 @@ func (db *DB) GetPendingDeposits(subtreeID uint64) ([]core.Deposit, error) {
 func (db *DB) ClearPendingDeposits(subtreeID uint64) error {
 	var deposit core.Deposit
 	query := db.Instance.Scopes(QueryBySubtreeID(subtreeID)).Delete(&deposit)
-	fmt.Println("deleting deposit count", query.RowsAffected)
-	err := query.Error
-	if err != nil {
-		return core.ErrRecordNotFound("unable to clear pendingDeposits")
-	}
-	return nil
+	return query.Error
 }
 
 // AttachDepositInfo attaches deposit information to the deposits
@@ -115,7 +108,6 @@ func (db *DB) AttachDepositInfo(subtreeID uint64) error {
 	// to deposits who doesnt have it
 	for _, deposit := range deposits {
 		if deposit.SubtreeID == 18446744073709551615 {
-			fmt.Println("hit hit")
 			if err := db.Instance.Model(&deposit).Scopes(QueryByID(deposit.ID)).Update("subtree_id", subtreeID).Error; err != nil {
 				return err
 			}
