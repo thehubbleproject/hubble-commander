@@ -97,7 +97,7 @@ func (db *DB) ClearPendingDeposits(subtreeID uint64) error {
 	fmt.Println("deleting deposit count", query.RowsAffected)
 	err := query.Error
 	if err != nil {
-		return core.ErrRecordNotFound(fmt.Sprintf("unable to clear pendingDeposits"))
+		return core.ErrRecordNotFound("unable to clear pendingDeposits")
 	}
 	return nil
 }
