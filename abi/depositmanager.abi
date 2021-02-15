@@ -44,8 +44,14 @@
     "inputs": [
       {
         "indexed": false,
+        "internalType": "uint256",
+        "name": "subtreeID",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
         "internalType": "bytes32",
-        "name": "root",
+        "name": "subtreeRoot",
         "type": "bytes32"
       }
     ],
@@ -137,6 +143,11 @@
     "inputs": [],
     "name": "dequeueToSubmit",
     "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "subtreeID",
+        "type": "uint256"
+      },
       {
         "internalType": "bytes32",
         "name": "subtreeRoot",

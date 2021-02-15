@@ -12,7 +12,8 @@ type Deposit struct {
 	// AccountID is the path of the pubkey in the account Tree
 	AccountID uint64 `gorm:"not null;index:AccountID"`
 
-	TxHash string `gorm:"type:varbinary(255)"`
+	// SubtreeID is the subtree ID for the deposit
+	SubtreeID uint64 `gorm:"default:'18446744073709551615'"`
 
 	Data []byte `gorm:"type:varbinary(255)"`
 }

@@ -35,7 +35,7 @@ func (db *DB) GetDepositNodeAndSiblings() (nodeToBeReplaced core.UserState, sibl
 }
 
 // FinaliseDeposits finalises the deposits for a deposit subtree
-func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.ByteArray) error {
+func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, subtreeID uint64) error {
 	db.Logger.Info("Finalising deposits", "pathToDepositSubTree", pathToDepositSubTree)
 
 	params, err := db.GetParams()
@@ -44,12 +44,12 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.Byt
 	}
 
 	// find out the deposits that are to be finalised
-	deposits, err := db.GetPendingDeposits(depositRoot)
+	deposits, err := db.GetPendingDeposits(subtreeID)
 	if err != nil {
 		return err
 	}
 
-	db.Logger.Info("Got pending deposits", "depositRoot", depositRoot, "PendingDepositCount", len(deposits))
+	db.Logger.Info("Got pending deposits", "PendingDepositCount", len(deposits))
 
 	// find out where the insertion was made
 	height := params.MaxDepth - params.MaxDepositSubTreeHeight
@@ -77,13 +77,13 @@ func (db *DB) FinaliseDeposits(pathToDepositSubTree uint64, depositRoot core.Byt
 		}
 	}
 
-	return db.ClearPendingDeposits()
+	return db.ClearPendingDeposits(subtreeID)
 }
 
 // GetPendingDeposits fetches all deposits created by a specific deposit subtree
-func (db *DB) GetPendingDeposits(root core.ByteArray) ([]core.Deposit, error) {
+func (db *DB) GetPendingDeposits(subtreeID uint64) ([]core.Deposit, error) {
 	var pendingDeposits []core.Deposit
-	query := db.Instance.Order("accounc_id asc").Find(&pendingDeposits)
+	query := db.Instance.Order("account_id asc").Scopes(QueryBySubtreeID(subtreeID)).Find(&pendingDeposits)
 	if err := query.Error; err != nil {
 		return pendingDeposits, err
 	}
@@ -91,12 +91,36 @@ func (db *DB) GetPendingDeposits(root core.ByteArray) ([]core.Deposit, error) {
 }
 
 // ClearPendingDeposits empties the pending deposit table
-func (db *DB) ClearPendingDeposits() error {
+func (db *DB) ClearPendingDeposits(subtreeID uint64) error {
 	var deposit core.Deposit
-	query := db.Instance.Delete(&deposit)
+	query := db.Instance.Scopes(QueryBySubtreeID(subtreeID)).Delete(&deposit)
+	fmt.Println("deleting deposit count", query.RowsAffected)
 	err := query.Error
 	if err != nil {
 		return core.ErrRecordNotFound(fmt.Sprintf("unable to clear pendingDeposits"))
 	}
+	return nil
+}
+
+// AttachDepositInfo attaches deposit information to the deposits
+func (db *DB) AttachDepositInfo(subtreeID uint64) error {
+	// find all pending deposits
+	var deposits []core.Deposit
+	result := db.Instance.Find(&deposits)
+	if err := result.Error; err != nil {
+		return err
+	}
+
+	// iterate over all pending deposits and add subtreeID
+	// to deposits who doesnt have it
+	for _, deposit := range deposits {
+		if deposit.SubtreeID == 18446744073709551615 {
+			fmt.Println("hit hit")
+			if err := db.Instance.Model(&deposit).Scopes(QueryByID(deposit.ID)).Update("subtree_id", subtreeID).Error; err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }

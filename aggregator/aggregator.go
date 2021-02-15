@@ -153,7 +153,7 @@ func (a *Aggregator) processAndSubmitBatch(txs []core.Tx) {
 	lastCommitment := commitments[len(commitments)-1]
 
 	// record batch locally
-	newBatch := core.NewBatch(a.cfg.OperatorAddress, txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
+	newBatch := core.NewBatch(txHash, lastCommitment.BatchType, core.BATCH_BROADCASTED)
 	batchID, err := a.DB.AddNewBatch(newBatch, commitments)
 	if err != nil {
 		a.Logger.Error("Error adding new batch", "error", err)
