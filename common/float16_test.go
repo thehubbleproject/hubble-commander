@@ -35,12 +35,17 @@ func TestFloat16(t *testing.T) {
 		{"11490000", "447d"},
 	}
 	for _, tt := range tests {
-		input, _ := strconv.ParseUint(tt.uncompressed, 10, 64)
-		output, err := Compress(input)
+		ttInt, _ := strconv.ParseUint(tt.uncompressed, 10, 64)
+		ttBytes, _ := hex.DecodeString(tt.compressed)
+		ttByte2 := [2]byte{ttBytes[0], ttBytes[1]}
+
+		compressed, err := Compress(ttInt)
 		require.NoError(t, err)
-		expectBytes, _ := hex.DecodeString(tt.compressed)
-		expect := [2]byte{expectBytes[0], expectBytes[1]}
-		require.Equal(t, expect, output)
+		require.Equal(t, ttByte2, compressed, "Compression failed")
+
+		decompressed := Decompress(ttByte2)
+		require.Equal(t, ttInt, decompressed, "Decompression failed")
+
 	}
 
 }

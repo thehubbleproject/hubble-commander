@@ -27,13 +27,21 @@ func Compress(input uint64) (output [2]byte, err error) {
 		return output, fmt.Errorf("mantissa %d is greater than mantissaMax %d", mantissa, mantissaMax)
 	}
 	combined := (exponent << mantissaBits) | uint16(mantissa)
+	// combined is a little endian golang type
 	output[0] = byte(combined >> 8)
 	output[1] = byte(combined)
 	return
 }
 
-func Decompress() {
-
+// Decompress decompress a float16 2 bytes to an unsinged 64 bits integer
+func Decompress(input [2]byte) (output uint64) {
+	mantissa := uint16(input[0]&0x0F)<<8 | uint16(input[1])
+	exponent := (input[0] & 0xF0) >> 4
+	result := uint64(mantissa)
+	for i := uint8(0); i < exponent; i++ {
+		result *= 10
+	}
+	return result
 }
 
 func Round() {
