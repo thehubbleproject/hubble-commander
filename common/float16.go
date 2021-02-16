@@ -44,6 +44,18 @@ func Decompress(input [2]byte) (output uint64) {
 	return result
 }
 
-func Round() {
-
+// Round converts an input to the largest possible compressible integer
+func Round(input uint64) (output uint64, err error) {
+	mantissa := input
+	exponent := uint16(0)
+	powOfTen := uint64(1)
+	for exponent < exponentMax {
+		if mantissa <= mantissaMax {
+			return mantissa * powOfTen, nil
+		}
+		mantissa /= 10
+		powOfTen *= 10
+		exponent++
+	}
+	return 0, fmt.Errorf("Can't round the input %d", input)
 }

@@ -49,3 +49,23 @@ func TestFloat16(t *testing.T) {
 	}
 
 }
+
+func TestRounding(t *testing.T) {
+	tests := []struct {
+		input  uint64
+		expect uint64
+	}{
+		{12345, 12340},
+		{56789, 56700},
+		{123123, 123100},
+		{186950000000, 186900000000},
+		{4096, 4090},
+		{4095, 4095},
+	}
+	for _, tt := range tests {
+		rounded, err := Round(tt.input)
+		require.NoError(t, err)
+		require.Equal(t, tt.expect, rounded)
+	}
+
+}
