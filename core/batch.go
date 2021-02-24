@@ -16,14 +16,13 @@ var (
 // Batch is the batches that need to be submitted on-chain periodically
 type Batch struct {
 	BatchID        uint64 `json:"batch_id,omitempty"`
-	Committer      string `json:"committer,omitempty"`
 	SubmissionHash string `json:"submission_hash,omitempty"`
 	BatchType      uint64 `json:"batch_type,omitempty"`
 	Status         uint64 `json:"status,omitempty"`
 }
 
-func NewBatch(committer, submissionHash string, batchType, status uint64) Batch {
-	return Batch{Committer: committer, SubmissionHash: submissionHash, BatchType: batchType, Status: status}
+func NewBatch(submissionHash string, batchType, status uint64) Batch {
+	return Batch{SubmissionHash: submissionHash, BatchType: batchType, Status: status}
 }
 
 type Commitments []Commitment
