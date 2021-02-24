@@ -163,7 +163,7 @@ func (bi *Bidder) ShouldPropose() (ok bool, err error) {
 }
 
 // Bid bids the bid amount for the coordinator on-chain
-func (bi *Bidder) Bid() (err error) {
+func (bi *Bidder) Bid() {
 	bi.Logger.Info("Attempting to bid on slot!")
 	defer bi.wg.Done()
 
@@ -171,22 +171,20 @@ func (bi *Bidder) Bid() (err error) {
 	if bi.bidderInfo.DepositAmount <= bi.cfg.MinDeposit {
 		txHash, errI := bi.bz.DepositForAuction(int64(bi.cfg.MinDeposit), bi.bidderInfo.Address)
 		if errI != nil {
-			return errI
+			return
 		}
 
 		bi.Logger.Info("We did not have enough ether deposited, sent new deposit", "txHash", txHash)
 
 		// return wtih no error, we bid on next poll
-		return nil
+		return
 	}
 
 	// bid for the slot
 	txHash, err := bi.bz.Bid(bi.cfg.BidAmount)
 	if err != nil {
-		return err
+		return
 	}
 
 	bi.Logger.Info("Sent new bid!", "txHash", txHash, "amount", bi.cfg.BidAmount, "proposer", bi.bidderInfo.Address)
-
-	return nil
 }
