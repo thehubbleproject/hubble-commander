@@ -8,7 +8,6 @@ import (
 	"github.com/BOPR/bazooka"
 	"github.com/BOPR/config"
 	"github.com/BOPR/core"
-	"github.com/BOPR/db"
 	"github.com/BOPR/log"
 	ethCmn "github.com/ethereum/go-ethereum/common"
 )
@@ -30,9 +29,6 @@ type Bidder struct {
 	// Base service
 	core.BaseService
 
-	// DB instance
-	DB db.DB
-
 	bz bazooka.Bazooka
 
 	cfg config.Configuration
@@ -52,16 +48,11 @@ func NewBidder(cfg config.Configuration) *Bidder {
 	logger := log.Logger.With("module", BiddingService)
 	bi := &Bidder{}
 	bi.BaseService = *core.NewBaseService(logger, BiddingService, bi)
-	DB, err := db.NewDB(cfg)
-	if err != nil {
-		panic(err)
-	}
 	bz, err := bazooka.NewPreLoadedBazooka(cfg)
 	if err != nil {
 		panic(err)
 	}
 	bi.bz = bz
-	bi.DB = DB
 	bi.cfg = cfg
 
 	bi.bidderInfo.Address = ethCmn.HexToAddress(cfg.OperatorAddress)
@@ -88,7 +79,6 @@ func (bi *Bidder) OnStart() error {
 // OnStop stops all necessary go routines
 func (bi *Bidder) OnStop() {
 	bi.BaseService.OnStop() // Always call the overridden method.
-	bi.DB.Close()
 	// cancel ack process
 	bi.cancelBidding()
 }
