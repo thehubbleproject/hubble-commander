@@ -2,7 +2,6 @@ package bidder
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -96,22 +95,23 @@ func (bi *Bidder) OnStop() {
 
 func (bi *Bidder) startBidding(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
+
 	// stop ticker when everything done
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
-			fmt.Println("ping")
-			ok, err := bi.ShouldPropose()
+			shouldPropose, err := bi.ShouldPropose()
 			if err != nil {
-				fmt.Println("error", err)
+				bi.Logger.Error("Could not determine bidding action", "err", err)
 				return
 			}
-			if !ok {
-				fmt.Println("is ok", ok)
+
+			bi.Logger.Info("Bidding action decided", "shouldPropose", shouldPropose)
+			if !shouldPropose {
 				return
 			}
-			fmt.Println("proposing")
+
 			bi.wg.Wait()
 			bi.wg.Add(1)
 			go bi.Bid()
@@ -124,9 +124,11 @@ func (bi *Bidder) startBidding(ctx context.Context, interval time.Duration) {
 
 // ShouldPropose checks whether we should propose or not
 func (bi *Bidder) ShouldPropose() (ok bool, err error) {
+	bi.Logger.Info("Deciding if we should propose")
+
 	depositSize, err := bi.bz.GetDeposit(bi.bidderInfo.Address)
 	if err != nil {
-		fmt.Println("error getting deposit_size", err)
+		bi.Logger.Error("Error getting deposit_size", "error", err)
 		return
 	}
 
@@ -136,6 +138,7 @@ func (bi *Bidder) ShouldPropose() (ok bool, err error) {
 	// check the current bidable slot
 	slotOnAuction, err := bi.bz.GetBidableSlot()
 	if err != nil {
+		bi.Logger.Error("Error getting bidable slot", "error", err)
 		return
 	}
 
@@ -143,11 +146,12 @@ func (bi *Bidder) ShouldPropose() (ok bool, err error) {
 
 	proposerAddr, bidAmount, isInit, err := bi.bz.GetCurrentBidForSlot(slotOnAuction)
 	if err != nil {
+		bi.Logger.Error("Error getting current bid for slot", "error", err)
 		return
 	}
 
-	// if not has bid yet, we can be the first ones
-	if isInit {
+	// if no one has bid yet, we can be the first ones
+	if !isInit {
 		bi.Logger.Info("No one has bid yet, bidding...", "proposer", bi.bidderInfo.Address)
 		return true, nil
 	}
@@ -168,18 +172,25 @@ func (bi *Bidder) ShouldPropose() (ok bool, err error) {
 	return true, nil
 }
 
+// Bid bids the bid amount for the coordinator on-chain
 func (bi *Bidder) Bid() (err error) {
+	bi.Logger.Info("Attempting to bid on slot!")
 	defer bi.wg.Done()
-	fmt.Println("bidding")
-	if bi.bidderInfo.DepositAmount < bi.cfg.BidAmount {
-		txHash, errI := bi.bz.DepositForAuction(int64(bi.cfg.BidAmount) * 10)
+
+	// check if we have enough minimmum amount deposited on-chain
+	if bi.bidderInfo.DepositAmount <= bi.cfg.MinDeposit {
+		txHash, errI := bi.bz.DepositForAuction(int64(bi.cfg.MinDeposit), bi.bidderInfo.Address)
 		if errI != nil {
 			return errI
 		}
+
 		bi.Logger.Info("We did not have enough ether deposited, sent new deposit", "txHash", txHash)
+
+		// return wtih no error, we bid on next poll
 		return nil
 	}
 
+	// bid for the slot
 	txHash, err := bi.bz.Bid(bi.cfg.BidAmount)
 	if err != nil {
 		return err
