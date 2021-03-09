@@ -31,6 +31,10 @@ operator_address = "{{ .OperatorAddress }}"
 #### Syncer settings #####
 confirmation_blocks = "{{ .ConfirmationBlocks }}"
 
+### Auction configration ###
+# NOTE: amounts are in wei
+bid_amount = "{{ .BidAmount }}"
+min_deposit = "{{ .MinDeposit }}"
 
 #################################### NON CONFIGRABLE FIELDS BELOW #################################
 

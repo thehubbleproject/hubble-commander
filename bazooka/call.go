@@ -9,6 +9,7 @@ import (
 	"github.com/BOPR/core"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	ethCmn "github.com/ethereum/go-ethereum/common"
 )
 
 // CompressTxs compresses all transactions
@@ -221,4 +222,61 @@ func (b *Bazooka) FetchFromAndToStateIDs(tx core.Tx) (from, to uint64, err error
 		fmt.Println("TxType didnt match any options", tx.Type)
 		return 0, 0, errors.New("Did not match any options")
 	}
+}
+
+//
+// burn auction
+//
+
+// GetCurrentProposer fetches the current proposer from on-chain contract
+func (b *Bazooka) GetCurrentProposer() (common.Address, error) {
+	opts := bind.CallOpts{From: b.operator}
+	proposer, err := b.SC.BurnAuction.GetProposer(&opts)
+	if err != nil {
+		return proposer, err
+	}
+
+	return proposer, nil
+}
+
+// GetCurrentSlot fetches the current slot
+func (b *Bazooka) GetCurrentSlot() (currentSlot uint32, err error) {
+	opts := bind.CallOpts{From: b.operator}
+	slot, err := b.SC.BurnAuction.CurrentSlot(&opts)
+	if err != nil {
+		return 0, err
+	}
+	return slot, nil
+}
+
+// GetBidableSlot fetches the current slot
+func (b *Bazooka) GetBidableSlot() (bidableSlot uint32, err error) {
+	currSlot, err := b.GetCurrentSlot()
+	if err != nil {
+		return 0, err
+	}
+	return currSlot + 2, nil
+}
+
+// GetCurrentBidForSlot fetches the current bid for the slot
+func (b *Bazooka) GetCurrentBidForSlot(slot uint32) (proposer ethCmn.Address, amount uint64, isInit bool, err error) {
+	opts := bind.CallOpts{From: b.operator}
+	resp, err := b.SC.BurnAuction.Auction(&opts, slot)
+	if err != nil {
+		return
+	}
+	return resp.Coordinator, resp.Amount.Uint64(), resp.Initialized, nil
+}
+
+// GetDeposit fetches the deposit amount for the proposer
+func (b *Bazooka) GetDeposit(proposer ethCmn.Address) (uint64, error) {
+	opts := bind.CallOpts{From: b.operator}
+	fmt.Println("proposer", proposer)
+	amount, err := b.SC.BurnAuction.Deposits(&opts, proposer)
+	if err != nil {
+		return 0, err
+	}
+
+	fmt.Println("amount", amount)
+	return amount.Uint64(), nil
 }

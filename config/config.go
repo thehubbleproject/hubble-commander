@@ -68,6 +68,9 @@ type Configuration struct {
 
 	GenesisEth1Block uint64 `mapstructure:"genesis_eth1_block"`
 	AppID            string `mapstructure:"app_id"`
+
+	BidAmount  uint64 `mapstructure:"bid_amount"`
+	MinDeposit uint64 `mapstructure:"min_deposit"`
 }
 
 // GetDefaultConfig returns the default configration options
@@ -103,6 +106,8 @@ func GetDefaultConfig() Configuration {
 
 		GenesisEth1Block: 0,
 		AppID:            "",
+		BidAmount:        10000000000000000,
+		MinDeposit:       10000000000000000000,
 	}
 }
 

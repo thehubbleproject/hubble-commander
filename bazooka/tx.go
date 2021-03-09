@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/BOPR/contracts/accountregistry"
+	"github.com/BOPR/contracts/burnauction"
 	"github.com/BOPR/contracts/depositmanager"
 	"github.com/BOPR/contracts/erc20"
 	"github.com/BOPR/contracts/rollup"
@@ -423,5 +424,51 @@ func (b *Bazooka) Deposit(pubkey [4]*big.Int, tokenID uint64, amount uint64) (tx
 		b.log.Error("Error sending register batch", "err", err)
 		return
 	}
+	return tx.Hash().String(), nil
+}
+
+// Bid bids the amount specified for the current coordinator
+func (b *Bazooka) Bid(amount uint64) (txHash string, err error) {
+	burnAuctionABI, err := abi.JSON(strings.NewReader(burnauction.BurnauctionABI))
+	if err != nil {
+		return
+	}
+	value := big.NewInt(0)
+	value = value.SetUint64(amount)
+	data, err := burnAuctionABI.Pack("bid", value)
+	if err != nil {
+		b.log.Error("Error packing data for register batch", "err", err)
+		return
+	}
+
+	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(b.Cfg.BurnAuction), value, data)
+	if err != nil {
+		b.log.Error("Error bidding for slot", "err", err)
+		return
+	}
+	return tx.Hash().String(), nil
+}
+
+// DepositForAuction deposits ETH to be used for bidding to burn auction contract
+func (b *Bazooka) DepositForAuction(amountInWei int64, proposer ethCmn.Address) (txHash string, err error) {
+	burnAuctionABI, err := abi.JSON(strings.NewReader(burnauction.BurnauctionABI))
+	if err != nil {
+		return
+	}
+
+	data, err := burnAuctionABI.Pack("deposit", proposer)
+	if err != nil {
+		b.log.Error("Error packing data for deposit", "err", err)
+		return
+	}
+
+	value := big.NewInt(amountInWei)
+
+	tx, err := b.SignAndBroadcast(b.EthClient, ethCmn.HexToAddress(b.Cfg.BurnAuction), value, data)
+	if err != nil {
+		b.log.Error("Error depositing ETH for auction", "err", err)
+		return
+	}
+
 	return tx.Hash().String(), nil
 }
